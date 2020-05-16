@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Gatsby
  * Description: Optimize your WordPress site to be a source for Gatsby site(s).
- * Version: 0.2.4
+ * Version: 0.2.5
  * Author: GatsbyJS, Jason Bahl, Tyler Barnes
  * Author URI: https://gatsbyjs.org
  * Text Domain: wp-gatsby
@@ -91,7 +91,7 @@ final class WPGatsby {
 	private function setup_constants() {
 		// Plugin version.
 		if ( ! defined( 'WPGATSBY_VERSION' ) ) {
-			define( 'WPGATSBY_VERSION', '0.2.4' );
+			define( 'WPGATSBY_VERSION', '0.2.5' );
 		}
 
 		// Plugin Folder Path.
@@ -182,11 +182,6 @@ final class WPGatsby {
 		 * Initialize Auth token parser
 		 */
 		new \WPGatsby\GraphQL\ParseAuthToken();
-
-		/**
-		 * Dispatch builds
-		 */
-		new \WPGatsby\ActionMonitor\Dispatcher();
 	}
 
 }

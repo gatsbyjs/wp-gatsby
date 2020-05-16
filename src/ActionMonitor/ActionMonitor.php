@@ -2,6 +2,7 @@
 
 namespace WPGatsby\ActionMonitor;
 
+use WPGatsby\Admin\Settings;
 use GraphQLRelay\Relay;
 
 /**
@@ -10,6 +11,20 @@ use GraphQLRelay\Relay;
  * Gatsby's cached nodes
  */
 class ActionMonitor {
+
+	/**
+	 * Whether a build hook should be dispatched. Default false.
+	 *
+	 * @var bool
+	 */
+	protected $should_dispatch = false;
+
+	/**
+	 * An array of posts ID's for posts that have been updated
+	 * in this ActionMonitor instantiation
+	 */
+	protected $updated_post_ids = [];
+
 	/**
 	 * Set up the Action monitor when the class is initialized
 	 */
@@ -20,6 +35,8 @@ class ActionMonitor {
 				$this->initPostType();
 			}
 		);
+
+		add_action( 'shutdown', [ $this, 'trigger_dispatch' ] );
 
 		$this->registerGraphQLFields();
 		$this->monitorActions();
@@ -99,11 +116,22 @@ class ActionMonitor {
 				graphql_format_field_name( $args['graphql_plural_name'] )
 			);
 
+			if ( $args['post_modified'] ?? null ) {
+				\update_post_meta(
+					$action_monitor_post_id,
+					'referenced_node_post_modified',
+					$args['post_modified']
+				);
+			}
+
 			\wp_update_post( [
 				'ID'          => $action_monitor_post_id,
 				'post_status' => 'publish'
 			] );
 		}
+
+		// we've saved at least 1 action, so we should update
+		$this->should_dispatch = true;
 
 		$this->garbageCollectActions();
 	}
@@ -113,11 +141,15 @@ class ActionMonitor {
 	 */
 	function monitorActions() {
 		// Post / Page actions
-		add_action( 'save_post', function( $post_id ) {
+		add_action( 'save_post', function( $post_id, $post ) {
+
+			if ( ! $this->savePostGuardClauses( $post ) ) {
+				return;
+			}
 
 			$this->savePost( $post_id );
 
-		}, 10, 2 );
+		}, 1, 2 );
 
 		add_action( 'pre_post_update', [ $this, 'preSavePost' ], 10, 2 );
 
@@ -161,9 +193,9 @@ class ActionMonitor {
 		$meta_types = [ 'user', 'post', 'page' ];
 
 		foreach ( $meta_types as $type ) {
-			add_action( "updated_{$type}_meta", [ $this, 'modifyMeta' ], 10, 3 );
-			add_action( "added_{$type}_meta", [ $this, 'modifyMeta' ], 10, 3 );
-			add_action( "deleted_{$type}_meta", [ $this, 'modifyMeta' ], 10, 3 );
+			add_action( "updated_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
+			add_action( "added_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
+			add_action( "deleted_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
 		}
 
 	}
@@ -457,12 +489,12 @@ class ActionMonitor {
   }
 
 	function saveTerm( $term_id, $taxonomy, $action_type, $recursing = null ) {
-    $term_info = $this->getTermInfo( $term_id, $taxonomy );
-    $taxonomy_object = $term_info['taxonomy_object'] ?? null;
+		$term_info = $this->getTermInfo( $term_id, $taxonomy );
+		$taxonomy_object = $term_info['taxonomy_object'] ?? null;
 
-    if ( $this->isTermPrivate( $taxonomy_object) ) {
-      return;
-    }
+		if ( $this->isTermPrivate( $taxonomy_object) ) {
+		return;
+		}
 
 		$this->insertNewAction( [
 			'action_type'         => $action_type,
@@ -472,9 +504,9 @@ class ActionMonitor {
 			'relay_id'            => $term_info['global_relay_id'],
 			'graphql_single_name' => $term_info['graphql_single_name'],
 			'graphql_plural_name' => $term_info['graphql_plural_name'],
-    ] );
+		] );
 
-    $this->saveTermRelatives( $term_info, $taxonomy, $action_type, $recursing );
+		$this->saveTermRelatives( $term_info, $taxonomy, $action_type, $recursing );
 	}
 
 	function deleteMediaItem( $attachment_id ) {
@@ -581,7 +613,7 @@ class ActionMonitor {
 		] );
 	}
 
-	function savePostGuardClauses( $post ) {
+	function savePostGuardClauses( $post, $in_pre_save_post = false ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return false;
 		}
@@ -601,6 +633,33 @@ class ActionMonitor {
 		if ( $post->post_type === 'action_monitor' ) {
 			return false;
 		}
+		
+		// if we've recorded this post being updated already
+		// no need to do it twice
+		if ( !$in_pre_save_post && in_array( $post->ID, $this->updated_post_ids ) ) {
+			return false;
+		}
+
+		$duplicate_actions = new \WP_Query( [
+			'post_type'  => 'action_monitor',
+			'meta_query' => [
+					'relation' => 'AND',
+					[
+						'key' => 'referenced_node_post_modified',
+						'value' => $post->post_modified
+					],
+					[
+						'key' => 'referenced_node_id',
+						'value' => $post->ID
+					],
+				],
+			]
+		);
+
+		
+		if ( $duplicate_actions->found_posts ) {
+			return false;
+		}
 
 		return true;
 	}
@@ -610,7 +669,9 @@ class ActionMonitor {
 	function preSavePost( $post_id, $updated_post_object ) {
 		$post = get_post( $post_id );
 
-		if ( ! $this->savePostGuardClauses( $post ) ) {
+		$in_pre_save_post = true;
+
+		if ( ! $this->savePostGuardClauses( $post, $in_pre_save_post ) ) {
 			return;
 		}
 
@@ -629,6 +690,10 @@ class ActionMonitor {
 			return;
 		}
 
+		// store that we've saved an action for this post,
+		// so that we don't store it more than once.
+		array_push( $this->updated_post_ids, $post_id );
+
 		$post_type_object = \get_post_type_object( $post->post_type );
 
 		$title           = $post->post_title ?? '';
@@ -642,6 +707,8 @@ class ActionMonitor {
 			= $post_type_object->graphql_single_name ?? null;
 		$referenced_node_plural_name
 			= $post_type_object->graphql_plural_name ?? null;
+		$referenced_node_modified_date
+			= $post->post_modified;
 
 		if ( $post->post_type === 'nav_menu_item' ) {
 			// for now, bail on nav menu items.
@@ -700,6 +767,7 @@ class ActionMonitor {
 			'relay_id'            => $global_relay_id,
 			'graphql_single_name' => $referenced_node_single_name,
 			'graphql_plural_name' => $referenced_node_plural_name,
+			'post_modified'       => $referenced_node_modified_date,
 		] );
 
 		$previous_post_parent        = $this->post_object_before_update->post_parent ?? 0;
@@ -933,5 +1001,19 @@ class ActionMonitor {
 		);
 
 		register_post_type( "action_monitor", $args );
+	}
+
+	public function trigger_dispatch() {
+		$webhook_field = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
+		
+		if ( $webhook_field && $this->should_dispatch ) {
+			
+			$webhooks = explode( ',', $webhook_field );
+
+			foreach ( $webhooks as $webhook ) {
+				wp_safe_remote_post( $webhook );
+			}
+
+		}
 	}
 }
