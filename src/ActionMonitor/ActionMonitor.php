@@ -143,10 +143,6 @@ class ActionMonitor {
 		// Post / Page actions
 		add_action( 'save_post', function( $post_id, $post ) {
 
-			if ( ! $this->savePostGuardClauses( $post ) ) {
-				return;
-			}
-
 			$this->savePost( $post_id );
 
 		}, 1, 2 );

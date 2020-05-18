@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.2.6
+
+### Bug fixes
+
+Fixed an issue where we were trying to access post object properties when we didn't yet have the post.
+
 ## 0.2.5
 
 ### Bug Fixes
