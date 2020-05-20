@@ -11,7 +11,7 @@ $revision = array_values( wp_get_post_revisions( $post_id ) )[0] ?? null;
 $post_type_object = \get_post_type_object( $post->post_type );
 
 $global_relay_id = Relay::toGlobalId(
-	$post_type_object->name,
+	'post',
 	absint( $post_id )
 );
 

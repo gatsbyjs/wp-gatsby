@@ -340,7 +340,7 @@ class ActionMonitor {
 
 	function getTermInfo( $term_id, $taxonomy, $deleted_term = null ) {
 		$global_relay_id = Relay::toGlobalId(
-			$taxonomy,
+			'term',
 			$term_id
 		);
 
@@ -509,7 +509,7 @@ class ActionMonitor {
 		$attachment = get_post( $attachment_id );
 
 		$global_relay_id = Relay::toGlobalId(
-			'attachment',
+			'post',
 			$attachment_id
 		);
 
@@ -540,7 +540,7 @@ class ActionMonitor {
 		}
 
 		$global_relay_id = Relay::toGlobalId(
-			'attachment',
+			'post',
 			$attachment_id
 		);
 
@@ -559,7 +559,7 @@ class ActionMonitor {
 	function deleteMenu( $menu_id ) {
 
 		$global_relay_id = Relay::toGlobalId(
-			'Menu',
+			'nav_menu',
 			$menu_id
 		);
 
@@ -594,7 +594,7 @@ class ActionMonitor {
 		}
 
 		$global_relay_id = Relay::toGlobalId(
-			'Menu',
+			'nav_menu',
 			$menu_id
 		);
 
@@ -695,7 +695,7 @@ class ActionMonitor {
 		$title           = $post->post_title ?? '';
 		$global_relay_id = '';
 		$global_relay_id = Relay::toGlobalId(
-			$post_type_object->name,
+			'post',
 			absint( $post_id )
 		);
 

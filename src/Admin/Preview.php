@@ -99,7 +99,7 @@ class Preview {
 			: \get_post_type_object( $post->post_type );
 
 		$global_relay_id = Relay::toGlobalId(
-			$post_type_object->name,
+			'post',
 			absint( $original_post->ID ?? $post_ID )
 		);
 
