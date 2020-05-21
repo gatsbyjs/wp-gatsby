@@ -559,7 +559,7 @@ class ActionMonitor {
 	function deleteMenu( $menu_id ) {
 
 		$global_relay_id = Relay::toGlobalId(
-			'nav_menu',
+			'term',
 			$menu_id
 		);
 
@@ -594,7 +594,7 @@ class ActionMonitor {
 		}
 
 		$global_relay_id = Relay::toGlobalId(
-			'nav_menu',
+			'term',
 			$menu_id
 		);
 

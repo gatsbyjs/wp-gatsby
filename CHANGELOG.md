@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.0
+
+### Breaking Changes
+
+- WPGraphQL was using nav_menu for it's menu relay id's instead of term. WPGQL 0.9.1 changes this from nav_menu to term. This is a breaking change because cache invalidation wont work properly if the id is incorrect. So we move to v0.4.0 so gatsby-source-wordpress-experimental can set 0.4.0 as it's min version and cache invalidation will keep working.
+
 ## 0.3.0
 
 ### Breaking Changes
