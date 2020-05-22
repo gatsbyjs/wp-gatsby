@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.4.1
+
+Version bump to add /vendor directory to Git so that Github releases work as WP plugins without running `composer install`. In the future there will be a better release process, but for now this works.
+
 ## 0.4.0
 
 ### Breaking Changes
