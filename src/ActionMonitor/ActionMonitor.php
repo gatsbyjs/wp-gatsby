@@ -618,10 +618,6 @@ class ActionMonitor {
 			return false;
 		}
 
-		if ( $post->post_status === 'draft' ) {
-			return false;
-		}
-
 		if ( $post->post_type === 'revision' ) {
 			return false;
 		}
