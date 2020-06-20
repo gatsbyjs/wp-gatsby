@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.2
+
+### Bug Fixes
+
+- Previously when a post transitioned from published to draft, it wouldn't be deleted in Gatsby
+
 ## 0.4.1
 
 Version bump to add /vendor directory to Git so that Github releases work as WP plugins without running `composer install`. In the future there will be a better release process, but for now this works.
