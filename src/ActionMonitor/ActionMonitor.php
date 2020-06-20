@@ -618,6 +618,17 @@ class ActionMonitor {
 			return false;
 		}
 
+		$last_status_was_publish
+			= $this->post_object_before_update->post_status ?? null 
+				!== 'publish';
+
+		if (
+			$last_status_was_publish &&
+			$post->post_status === 'draft'
+		) {
+			return false;
+		}
+
 		if ( $post->post_type === 'revision' ) {
 			return false;
 		}
@@ -660,12 +671,6 @@ class ActionMonitor {
 
 	function preSavePost( $post_id, $updated_post_object ) {
 		$post = get_post( $post_id );
-
-		$in_pre_save_post = true;
-
-		if ( ! $this->savePostGuardClauses( $post, $in_pre_save_post ) ) {
-			return;
-		}
 
 		$this->post_object_before_update = $post;
 	}
