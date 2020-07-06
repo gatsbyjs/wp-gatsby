@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.5.5
+
+Re-publish with proper package name
+
 ## 0.4.4
 
 Testing Github Actions
