@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.4.3
+
+New release to trigger publishing to WordPress.org!
+
 ## 0.4.2
 
 ### Bug Fixes
