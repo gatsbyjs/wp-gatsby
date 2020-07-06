@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.4.4
+
+Testing Github Actions
+
 ## 0.4.3
 
 New release to trigger publishing to WordPress.org!
