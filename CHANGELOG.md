@@ -1,6 +1,10 @@
 # Change Log
 
-## 0.5.5
+## 0.4.6
+
+Add Wapuu Icons for display in the WordPress.org repo
+
+## 0.4.5
 
 Re-publish with proper package name
 
