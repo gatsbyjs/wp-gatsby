@@ -8,4 +8,5 @@ Stable tag: 0.4.6
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-This plugin helps configure your WordPress site to be an optimized source for Gatsby site(s).
+This plugin configures your WordPress site to be an optimized source for Gatsby.
+See https://github.com/gatsbyjs/gatsby-source-wordpress-experimental for more info.
