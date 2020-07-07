@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.4.7
+
+### New Features
+
+- Added a link to the GatsbyJS settings page on how to configure this plugin.
+
+### Bug Fixes
+
+- Activating this plugin before WPGraphQL was causing PHP errors.
+
 ## 0.4.6
 
 Add Wapuu Icons for display in the WordPress.org repo
