@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.4.8
+
+Pushing release to WordPress.org
+
 ## 0.4.7
 
 ### New Features
