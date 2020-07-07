@@ -181,11 +181,43 @@ final class WPGatsby {
 		 */
 		new \WPGatsby\GraphQL\ParseAuthToken();
 	}
+}
 
+/**
+ * Show admin notice to admins if this plugin is active but WPGraphQL
+ * is not active
+ */
+function wpgatsby_show_admin_notice() {
+
+	/**
+	 * For users with lower capabilities, don't show the notice
+	 */
+	if ( ! current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
+
+	add_action(
+		'admin_notices',
+		function() {
+			?>
+			<div class="error notice">
+				<p><?php esc_html_e( 'WPGraphQL must be active for WPGatsby to work.', 'wp-gatsby' ); ?> <a target="_blank" href="<?php echo esc_url('https://github.com/wp-graphql/wp-graphql/releases'); ?>">Download the latest release here.</a></p>
+			</div>
+			<?php
+		}
+	);
 }
 
 if ( ! function_exists( 'gatsby_init' ) ) {
 	function gatsby_init() {
+		if ( ! defined( 'WPGRAPHQL_AUTOLOAD' ) ) {
+			// Show the admin notice
+			add_action( 'admin_init', 'wpgatsby_show_admin_notice' );
+
+			// Bail
+			return;
+		}
+
 		return WPGatsby::instance();
 	}
 }
