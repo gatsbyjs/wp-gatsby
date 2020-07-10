@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.9
+
+### Bug Fixes
+
+- Preview wasn't working properly for new posts that hadn't yet been published or for drafts.
+
 ## 0.4.8
 
 Pushing release to WordPress.org
