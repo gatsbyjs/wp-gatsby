@@ -56,4 +56,5 @@ return array(
     'WPGatsby\\GraphQL\\ParseAuthToken' => $baseDir . '/src/GraphQL/ParseAuthToken.php',
     'WPGatsby\\Schema\\Schema' => $baseDir . '/src/Schema/Schema.php',
     'WPGatsby\\Schema\\SiteMeta' => $baseDir . '/src/Schema/SiteMeta.php',
+    'WPGatsby\\Schema\\WPGatsbyWPGraphQLSchemaChanges' => $baseDir . '/src/Schema/WPGatsbyWPGraphQLSchemaChanges.php',
 );

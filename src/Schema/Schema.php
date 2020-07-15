@@ -11,5 +11,6 @@ class Schema {
 	 */
 	function __construct() {
 		new SiteMeta();
+		new WPGatsbyWPGraphQLSchemaChanges();
 	}
 }

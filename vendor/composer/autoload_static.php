@@ -104,6 +104,7 @@ class ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2
         'WPGatsby\\GraphQL\\ParseAuthToken' => __DIR__ . '/../..' . '/src/GraphQL/ParseAuthToken.php',
         'WPGatsby\\Schema\\Schema' => __DIR__ . '/../..' . '/src/Schema/Schema.php',
         'WPGatsby\\Schema\\SiteMeta' => __DIR__ . '/../..' . '/src/Schema/SiteMeta.php',
+        'WPGatsby\\Schema\\WPGatsbyWPGraphQLSchemaChanges' => __DIR__ . '/../..' . '/src/Schema/WPGatsbyWPGraphQLSchemaChanges.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
