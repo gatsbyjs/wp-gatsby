@@ -108,7 +108,7 @@ class Preview {
 
 		$graphql_endpoint = apply_filters( 'graphql_endpoint', 'graphql' );
 
-		$graphql_url = get_home_url() . '/' . ltrim( $graphql_endpoint, '/' );
+		$graphql_url = get_site_url() . '/' . ltrim( $graphql_endpoint, '/' );
 
 		$post_body = [
 			'preview'        => true,
