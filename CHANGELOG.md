@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.12
+
+### New Features
+
+- Added temporary `ContentType.archivePath` and `Taxonomy.archivePath` fields to the schema until WPGraphQL supports these fields.
+
 ## 0.4.11
 
 ### Bug Fixes
