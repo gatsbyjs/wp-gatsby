@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.11
+
+### Bug Fixes
+
+- get_home_url() was being used where get_site_url() should've been used, causing the gql endpoint to not be referenced correctly in some situations. For example when using Bedrock.
+
 ## 0.4.10
 
 ### Bug Fixes
