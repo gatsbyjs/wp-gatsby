@@ -70,13 +70,16 @@ class Preview {
 		}
 
 		$is_new_post_draft =
-			$post->post_status === 'auto-draft' &&
+			(
+				$post->post_status === 'auto-draft' 
+				|| $post->post_status === 'draft'
+			) &&
 			$post->post_date_gmt === '0000-00-00 00:00:00';
 
 		$is_revision = $post->post_type === 'revision';
 		$is_draft = $post->post_status === 'draft';
 
-		if ( ! $is_new_post_draft && ! $is_revision && ! $is_draft ) {
+		if ( ! $is_new_post_draft && ! $is_revision ) {
 			return;
 		}
 

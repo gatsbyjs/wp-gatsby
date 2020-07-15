@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.10
+
+### Bug Fixes
+
+- The Preview fix in the last release introduced a new bug where saving a draft at any time would send a webhook to the Preview instance.
+
 ## 0.4.9
 
 ### Bug Fixes
