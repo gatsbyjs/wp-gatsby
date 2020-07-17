@@ -15,6 +15,19 @@ class WPGatsbyWPGraphQLSchemaChanges {
 	function register() {
         register_graphql_field(
 			'ContentType',
+			'wpGatsbyHasArchive',
+			[
+				'type'        => 'Boolean',
+				'description' => __( 'A temporary fix. Wether or not this content type has an archive page.', 'wp-gatsby' ),
+				'resolve'     => function( $source, $args, $context, $info ) {
+					$post_type = get_post_type_object( $source->name );
+                    return $post_type->has_archive;
+				},
+			]
+		); 
+
+        register_graphql_field(
+			'ContentType',
 			'archivePath',
 			[
 				'type'        => 'String',
