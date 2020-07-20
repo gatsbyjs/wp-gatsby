@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.13
+
+### Bug Fixes
+
+- the ContentType.archivePath field was returning an empty string instead of `/` for a homepage archive.
+
 ## 0.4.12
 
 ### New Features
