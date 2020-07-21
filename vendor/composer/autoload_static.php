@@ -98,14 +98,13 @@ class ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2
         'SecurityLib\\Strength' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Strength.php',
         'SecurityLib\\Util' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
         'WPGatsby\\ActionMonitor\\ActionMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/ActionMonitor.php',
-        'WPGatsby\\ActionMonitor\\Dispatcher' => __DIR__ . '/../..' . '/src/ActionMonitor/Dispatcher.php',
         'WPGatsby\\Admin\\Preview' => __DIR__ . '/../..' . '/src/Admin/Preview.php',
         'WPGatsby\\Admin\\Settings' => __DIR__ . '/../..' . '/src/Admin/Settings.php',
         'WPGatsby\\GraphQL\\Auth' => __DIR__ . '/../..' . '/src/GraphQL/Auth.php',
         'WPGatsby\\GraphQL\\ParseAuthToken' => __DIR__ . '/../..' . '/src/GraphQL/ParseAuthToken.php',
-        'WPGatsby\\Schema\\PostTypes' => __DIR__ . '/../..' . '/src/Schema/PostTypes.php',
         'WPGatsby\\Schema\\Schema' => __DIR__ . '/../..' . '/src/Schema/Schema.php',
         'WPGatsby\\Schema\\SiteMeta' => __DIR__ . '/../..' . '/src/Schema/SiteMeta.php',
+        'WPGatsby\\Schema\\WPGatsbyWPGraphQLSchemaChanges' => __DIR__ . '/../..' . '/src/Schema/WPGatsbyWPGraphQLSchemaChanges.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

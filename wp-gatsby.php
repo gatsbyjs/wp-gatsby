@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Gatsby
  * Description: Optimize your WordPress site to be a source for Gatsby site(s).
- * Version: 0.4.1
+ * Version: 0.4.13
  * Author: GatsbyJS, Jason Bahl, Tyler Barnes
  * Author URI: https://gatsbyjs.org
  * Text Domain: wp-gatsby
@@ -42,10 +42,8 @@ final class WPGatsby {
 		if ( ! isset( self::$instance ) && ! ( self::$instance instanceof WPGatsby ) ) {
 			self::$instance = new WPGatsby();
 			self::$instance->setup_constants();
-			if ( WPGATSBY_AUTOLOAD ) {
-				self::$instance->includes();
-				self::$instance->init();
-			}
+			self::$instance->includes();
+			self::$instance->init();
 		}
 
 		return self::$instance;
@@ -91,7 +89,7 @@ final class WPGatsby {
 	private function setup_constants() {
 		// Plugin version.
 		if ( ! defined( 'WPGATSBY_VERSION' ) ) {
-			define( 'WPGATSBY_VERSION', '0.4.1' );
+			define( 'WPGATSBY_VERSION', '0.4.13' );
 		}
 
 		// Plugin Folder Path.
@@ -183,11 +181,43 @@ final class WPGatsby {
 		 */
 		new \WPGatsby\GraphQL\ParseAuthToken();
 	}
+}
 
+/**
+ * Show admin notice to admins if this plugin is active but WPGraphQL
+ * is not active
+ */
+function wpgatsby_show_admin_notice() {
+
+	/**
+	 * For users with lower capabilities, don't show the notice
+	 */
+	if ( ! current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
+
+	add_action(
+		'admin_notices',
+		function() {
+			?>
+			<div class="error notice">
+				<p><?php esc_html_e( 'WPGraphQL must be active for WPGatsby to work.', 'wp-gatsby' ); ?> <a target="_blank" href="<?php echo esc_url('https://github.com/wp-graphql/wp-graphql/releases'); ?>">Download the latest release here.</a></p>
+			</div>
+			<?php
+		}
+	);
 }
 
 if ( ! function_exists( 'gatsby_init' ) ) {
 	function gatsby_init() {
+		if ( ! defined( 'WPGRAPHQL_AUTOLOAD' ) ) {
+			// Show the admin notice
+			add_action( 'admin_init', 'wpgatsby_show_admin_notice' );
+
+			// Bail
+			return;
+		}
+
 		return WPGatsby::instance();
 	}
 }

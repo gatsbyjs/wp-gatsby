@@ -6,12 +6,12 @@ use GraphQLRelay\Relay;
 
 class Preview {
 	function __construct() {
-    $enable_gatsby_preview = self::get_setting('enable_gatsby_preview');
+    	$enable_gatsby_preview = self::get_setting('enable_gatsby_preview');
 
-    if ($enable_gatsby_preview === 'on') {
-      add_action( 'save_post', [ $this, 'post_to_preview_instance' ], 10, 2 );
-		  add_filter( 'template_include', [ $this, 'setup_preview_template' ], 1, 99 );
-    }
+		if ($enable_gatsby_preview === 'on') {
+			add_action( 'save_post', [ $this, 'post_to_preview_instance' ], 10, 2 );
+			add_filter( 'template_include', [ $this, 'setup_preview_template' ], 1, 99 );
+		}
 	}
 
 	public function setup_preview_template( $template ) {
@@ -69,15 +69,15 @@ class Preview {
 			return;
 		}
 
-		if ( $post->post_status === 'draft' ) {
-			return;
-		}
-
 		$is_new_post_draft =
-			$post->post_status === 'auto-draft' &&
+			(
+				$post->post_status === 'auto-draft' 
+				|| $post->post_status === 'draft'
+			) &&
 			$post->post_date_gmt === '0000-00-00 00:00:00';
 
 		$is_revision = $post->post_type === 'revision';
+		$is_draft = $post->post_status === 'draft';
 
 		if ( ! $is_new_post_draft && ! $is_revision ) {
 			return;
@@ -108,7 +108,7 @@ class Preview {
 
 		$graphql_endpoint = apply_filters( 'graphql_endpoint', 'graphql' );
 
-		$graphql_url = get_home_url() . '/' . ltrim( $graphql_endpoint, '/' );
+		$graphql_url = get_site_url() . '/' . ltrim( $graphql_endpoint, '/' );
 
 		$post_body = [
 			'preview'        => true,
@@ -117,6 +117,7 @@ class Preview {
 			'id'             => $global_relay_id,
 			'singleName'     => $referenced_node_single_name,
 			'isNewPostDraft' => $is_new_post_draft,
+			'isDraft'        => $is_draft,
 			'isRevision'     => $is_revision,
 			'remoteUrl'      => $graphql_url
 		];

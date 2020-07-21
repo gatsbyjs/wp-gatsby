@@ -1,5 +1,71 @@
 # Change Log
 
+## 0.4.13
+
+### Bug Fixes
+
+- the ContentType.archivePath field was returning an empty string instead of `/` for a homepage archive.
+
+## 0.4.12
+
+### New Features
+
+- Added temporary `ContentType.archivePath` and `Taxonomy.archivePath` fields to the schema until WPGraphQL supports these fields.
+
+## 0.4.11
+
+### Bug Fixes
+
+- get_home_url() was being used where get_site_url() should've been used, causing the gql endpoint to not be referenced correctly in some situations. For example when using Bedrock.
+
+## 0.4.10
+
+### Bug Fixes
+
+- The Preview fix in the last release introduced a new bug where saving a draft at any time would send a webhook to the Preview instance.
+
+## 0.4.9
+
+### Bug Fixes
+
+- Preview wasn't working properly for new posts that hadn't yet been published or for drafts.
+
+## 0.4.8
+
+Pushing release to WordPress.org
+
+## 0.4.7
+
+### New Features
+
+- Added a link to the GatsbyJS settings page on how to configure this plugin.
+
+### Bug Fixes
+
+- Activating this plugin before WPGraphQL was causing PHP errors.
+
+## 0.4.6
+
+Add Wapuu Icons for display in the WordPress.org repo
+
+## 0.4.5
+
+Re-publish with proper package name
+
+## 0.4.4
+
+Testing Github Actions
+
+## 0.4.3
+
+New release to trigger publishing to WordPress.org!
+
+## 0.4.2
+
+### Bug Fixes
+
+- Previously when a post transitioned from published to draft, it wouldn't be deleted in Gatsby
+
 ## 0.4.1
 
 Version bump to add /vendor directory to Git so that Github releases work as WP plugins without running `composer install`. In the future there will be a better release process, but for now this works.

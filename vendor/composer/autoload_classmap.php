@@ -50,12 +50,11 @@ return array(
     'SecurityLib\\Strength' => $vendorDir . '/ircmaxell/security-lib/lib/SecurityLib/Strength.php',
     'SecurityLib\\Util' => $vendorDir . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
     'WPGatsby\\ActionMonitor\\ActionMonitor' => $baseDir . '/src/ActionMonitor/ActionMonitor.php',
-    'WPGatsby\\ActionMonitor\\Dispatcher' => $baseDir . '/src/ActionMonitor/Dispatcher.php',
     'WPGatsby\\Admin\\Preview' => $baseDir . '/src/Admin/Preview.php',
     'WPGatsby\\Admin\\Settings' => $baseDir . '/src/Admin/Settings.php',
     'WPGatsby\\GraphQL\\Auth' => $baseDir . '/src/GraphQL/Auth.php',
     'WPGatsby\\GraphQL\\ParseAuthToken' => $baseDir . '/src/GraphQL/ParseAuthToken.php',
-    'WPGatsby\\Schema\\PostTypes' => $baseDir . '/src/Schema/PostTypes.php',
     'WPGatsby\\Schema\\Schema' => $baseDir . '/src/Schema/Schema.php',
     'WPGatsby\\Schema\\SiteMeta' => $baseDir . '/src/Schema/SiteMeta.php',
+    'WPGatsby\\Schema\\WPGatsbyWPGraphQLSchemaChanges' => $baseDir . '/src/Schema/WPGatsbyWPGraphQLSchemaChanges.php',
 );

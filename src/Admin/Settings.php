@@ -51,6 +51,12 @@ class Settings {
 
 	function plugin_page() {
 		echo '<div class="wrap">';
+		echo '<div class="notice-info notice">
+			<p>'
+			. '<a target="_blank" href="'
+			. esc_url('https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md')
+			. '">Learn how to configure WPGatsby here.</a></p>
+		</div>';
 		$this->settings_api->show_navigation();
 		$this->settings_api->show_forms();
 		echo '</div>';
