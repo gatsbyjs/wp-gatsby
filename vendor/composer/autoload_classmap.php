@@ -52,6 +52,7 @@ return array(
     'WPGatsby\\ActionMonitor\\ActionMonitor' => $baseDir . '/src/ActionMonitor/ActionMonitor.php',
     'WPGatsby\\Admin\\Preview' => $baseDir . '/src/Admin/Preview.php',
     'WPGatsby\\Admin\\Settings' => $baseDir . '/src/Admin/Settings.php',
+    'WPGatsby\\AllIds\\AllIds' => $baseDir . '/src/Schema/AllIds.php',
     'WPGatsby\\GraphQL\\Auth' => $baseDir . '/src/GraphQL/Auth.php',
     'WPGatsby\\GraphQL\\ParseAuthToken' => $baseDir . '/src/GraphQL/ParseAuthToken.php',
     'WPGatsby\\Schema\\Schema' => $baseDir . '/src/Schema/Schema.php',

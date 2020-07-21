@@ -100,6 +100,7 @@ class ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2
         'WPGatsby\\ActionMonitor\\ActionMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/ActionMonitor.php',
         'WPGatsby\\Admin\\Preview' => __DIR__ . '/../..' . '/src/Admin/Preview.php',
         'WPGatsby\\Admin\\Settings' => __DIR__ . '/../..' . '/src/Admin/Settings.php',
+        'WPGatsby\\AllIds\\AllIds' => __DIR__ . '/../..' . '/src/Schema/AllIds.php',
         'WPGatsby\\GraphQL\\Auth' => __DIR__ . '/../..' . '/src/GraphQL/Auth.php',
         'WPGatsby\\GraphQL\\ParseAuthToken' => __DIR__ . '/../..' . '/src/GraphQL/ParseAuthToken.php',
         'WPGatsby\\Schema\\Schema' => __DIR__ . '/../..' . '/src/Schema/Schema.php',
