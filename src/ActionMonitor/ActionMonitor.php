@@ -618,12 +618,12 @@ class ActionMonitor {
 			return false;
 		}
 
-		$last_status_was_publish
-			= $this->post_object_before_update->post_status ?? null 
+		$last_status_wasnt_publish
+			= ($this->post_object_before_update->post_status ?? null) 
 				!== 'publish';
 
 		if (
-			$last_status_was_publish &&
+			$last_status_wasnt_publish &&
 			$post->post_status === 'draft'
 		) {
 			return false;

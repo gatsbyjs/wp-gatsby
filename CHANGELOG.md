@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.14
+
+### Bug Fixes
+
+- Making a post into a draft was not previously saving an action monitor post which means posts that became drafts would never be deleted.
+
 ## 0.4.13
 
 ### Bug Fixes
