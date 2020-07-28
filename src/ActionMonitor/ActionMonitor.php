@@ -623,12 +623,12 @@ class ActionMonitor {
 			return false;
 		}
 
-		$last_status_was_publish
-			= $this->post_object_before_update->post_status ?? null
+		$last_status_wasnt_publish
+			= ($this->post_object_before_update->post_status ?? null) 
 				!== 'publish';
 
 		if (
-			$last_status_was_publish &&
+			$last_status_wasnt_publish &&
 			$post->post_status === 'draft'
 		) {
 			return false;
@@ -641,7 +641,7 @@ class ActionMonitor {
 		if ( $post->post_type === 'action_monitor' ) {
 			return false;
 		}
-
+		
 		// if we've recorded this post being updated already
 		// no need to do it twice
 		if ( !$in_pre_save_post && in_array( $post->ID, $this->updated_post_ids ) ) {
@@ -664,7 +664,7 @@ class ActionMonitor {
 			]
 		);
 
-
+		
 		if ( $duplicate_actions->found_posts ) {
 			return false;
 		}
@@ -1007,9 +1007,9 @@ class ActionMonitor {
 
 	public function trigger_dispatch() {
 		$webhook_field = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
-
+		
 		if ( $webhook_field && $this->should_dispatch ) {
-
+			
 			$webhooks = explode( ',', $webhook_field );
 
 			foreach ( $webhooks as $webhook ) {

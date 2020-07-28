@@ -24,9 +24,15 @@ class WPGatsbyWPGraphQLSchemaChanges {
 
                     if ( empty( $archive_link ) ) {
                         return null;
-                    }
+					}
+					
+					$site_url = get_site_url();
 
-                    $archive_path = str_replace( get_site_url(), '', $archive_link );
+					$archive_path = str_replace( $site_url, '', $archive_link );
+					
+					if ($archive_link === $site_url && $archive_path === "") {
+						return "/";
+					}
 
                     return $archive_path ?? null;
 				},
