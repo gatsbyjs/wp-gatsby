@@ -83,6 +83,10 @@ class Preview {
 			return;
 		}
 
+		if ( $is_new_post_draft ) {
+			return;
+		}
+
 		$token = \WPGatsby\GraphQL\Auth::get_token();
 
 		if ( ! $token ) {

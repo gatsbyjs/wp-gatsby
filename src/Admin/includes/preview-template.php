@@ -2,7 +2,7 @@
 
 use GraphQLRelay\Relay;
 
-wp_head();
+// wp_head();
 
 global $post;
 $post_id  = $post->ID;
@@ -13,6 +13,10 @@ $post_type_object = \get_post_type_object( $post->post_type );
 $global_relay_id = Relay::toGlobalId(
 	'post',
 	absint( $post_id )
+);
+
+$post_modified_date = \WPGraphQL\Utils\Utils::prepare_date_response(
+	$post->post_modified_gmt
 );
 
 $referenced_node_single_name
@@ -34,6 +38,49 @@ $preview_url  = rtrim( $preview_url, '/' );
 $frontend_url = "$preview_url$path";
 ?>
 
+<html>
+	<head>
+	<script>
+		console.log(JSON.parse('<?php echo json_encode($post); ?>'))
+		var socket = new WebSocket("ws://localhost:8988/__wpgatsby");
+
+		socket.onopen = function(e) {
+			socket.send(JSON.stringify({
+				nodeId: "<?php echo $global_relay_id; ?>",
+				modifiedGmt: "<?php echo $post_modified_date; ?>"
+			}));
+		};
+
+		socket.onmessage = function(event) {
+			console.log(`received message`)
+			console.log(event)
+
+			const data = JSON.parse(event.data)
+			const path = data.path
+			const url = "<?php echo $preview_url; ?>" + path
+			setTimeout(() => {
+				document.getElementById("preview").src = url
+			}, 100);
+			// alert(`[message] Data received from server: ${event.data}`);
+		};
+
+		socket.onclose = function(event) {
+			if (event.wasClean) {
+				alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+			} else {
+				// e.g. server process killed or network down
+				// event.code is usually 1006 in this case
+				alert('[close] Connection died');
+			}
+		};
+
+		socket.onerror = function(error) {
+			alert(`[error] ${error.message}`);
+		};
+	</script>
+	</head>
+</html>
+
 <html lang="en">
 
 <head>
@@ -42,6 +89,22 @@ $frontend_url = "$preview_url$path";
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Preview</title>
 	<style>
+		.loader {
+			display: fixed;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			width: 100%;
+
+			top: 46px;
+			height: 100%;
+			height: calc(100vh - 46px);
+			
+			background-color: white;
+			text-align: center;
+			font-size: 100px;
+		}
+
 		.content {
 			width: 100%;
 			left: 0;
@@ -109,9 +172,9 @@ $frontend_url = "$preview_url$path";
 
 <body>
 <?php if ( $frontend_url ): ?>
+	<div class="loader">Loading!!</div>
 	<iframe
 			id='preview'
-			src="<?= $frontend_url; ?>"
 			frameborder="0"
 	></iframe>
 <?php endif; ?>
