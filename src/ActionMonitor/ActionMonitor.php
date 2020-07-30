@@ -61,12 +61,13 @@ class ActionMonitor {
 	// $args = [$action_type, $title, $status, $node_id, $relay_id, $graphql_single_name, $graphql_plural_name]
 	function insertNewAction( $args ) {
 		if (
-			! $args['action_type'] ||
-			! $args['title'] ||
-			! $args['node_id'] ||
-			! $args['relay_id'] ||
-			! $args['graphql_single_name'] ||
-			! $args['graphql_plural_name']
+			! isset( $args['action_type'] ) ||
+			! isset( $args['title'] ) ||
+			! isset( $args['node_id'] ) ||
+			! isset( $args['relay_id'] ) ||
+			! isset( $args['graphql_single_name'] ) ||
+			! isset( $args['graphql_plural_name'] ) ||
+			! isset( $args['status'] )
 		) {
 			// @todo log that this action isn't working??
 			return;
@@ -194,6 +195,25 @@ class ActionMonitor {
 			add_action( "deleted_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
 		}
 
+		// Non node root fields (options, settings, etc)
+		add_action( 'updated_option', [ $this, 'saveNonNodeRootFields' ], 10, 3 );
+
+	}
+
+	function saveNonNodeRootFields( $option_name, $old_value, $value ) {
+		$id = 'non_node_root_fields';
+
+		$this->insertNewAction(
+			[
+				'action_type' => 'NON_NODE_ROOT_FIELDS',
+				'title' => 'Saved Option: ' . $option_name,
+				'node_id' => $id,
+				'relay_id' => $id,
+				'graphql_single_name' => false,
+				'graphql_plural_name' => false,
+				'status' => false
+			]
+		);
 	}
 
 	function modifyMeta( $meta_id, $object_id, $meta_key ) {

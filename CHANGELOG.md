@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.15
+
+### New Features
+
+- Non-node root fields (options and settings) are now recorded as an action so Gatsby can inc build when the site title changes for example.
+
 ## 0.4.14
 
 ### Bug Fixes
