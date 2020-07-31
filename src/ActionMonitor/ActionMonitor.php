@@ -196,11 +196,48 @@ class ActionMonitor {
 		}
 
 		// Non node root fields (options, settings, etc)
-		add_action( 'updated_option', [ $this, 'saveNonNodeRootFields' ], 10, 3 );
+		add_action( 'updated_option', [ $this, 'updateOption' ], 10, 3 );
 
 	}
 
-	function saveNonNodeRootFields( $option_name, $old_value, $value ) {
+	function saveIfValuesArePostIds( $values, $name ) {
+		foreach ( $values as $value ) {
+			if ( ! is_int( $value ) && ! is_string( $value ) ) {
+				error_log(print_r("$name not an int", true)); 
+				continue;
+			}
+
+			error_log(print_r("casting $name to int", true)); 
+			error_log(print_r($value, true)); 
+			$value_cast_to_int = (int) $value;
+			error_log(print_r($value_cast_to_int, true)); 
+
+			
+			$post = get_post( $value_cast_to_int );
+
+			if ( ! $post ) {
+				continue;
+			}
+
+			wp_update_post( [
+				'ID' => $value_cast_to_int
+			] );
+		}
+	}
+
+	function updateOption( $option_name, $old_value, $value ) {
+		$this->saveIfValuesArePostIds(
+			[
+				$old_value,
+				$value
+			],
+			$option_name
+		);
+
+		$this->updateNonNodeRootFields( $option_name, $old_value, $value );
+	}
+
+	function updateNonNodeRootFields( $option_name, $old_value, $value ) {
 		$id = 'non_node_root_fields';
 
 		$this->insertNewAction(
@@ -638,11 +675,11 @@ class ActionMonitor {
 			return false;
 		}
 
-		$last_status_wasnt_publish
-			= ($this->post_object_before_update->post_status ?? null) 
-				!== 'publish';
+		$last_status = $this->post_object_before_update->post_status ?? null;
+		$last_status_wasnt_publish = $last_status !== 'publish';
 
 		if (
+			$last_status &&
 			$last_status_wasnt_publish &&
 			$post->post_status === 'draft'
 		) {
@@ -703,7 +740,12 @@ class ActionMonitor {
 			$post = get_post( $post_id );
 		}
 
+		if ( ! $post ) {
+			return;
+		}
+
 		if ( ! $this->savePostGuardClauses( $post ) ) {
+			error_log(print_r('save post clause fails', true)); 
 			return;
 		}
 
