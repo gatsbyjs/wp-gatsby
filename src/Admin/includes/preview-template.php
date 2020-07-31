@@ -59,7 +59,12 @@ $frontend_url = "$preview_url$path";
 			const path = data.path
 			const url = "<?php echo $preview_url; ?>" + path
 			setTimeout(() => {
-				document.getElementById("preview").src = url
+				var iframe = document.getElementById("preview")
+				iframe.src = url
+
+				iframe.onload = () => {
+					document.querySelector(".loader").style.display = "none"
+				}
 			}, 100);
 			// alert(`[message] Data received from server: ${event.data}`);
 		};
@@ -95,6 +100,8 @@ $frontend_url = "$preview_url$path";
 			bottom: 0;
 			right: 0;
 			width: 100%;
+
+			z-index: 10000;
 
 			top: 46px;
 			height: 100%;
