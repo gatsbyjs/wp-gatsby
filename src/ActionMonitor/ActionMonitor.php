@@ -196,7 +196,10 @@ class ActionMonitor {
 		}
 
 		// Non node root fields (options, settings, etc)
-		add_action( 'updated_option', [ $this, 'saveNonNodeRootFields' ], 10, 3 );
+		// 
+		// temporarily disabling this because it can potentially cause some real problems
+		// need to think about how this works a bit more before releasing it.
+		// add_action( 'updated_option', [ $this, 'saveNonNodeRootFields' ], 10, 3 );
 
 	}
 
