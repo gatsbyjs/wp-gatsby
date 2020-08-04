@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.4.16
+
+### Bug Fixes
+
+It turns out the new feature in the last release could potentially cause many more issues than it presently solves, so it has been disabled as a bug fix. This will be re-enabled within the next couple weeks as we do more testing and thinking on how best to approach sending WP options events to Gatsby.
+
+## 0.4.15
+
+### New Features
+
+- Non-node root fields (options and settings) are now recorded as an action so Gatsby can inc build when the site title changes for example.
+
 ## 0.4.14
 
 ### Bug Fixes
