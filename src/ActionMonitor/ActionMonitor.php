@@ -1031,7 +1031,9 @@ class ActionMonitor {
 			$webhooks = explode( ',', $webhook_field );
 
 			foreach ( $webhooks as $webhook ) {
-				wp_safe_remote_post( $webhook );
+				$args = apply_filters( 'gatsby_trigger_dispatch_args', array(), $webhook );
+
+				wp_safe_remote_post( $webhook, $args );
 			}
 
 		}
