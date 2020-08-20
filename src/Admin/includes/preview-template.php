@@ -7,6 +7,7 @@ use GraphQLRelay\Relay;
 global $post;
 $post_id  = $post->ID;
 $revision = array_values( wp_get_post_revisions( $post_id ) )[0] ?? null;
+$revision_id = $revision->ID ?? null;
 
 $post_type_object = \get_post_type_object( $post->post_type );
 
@@ -16,26 +17,26 @@ $global_relay_id = Relay::toGlobalId(
 );
 
 $post_modified_date = \WPGraphQL\Utils\Utils::prepare_date_response(
-	$post->post_modified_gmt
+	$revision->post_modified_gmt
 );
 
-$referenced_node_single_name
-	= $post_type_object->graphql_single_name ?? null;
+// $referenced_node_single_name
+// 	= $post_type_object->graphql_single_name ?? null;
 
-$post_url = get_the_permalink( $post );
-$path     = str_ireplace( get_home_url(), '', $post_url );
+// $post_url = get_the_permalink( $post );
+// $path     = str_ireplace( get_home_url(), '', $post_url );
 
-// if the post parent has a ? in it's url, this is a new draft
-// and or the post has no proper permalink that Gatsby can use.
-// so we will create one /post_graphql_name/post_db_id
-// this same logic is on the Gatsby side to account for this situation.
-if ( strpos( $path, '?' ) ) {
-	$path = "/$referenced_node_single_name/$post_id";
-}
+// // if the post parent has a ? in it's url, this is a new draft
+// // and or the post has no proper permalink that Gatsby can use.
+// // so we will create one /post_graphql_name/post_db_id
+// // this same logic is on the Gatsby side to account for this situation.
+// if ( strpos( $path, '?' ) ) {
+// 	$path = "/$referenced_node_single_name/$post_id";
+// }
 
 $preview_url  = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 $preview_url  = rtrim( $preview_url, '/' );
-$frontend_url = "$preview_url$path";
+// $frontend_url = "$preview_url$path";
 ?>
 
 <html>
@@ -58,29 +59,58 @@ $frontend_url = "$preview_url$path";
 			const data = JSON.parse(event.data)
 			const path = data.path
 			const url = "<?php echo $preview_url; ?>" + path
-			setTimeout(() => {
-				var iframe = document.getElementById("preview")
-				iframe.src = url
+			var iframe = document.getElementById("preview")
+			
+			const showIframe = () => {
+				setTimeout(() => {
+					document.querySelector(".loader").classList.add('hidden')
+				}, 500);
+			}
 
-				iframe.onload = () => {
-					document.querySelector(".loader").style.display = "none"
-				}
-			}, 100);
-			// alert(`[message] Data received from server: ${event.data}`);
+			iframe.onload = showIframe
+
+			if (!iframe.src) {
+				iframe.src = url
+			} else {
+				showIframe()
+			}
+
 		};
 
+		window.addEventListener('message', function() {
+			console.log('show loader <----')
+			document.querySelector(".loader").classList.remove('hidden')
+			
+			// fetch(`/wp-json/wp/v2/page/<?php echo $post_id; ?>/revisions/<?php echo $revision_id; ?>`).then(response => response.json()).then(json => console.log(json))
+
+			socket.send(JSON.stringify({
+				nodeId: "<?php echo $global_relay_id; ?>",
+				modifiedGmt: Date.now()
+			}));
+		})
+
 		socket.onclose = function(event) {
+			var loaderElement = document.querySelector('.loader')
+			var failedElement = document.querySelector('.failed')
+			var iframe = document.querySelector('iframe')
+
 			if (event.wasClean) {
-				alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+				// alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
 			} else {
 				// e.g. server process killed or network down
 				// event.code is usually 1006 in this case
-				alert('[close] Connection died');
+				// alert('[close] Connection died');
+				// console.log(event)
+				loaderElement.classList.add('hidden')
+				iframe.classList.add('hidden')
+				failedElement.classList.remove('hidden')
+
 			}
 		};
 
 		socket.onerror = function(error) {
-			alert(`[error] ${error.message}`);
+			// alert(`[error] ${error.message}`);
+			failedElement.classList.remove('hidden')
 		};
 	</script>
 	</head>
@@ -94,8 +124,8 @@ $frontend_url = "$preview_url$path";
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Preview</title>
 	<style>
-		.loader {
-			display: fixed;
+		.loader, .failed {
+			position: fixed;
 			left: 0;
 			bottom: 0;
 			right: 0;
@@ -110,6 +140,10 @@ $frontend_url = "$preview_url$path";
 			background-color: white;
 			text-align: center;
 			font-size: 100px;
+		}
+
+		.hidden {
+			display: none
 		}
 
 		.content {
@@ -170,16 +204,17 @@ $frontend_url = "$preview_url$path";
             })
         }
 
-        fetch("<?php echo $frontend_url; ?>", {mode: 'no-cors'})
-            .catch(e => {
-                showError()
-            });
+        // fetch("<?php //echo $frontend_url; ?>", {mode: 'no-cors'})
+        //     .catch(e => {
+        //         showError()
+        //     });
 	</script>
 </head>
 
 <body>
-<?php if ( $frontend_url ): ?>
+<?php if ( $preview_url ): ?>
 	<div class="loader">Loading!!</div>
+	<div class="failed hidden">Couldn't connect to Gatsby Preview</div>
 	<iframe
 			id='preview'
 			frameborder="0"
