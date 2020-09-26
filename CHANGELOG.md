@@ -5,6 +5,7 @@
 ### New Features
 
 -   Added `WPGatsby.arePrettyPermalinksEnabled` to the schema in order to add more helpful error messages to the Gatsby build process.
+-   Added a filter `gatsby_trigger_dispatch_args` to filter the arguments passed to `wp_safe_remote_post` when triggering webhooks.
 
 ## 0.4.16
 
