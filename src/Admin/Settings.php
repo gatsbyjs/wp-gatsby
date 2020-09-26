@@ -146,6 +146,14 @@ class Settings {
 					'sanitize_callback' => 'sanitize_text_field',
 					'default'           => self::get_default_secret(),
 				],
+				[
+					'name'              => 'preview_jwt_expiry_seconds',
+					'label'             => __( 'Preview JWT Expiry (seconds)', 'wpgatsby_settings' ),
+					'desc'              => __( "Don't change this if you don't know what you're doing. The minimum is 30 seconds.", 'wpgatsby_settings' ),
+					'type'              => 'number',
+					'sanitize_callback' => 'sanitize_number_field',
+					'default'           => 30,
+				],
 			]
 		];
 
