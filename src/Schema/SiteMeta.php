@@ -205,5 +205,28 @@ class SiteMeta {
 				},
 			]
 		);
+
+		register_graphql_object_type( 'WPGatsby', [
+			'description' => __( 'Information needed by gatsby-source-wordpress.', 'wp-gatsby' ),
+			'fields' => [
+				'arePrettyPermalinksEnabled' => [
+					'description' => 'Returns wether or not pretty permalinks are enabled.',
+					'type' => 'Boolean'
+				],
+			]
+		] );
+
+		register_graphql_field(
+			'RootQuery', 'wpGatsby', [
+				'type'        => 'WPGatsby',
+				'description' => __( 'Information needed by gatsby-source-wordpress.', 'wp-gatsby' ),
+				'resolve' => function( $root, $args, $context, $info ) {
+					return [
+						'arePrettyPermalinksEnabled' => 
+							!!get_option('permalink_structure')
+					];
+				}
+			]
+		);
 	}
 }
