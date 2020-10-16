@@ -16,7 +16,7 @@ class ThemeSupport {
     }
     
     function registerGatsbyMenuLocations() {
-        $enable_gatsby_locations = Settings::get_setting('enable_gatsby_locations') === 'on';
+        $enable_gatsby_locations = 'on' === Settings::get_setting('enable_gatsby_locations');
 
         if ( !$enable_gatsby_locations ) {
             return;
