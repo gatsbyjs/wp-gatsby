@@ -625,9 +625,6 @@ class ActionMonitor {
 		// if no menu locations are assigned to this menu,
 		// bail early because it's a private menu
 		if ( !in_array( $menu_id, $menu_locations ) ) {
-			// send a delete event so that Gatsby no longer 
-			// has this menu if it had it before
-			$this->deleteMenu( $menu_id );
 			return $menu_id;
 		}
 
