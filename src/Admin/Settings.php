@@ -94,6 +94,12 @@ class Settings {
 		return filter_var( $input, FILTER_VALIDATE_URL );
 	}
 
+	public static function get_setting( $key ) {
+		$wpgatsby_settings = get_option( 'wpgatsby_settings' );
+
+		return $wpgatsby_settings[ $key ] ?? null;
+	}
+
 	/**
 	 * Returns all the settings fields
 	 *
@@ -111,13 +117,13 @@ class Settings {
 					'sanitize_callback' => function( $input ) {
 						return $this->sanitize_url_field( $input );
 					}
-        ],
-        [
-          'name' => 'enable_gatsby_preview',
-          'label' => __( 'Enable Gatsby Preview?', 'wpgatsby_settings' ),
-          'desc' => __( 'Yes', 'wpgatsby_settings' ),
-          'type' => 'checkbox'
-        ],
+				],
+				[
+					'name' => 'enable_gatsby_preview',
+					'label' => __( 'Enable Gatsby Preview?', 'wpgatsby_settings' ),
+					'desc' => __( 'Yes', 'wpgatsby_settings' ),
+					'type' => 'checkbox'
+				],
 				[
 					'name'              => 'preview_instance_url',
 					'label'             => __( 'Preview Instance', 'wpgatsby_settings' ),
@@ -145,6 +151,13 @@ class Settings {
 					'type'              => 'password',
 					'sanitize_callback' => 'sanitize_text_field',
 					'default'           => self::get_default_secret(),
+				],
+				[
+					'name' => 'enable_gatsby_locations',
+					'label' => __( 'Enable Gatsby Menu Locations?', 'wpgatsby_settings' ),
+					'desc' => __( 'Yes', 'wpgatsby_settings' ),
+					'type' => 'checkbox',
+					'default' => 'on',
 				],
 			]
 		];

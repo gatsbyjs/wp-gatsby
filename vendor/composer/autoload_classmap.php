@@ -57,4 +57,5 @@ return array(
     'WPGatsby\\Schema\\Schema' => $baseDir . '/src/Schema/Schema.php',
     'WPGatsby\\Schema\\SiteMeta' => $baseDir . '/src/Schema/SiteMeta.php',
     'WPGatsby\\Schema\\WPGatsbyWPGraphQLSchemaChanges' => $baseDir . '/src/Schema/WPGatsbyWPGraphQLSchemaChanges.php',
+    'WPGatsby\\ThemeSupport\\ThemeSupport' => $baseDir . '/src/ThemeSupport/ThemeSupport.php',
 );
