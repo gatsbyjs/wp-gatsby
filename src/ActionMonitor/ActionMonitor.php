@@ -58,7 +58,13 @@ class ActionMonitor {
 		}
 	}
 
-	// $args = [$action_type, $title, $status, $node_id, $relay_id, $graphql_single_name, $graphql_plural_name]
+	/**
+	 * Insert new action
+	 *
+	 * $args = [$action_type, $title, $status, $node_id, $relay_id, $graphql_single_name, $graphql_plural_name]
+	 *
+	 * @param $args array Array of arguments to configure the action to be inserted
+	 */
 	function insertNewAction( $args ) {
 		if (
 			! isset( $args['action_type'] ) ||
@@ -196,7 +202,7 @@ class ActionMonitor {
 		}
 
 		// Non node root fields (options, settings, etc)
-		// 
+		//
 		// temporarily disabling this because it can potentially cause some real problems
 		// need to think about how this works a bit more before releasing it.
 		// add_action( 'updated_option', [ $this, 'saveNonNodeRootFields' ], 10, 3 );
@@ -642,7 +648,7 @@ class ActionMonitor {
 		}
 
 		$last_status_wasnt_publish
-			= ($this->post_object_before_update->post_status ?? null) 
+			= ($this->post_object_before_update->post_status ?? null)
 				!== 'publish';
 
 		if (
@@ -659,7 +665,7 @@ class ActionMonitor {
 		if ( $post->post_type === 'action_monitor' ) {
 			return false;
 		}
-		
+
 		// if we've recorded this post being updated already
 		// no need to do it twice
 		if ( !$in_pre_save_post && in_array( $post->ID, $this->updated_post_ids ) ) {
@@ -682,7 +688,7 @@ class ActionMonitor {
 			]
 		);
 
-		
+
 		if ( $duplicate_actions->found_posts ) {
 			return false;
 		}
@@ -700,6 +706,8 @@ class ActionMonitor {
 
 	/**
 	 * On save post
+	 *
+	 * @return mixed void|int|null
 	 */
 	function savePost( $post_id, $post = null, $update_post_parent = true ) {
 		if ( ! $post ) {
@@ -717,7 +725,6 @@ class ActionMonitor {
 		$post_type_object = \get_post_type_object( $post->post_type );
 
 		$title           = $post->post_title ?? '';
-		$global_relay_id = '';
 		$global_relay_id = Relay::toGlobalId(
 			'post',
 			absint( $post_id )
@@ -989,49 +996,56 @@ class ActionMonitor {
 		 * Post Type: Action Monitor.
 		 */
 
-		$labels = array(
+		$labels = [
 			"name"          => __( "Action Monitor", "WPGatsby" ),
 			"singular_name" => __( "Action Monitor", "WPGatsby" ),
-		);
+		];
 
-		$args = array(
+
+		$args = [
 			"label"                 => __( "Action Monitor", "WPGatsby" ),
 			"labels"                => $labels,
-			"description"           => "Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wpgraphql.",
+			"description"           => "Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wordpress.",
 			"public"                => false,
 			"publicly_queryable"    => false,
-			"show_ui"               => defined( 'GRAPHQL_DEBUG' ) && GRAPHQL_DEBUG,
+			"show_ui"               => ( class_exists( 'WPGraphQL') && true === \WPGraphQL::debug() ) ? true : false,
 			"delete_with_user"      => false,
-			"show_in_rest"          => true,
+			"show_in_rest"          => false,
 			"rest_base"             => "",
 			"rest_controller_class" => "WP_REST_Posts_Controller",
 			"has_archive"           => false,
-			"show_in_menu"          => true,
-			"show_in_nav_menus"     => true,
+			"show_in_menu"          => ( class_exists( 'WPGraphQL') && true === \WPGraphQL::debug() ) ? true : false,
+			"show_in_nav_menus"     => false,
 			"exclude_from_search"   => true,
 			"capability_type"       => "post",
 			"map_meta_cap"          => true,
 			"hierarchical"          => false,
-			"rewrite"               => array( "slug" => "action_monitor", "with_front" => true ),
+			"rewrite"               => [
+				"slug" => "action_monitor",
+				"with_front" => true
+			],
 			"query_var"             => true,
-			"supports"              => array( "title" ),
+			"supports"              => [ "title" ],
 			"show_in_graphql"       => true,
 			"graphql_single_name"   => "ActionMonitorAction",
 			"graphql_plural_name"   => "ActionMonitorActions",
-		);
+		];
 
 		register_post_type( "action_monitor", $args );
 	}
 
+	/**
+	 * Triggers the dispatch to the remote endpoint(s)
+	 */
 	public function trigger_dispatch() {
 		$webhook_field = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
-		
+
 		if ( $webhook_field && $this->should_dispatch ) {
-			
+
 			$webhooks = explode( ',', $webhook_field );
 
 			foreach ( $webhooks as $webhook ) {
-				$args = apply_filters( 'gatsby_trigger_dispatch_args', array(), $webhook );
+				$args = apply_filters( 'gatsby_trigger_dispatch_args', [], $webhook );
 
 				wp_safe_remote_post( $webhook, $args );
 			}
