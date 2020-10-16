@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.18
+
+### Bug Fixes
+
+- The action_monitor post type was registered incorrectly so that it was showing in the rest api, in search, and other places it didn't need to be. This release fixes that. Thanks @jasonbahl!
+
 ## 0.4.17
 
 ### New Features
