@@ -26,6 +26,11 @@ class ActionMonitor {
 	protected $updated_post_ids = [];
 
 	/**
+	 * An array of menu locations to menu id's before the menu is updated.
+	 */
+	protected $menu_locations_before_menu_update = [];
+
+	/**
 	 * Set up the Action monitor when the class is initialized
 	 */
 	function __construct() {
@@ -178,6 +183,13 @@ class ActionMonitor {
 		}, 10, 2 );
 
 		add_action( 'delete_term', [ $this, 'deleteTerm' ], 10, 5 );
+
+		add_action( 'wp_update_term_parent', function() {
+		}, 10, 0);
+
+		$theme_slug = get_option( 'stylesheet' );
+
+		add_filter( "update_option_theme_mods_${theme_slug}", [ $this, 'deleteMenusWithNoLocation' ], 10, 2 );
 
 		// User actions
 		add_action( 'save_post', [ $this, 'updateUserIsPublic' ], 10, 2 );
@@ -608,6 +620,17 @@ class ActionMonitor {
 			return $menu_id;
 		}
 
+		$menu_locations = get_nav_menu_locations();
+		
+		// if no menu locations are assigned to this menu,
+		// bail early because it's a private menu
+		if ( !in_array( $menu_id, $menu_locations ) ) {
+			// send a delete event so that Gatsby no longer 
+			// has this menu if it had it before
+			$this->deleteMenu( $menu_id );
+			return $menu_id;
+		}
+
 		// Get a menu object
 		$menu_object = wp_get_nav_menu_object( $menu_id );
 
@@ -630,6 +653,25 @@ class ActionMonitor {
 			'graphql_single_name' => 'menu',
 			'graphql_plural_name' => 'menus',
 		] );
+	}
+
+	function deleteMenusWithNoLocation( $old_value, $value ) {
+		if ( isset( $old_value['nav_menu_locations'] ) ) {
+			$old_locations = $old_value['nav_menu_locations'];
+			$new_locations = $value['nav_menu_locations'];
+
+			// we only need to find removed id's because
+			// the menu that was updated will be accounted for in
+			// $this->saveMenu()
+			$menu_ids_removed_from_locations = array_diff(
+				$old_locations,
+				$new_locations
+			);
+
+			foreach( $menu_ids_removed_from_locations as $location => $menu_id ) {
+				$this->deleteMenu( $menu_id );
+			}
+		}
 	}
 
 	function savePostGuardClauses( $post, $in_pre_save_post = false ) {
