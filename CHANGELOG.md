@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.5.0
+
+### Bug Fixes
+
+- Added support for delta syncing menu locations. This appeared as a bug where updating your menu locations didn't update in Gatsby, but this was actually a missing feature.
+
 ## 0.4.18
 
 ### Bug Fixes
