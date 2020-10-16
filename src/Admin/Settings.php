@@ -146,6 +146,13 @@ class Settings {
 					'sanitize_callback' => 'sanitize_text_field',
 					'default'           => self::get_default_secret(),
 				],
+				[
+					'name' => 'enable_gatsby_locations',
+					'label' => __( 'Enable Gatsby Menu Locations?', 'wpgatsby_settings' ),
+					'desc' => __( 'Yes', 'wpgatsby_settings' ),
+					'type' => 'checkbox',
+					'default' => 'on',
+				],
 			]
 		];
 
