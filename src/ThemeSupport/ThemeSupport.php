@@ -18,10 +18,10 @@ class ThemeSupport {
             [
                 'gatbsy-header-menu' => __( 'Header Menu [Gatsby]' ),
                 'gatbsy-header-menu-secondary' => __( 'Secondary Header Menu [Gatsby]' ),
-                'gatbsy-header-menu-quaternary' => __( 'Quaternary Header Menu [Gatsby]' ),
+                'gatbsy-header-menu-tertiary' => __( 'Tertiary Header Menu [Gatsby]' ),
                 'gatbsy-footer-menu' => __( 'Footer Menu [Gatsby]' ),
                 'gatbsy-footer-menu-secondary' => __( 'Secondary Footer Menu [Gatsby]' ),
-                'gatbsy-footer-menu-quaternary' => __( 'Quaternary Footer Menu [Gatsby]' ),
+                'gatbsy-footer-menu-tertiary' => __( 'Tertiary Footer Menu [Gatsby]' ),
             ]
         );
     }
