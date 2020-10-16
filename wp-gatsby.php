@@ -172,6 +172,11 @@ final class WPGatsby {
 		new \WPGatsby\Schema\Schema();
 
 		/**
+		 * Register Theme supports
+		 */
+		new \WPGatsby\ThemeSupport\ThemeSupport();
+
+		/**
 		 * Initialize Action Monitor
 		 */
 		new \WPGatsby\ActionMonitor\ActionMonitor();
