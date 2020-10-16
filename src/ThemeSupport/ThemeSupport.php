@@ -2,6 +2,8 @@
 
 namespace WPGatsby\ThemeSupport;
 
+use WPGatsby\Admin\Settings;
+
 /**
  * Modifies the schema
  */
@@ -14,15 +16,20 @@ class ThemeSupport {
     }
     
     function registerGatsbyMenuLocations() {
-        register_nav_menus(
+        $enable_gatsby_locations = Settings::get_setting('enable_gatsby_locations') === 'on';
+
+        if ( !$enable_gatsby_locations ) {
+            return;
+        }
+
+        $gatsby_locations = apply_filters(
+            'gatsby_locations',
             [
-                'gatbsy-header-menu' => __( 'Header Menu [Gatsby]', 'WPGatsby' ),
-                'gatbsy-header-menu-secondary' => __( 'Secondary Header Menu [Gatsby]', 'WPGatsby' ),
-                'gatbsy-header-menu-tertiary' => __( 'Tertiary Header Menu [Gatsby]', 'WPGatsby' ),
-                'gatbsy-footer-menu' => __( 'Footer Menu [Gatsby]', 'WPGatsby' ),
-                'gatbsy-footer-menu-secondary' => __( 'Secondary Footer Menu [Gatsby]', 'WPGatsby' ),
-                'gatbsy-footer-menu-tertiary' => __( 'Tertiary Footer Menu [Gatsby]', 'WPGatsby' ),
+                'gatbsy-header-menu' => __( 'Header Menu [Added by WPGatsby]', 'WPGatsby' ),
+                'gatbsy-footer-menu' => __( 'Footer Menu [Added by WPGatsby]', 'WPGatsby' ),
             ]
         );
+
+        register_nav_menus( $gatsby_locations );
     }
 }
