@@ -94,6 +94,12 @@ class Settings {
 		return filter_var( $input, FILTER_VALIDATE_URL );
 	}
 
+	public static function get_setting( $key ) {
+		$wpgatsby_settings = get_option( 'wpgatsby_settings' );
+
+		return $wpgatsby_settings[ $key ] ?? null;
+	}
+
 	/**
 	 * Returns all the settings fields
 	 *
