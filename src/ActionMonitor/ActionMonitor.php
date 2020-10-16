@@ -179,9 +179,6 @@ class ActionMonitor {
 
 		add_action( 'delete_term', [ $this, 'deleteTerm' ], 10, 5 );
 
-		add_action( 'wp_update_term_parent', function() {
-		}, 10, 0);
-
 		$theme_slug = get_option( 'stylesheet' );
 
 		add_filter( "update_option_theme_mods_${theme_slug}", [ $this, 'deleteMenusWithNoLocation' ], 10, 2 );
