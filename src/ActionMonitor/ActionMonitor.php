@@ -26,11 +26,6 @@ class ActionMonitor {
 	protected $updated_post_ids = [];
 
 	/**
-	 * An array of menu locations to menu id's before the menu is updated.
-	 */
-	protected $menu_locations_before_menu_update = [];
-
-	/**
 	 * Set up the Action monitor when the class is initialized
 	 */
 	function __construct() {
