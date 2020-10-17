@@ -1032,6 +1032,15 @@ class ActionMonitor {
 			"singular_name" => __( "Action Monitor", "WPGatsby" ),
 		];
 
+		$WPGraphQL_debug_mode = !!(
+			defined( 'GRAPHQL_DEBUG' ) && GRAPHQL_DEBUG 
+			|| ( 
+				class_exists( 'WPGraphQL') 
+				&& method_exists( 'WPGraphQL', 'debug' ) 
+				&& \WPGraphQL::debug() 
+			)
+		);
+
 
 		$args = [
 			"label"                 => __( "Action Monitor", "WPGatsby" ),
@@ -1039,13 +1048,13 @@ class ActionMonitor {
 			"description"           => "Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wordpress.",
 			"public"                => false,
 			"publicly_queryable"    => false,
-			"show_ui"               => ( class_exists( 'WPGraphQL') && true === \WPGraphQL::debug() ) ? true : false,
+			"show_ui"               => $WPGraphQL_debug_mode,
 			"delete_with_user"      => false,
 			"show_in_rest"          => false,
 			"rest_base"             => "",
 			"rest_controller_class" => "WP_REST_Posts_Controller",
 			"has_archive"           => false,
-			"show_in_menu"          => ( class_exists( 'WPGraphQL') && true === \WPGraphQL::debug() ) ? true : false,
+			"show_in_menu"          => $WPGraphQL_debug_mode,
 			"show_in_nav_menus"     => false,
 			"exclude_from_search"   => true,
 			"capability_type"       => "post",
