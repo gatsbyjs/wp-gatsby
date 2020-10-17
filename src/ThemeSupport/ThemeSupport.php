@@ -25,8 +25,8 @@ class ThemeSupport {
         $gatsby_locations = apply_filters(
             'gatsby_locations',
             [
-                'gatbsy-header-menu' => __( 'Header Menu [Added by WPGatsby]', 'WPGatsby' ),
-                'gatbsy-footer-menu' => __( 'Footer Menu [Added by WPGatsby]', 'WPGatsby' ),
+                'gatsby-header-menu' => __( 'Header Menu [Added by WPGatsby]', 'WPGatsby' ),
+                'gatsby-footer-menu' => __( 'Footer Menu [Added by WPGatsby]', 'WPGatsby' ),
             ]
         );
 

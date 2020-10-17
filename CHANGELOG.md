@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.5.1
+
+- Fixed a typo in the new footer locations 🤦‍♂️ gatbsy should be gatsby
 ## 0.5.0
 
 ### Bug Fixes
