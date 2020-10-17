@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.5.2
+
+- Added a backwards compatibility fix for a regression introduced in v0.4.18 where WPGraphQL::debug() was called. This method is only available in later versions of WPGraphQL, but this plugin currently supports earlier versions
+
 ## 0.5.1
 
 - Fixed a typo in the new footer locations 🤦‍♂️ gatbsy should be gatsby
