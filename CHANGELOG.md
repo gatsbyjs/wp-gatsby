@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.5.3
+
+- Meta delta syncing was using the same code for posts and users. In many cases this was causing errors when updating usermeta. This code is now scoped to posts only and we will add usermeta delta syncing separately.
+- Our composer setup was previously double autoloading
+
 ## 0.5.2
 
 - Added a backwards compatibility fix for a regression introduced in v0.4.18 where WPGraphQL::debug() was called. This method is only available in later versions of WPGraphQL, but this plugin currently supports earlier versions
