@@ -197,13 +197,9 @@ class ActionMonitor {
 		add_action( 'delete_user', [ $this, 'deleteUser' ], 10, 2 );
 
 		// Post meta updates
-		$meta_types = [ 'user', 'post', 'page' ];
-
-		foreach ( $meta_types as $type ) {
-			add_action( "updated_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
-			add_action( "added_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
-			add_action( "deleted_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
-		}
+		add_action( "updated_post_meta", [ $this, 'modifyMeta' ], 100, 3 );
+		add_action( "added_post_meta", [ $this, 'modifyMeta' ], 100, 3 );
+		add_action( "deleted_post_meta", [ $this, 'modifyMeta' ], 100, 3 );
 
 		// Non node root fields (options, settings, etc)
 		//
