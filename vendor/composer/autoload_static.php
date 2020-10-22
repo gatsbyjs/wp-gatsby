@@ -4,8 +4,12 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2
+class ComposerStaticInitd3ab8d7222debe5e8300e6d577373baf
 {
+    public static $files = array (
+        '6413a0507de9f277a61292c211ec9a9e' => __DIR__ . '/../..' . '/tests/_data/config.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
         'W' => 
         array (
@@ -98,6 +102,8 @@ class ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2
         'SecurityLib\\Strength' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Strength.php',
         'SecurityLib\\Util' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
         'WPGatsby\\ActionMonitor\\ActionMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/ActionMonitor.php',
+        'WPGatsby\\ActionMonitor\\Dispatcher' => __DIR__ . '/../..' . '/src/ActionMonitor/Dispatcher.php',
+        'WPGatsby\\ActionMonitor\\PostMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/PostMonitor.php',
         'WPGatsby\\Admin\\Preview' => __DIR__ . '/../..' . '/src/Admin/Preview.php',
         'WPGatsby\\Admin\\Settings' => __DIR__ . '/../..' . '/src/Admin/Settings.php',
         'WPGatsby\\GraphQL\\Auth' => __DIR__ . '/../..' . '/src/GraphQL/Auth.php',
@@ -111,10 +117,10 @@ class ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitd3ab8d7222debe5e8300e6d577373baf::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitd3ab8d7222debe5e8300e6d577373baf::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitd3ab8d7222debe5e8300e6d577373baf::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitd3ab8d7222debe5e8300e6d577373baf::$classMap;
 
         }, null, ClassLoader::class);
     }
