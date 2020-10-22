@@ -17,7 +17,6 @@ on:
 
 jobs:
   continuous_integration:
-    env:
     runs-on: ubuntu-latest
     strategy:
       matrix:
