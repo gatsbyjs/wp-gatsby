@@ -2,8 +2,6 @@
 
 use GraphQLRelay\Relay;
 
-wp_head();
-
 global $post;
 $post_id  = $post->ID;
 $revision = array_values( wp_get_post_revisions( $post_id ) )[0] ?? null;
@@ -42,6 +40,23 @@ $frontend_url = "$preview_url$path";
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Preview</title>
 	<style>
+		#loader {
+			position: fixed;
+			top: 46px;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			width: 100%;
+			height: 100%;
+			height: calc(100% - 46px);
+			background: white;	
+			z-index: 100;
+		}
+
+		#loader.loaded {
+			display: none;
+		}
+
 		.content {
 			width: 100%;
 			left: 0;
@@ -83,38 +98,98 @@ $frontend_url = "$preview_url$path";
 		}
 	</style>
 
+	<script src="http://localhost:8000/socket.io/socket.io.js"></script>
+
+	<script>
+		var initialState = {
+			nodeId: "<?php echo $global_relay_id; ?>",
+			modified: "<?php echo $revision->post_modified ?? null; ?>",
+			previewFrontendUrl: "<?php echo $preview_url; ?>"
+		}
+
+		console.log({ initialState });
+
+		var socket = io('http://localhost:8000');
+		console.log('emitting subscribeToNodePages');
+		var emitCount = 0
+		// we subscribe every second to mitigate any weird timing issues
+		// where the subscriber on the Gatsby side doesn't come back.
+		// subscribers are stored by nodeId, so adding new ones will overwrite
+		// the old ones, so no big deal here.
+		// since it's a websocket it also doesn't have a downside
+		// like polling would
+		// this is a failsafe and in most cases is not required.
+		// but let's make this thing resilient!
+		var intervalSubscribe = setInterval(() => {
+			emitCount++
+			socket.emit(
+			"subscribeToNodePages",
+			{  
+				nodeId: initialState.nodeId,
+				modified: initialState.modified
+			}
+		);
+		}, 1000);
+
+		socket.on('wpNotInPreviewMode', () => {
+			console.log(`not in preview mode!`)
+			// @todo handle this state
+		})
+
+		socket.on('wpPreviewReady', (response) => {
+			clearInterval(intervalSubscribe)
+			socket.off('wpPreviewReady')
+			console.log(`wpPreviewReady`);
+			console.log(`emitted ${emitCount} times`)
+			var previewIframe = document.getElementById('preview');
+
+			console.log(response);
+			console.log(previewIframe);
+			previewIframe.addEventListener('load', onIframeLoaded)
+
+			previewIframe.src = initialState.previewFrontendUrl + response.payload.pageNode.path;
+		});
+
+		function onIframeLoaded() {
+			var loader = document.getElementById('loader');
+
+			// this delay prevents a flash between 
+			// the iframe painting and the loader dissapearing
+			setTimeout(() => {
+				loader.classList.add("loaded")
+			}, 50);
+		}
+	</script>
+
 	<script async>
-        function showError() {
-            document.addEventListener("DOMContentLoaded", function () {
-                try {
-                    const iframe = document.querySelector('#preview')
-                    iframe.style.display = "none"
-                } catch (e) {
-                }
+        // function showError() {
+        //     document.addEventListener("DOMContentLoaded", function () {
+        //         try {
+        //             const iframe = document.querySelector('#preview')
+        //             iframe.style.display = "none"
+        //         } catch (e) {
+        //         }
 
-                try {
-                    const content = document.querySelector('.content')
-                    content.style.display = "block"
-                } catch (e) {
-                }
-            })
-        }
+        //         try {
+        //             const content = document.querySelector('.content')
+        //             content.style.display = "block"
+        //         } catch (e) {
+        //         }
+        //     })
+        // }
 
-        fetch("<?php echo $frontend_url; ?>", {mode: 'no-cors'})
-            .catch(e => {
-                showError()
-            });
+        // fetch("<?php echo $frontend_url; ?>", {mode: 'no-cors'})
+        //     .catch(e => {
+        //         showError()
+        //     });
 	</script>
 </head>
 
 <body>
-<?php if ( $frontend_url ): ?>
-	<iframe
-			id='preview'
-			src="<?= $frontend_url; ?>"
-			frameborder="0"
-	></iframe>
-<?php endif; ?>
+
+<div id="loader">Loading!</div>
+
+<iframe id='preview' frameborder="0"></iframe>
 
 <div class="content error" style="display: none;">
 	<h1>Preview broken</h1>
@@ -128,7 +203,7 @@ $frontend_url = "$preview_url$path";
 		If you've set the correct URL and you're still having trouble, please <a
 				href="https://www.gatsbyjs.com/preview/" target="_blank"
 				rel="noopener, nofollow. noreferrer, noopener, external">refer to the docs</a> for
-		troubleshooting steps, or <a href="https://www.gatsbyjs.com/preview/" target="_blank"
+		troubleshooting steps, ask your developer, or <a href="https://www.gatsbyjs.com/preview/" target="_blank"
 									 rel="noopener, nofollow. noreferrer, noopener, external">contact
 			support</a> if that doesn't solve your issue.
 		<br>
