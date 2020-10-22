@@ -69,19 +69,29 @@ class Preview {
 			return;
 		}
 
+		if ( $post->post_status === 'auto-draft'  ) {
+			return;
+		}
+
 		$is_new_post_draft =
-			(
-				$post->post_status === 'auto-draft' 
-				|| $post->post_status === 'draft'
-			) &&
+			$post->post_status === 'draft' &&
 			$post->post_date_gmt === '0000-00-00 00:00:00';
+
+		if ($is_new_post_draft) {
+			return;
+		}
 
 		$is_revision = $post->post_type === 'revision';
 		$is_draft = $post->post_status === 'draft';
 
-		if ( ! $is_new_post_draft && ! $is_revision ) {
+		if (!$is_revision) {
 			return;
 		}
+
+
+		// if ( ! $is_new_post_draft && ! $is_revision ) {
+		// 	return;
+		// }
 
 		$token = \WPGatsby\GraphQL\Auth::get_token();
 
@@ -89,6 +99,14 @@ class Preview {
 			// @todo error message?
 			return;
 		}
+
+		error_log(print_r('sending', true)); 
+		error_log(print_r('$is_draft', true)); 
+		error_log(print_r($is_draft, true)); 
+		error_log(print_r('$is_new_post_draft', true)); 
+		error_log(print_r($is_new_post_draft, true)); 
+		error_log(print_r('$is_revision', true)); 
+		error_log(print_r($is_revision, true)); 
 
 		$preview_webhook = $this::get_gatsby_preview_webhook();
 
