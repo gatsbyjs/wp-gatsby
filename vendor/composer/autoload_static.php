@@ -6,10 +6,6 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitd3ab8d7222debe5e8300e6d577373baf
 {
-    public static $files = array (
-        '6413a0507de9f277a61292c211ec9a9e' => __DIR__ . '/../..' . '/tests/_data/config.php',
-    );
-
     public static $prefixLengthsPsr4 = array (
         'W' => 
         array (
@@ -102,8 +98,6 @@ class ComposerStaticInitd3ab8d7222debe5e8300e6d577373baf
         'SecurityLib\\Strength' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Strength.php',
         'SecurityLib\\Util' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
         'WPGatsby\\ActionMonitor\\ActionMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/ActionMonitor.php',
-        'WPGatsby\\ActionMonitor\\Dispatcher' => __DIR__ . '/../..' . '/src/ActionMonitor/Dispatcher.php',
-        'WPGatsby\\ActionMonitor\\PostMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/PostMonitor.php',
         'WPGatsby\\Admin\\Preview' => __DIR__ . '/../..' . '/src/Admin/Preview.php',
         'WPGatsby\\Admin\\Settings' => __DIR__ . '/../..' . '/src/Admin/Settings.php',
         'WPGatsby\\GraphQL\\Auth' => __DIR__ . '/../..' . '/src/GraphQL/Auth.php',
