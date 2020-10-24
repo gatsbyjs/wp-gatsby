@@ -11,6 +11,50 @@ class Settings {
 
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
 		add_action( 'admin_menu', [ $this, 'register_settings_page' ] );
+
+		// Filter the GraphQL Settings for introspection to force enable Introspection when WPGatsby is active
+		add_filter( 'graphql_setting_field_config', [ $this, 'filter_graphql_introspection_setting_field' ], 10, 3 );
+		add_filter( 'graphql_get_setting_section_field_value', [ $this, 'filter_graphql_introspection_setting_value' ], 10, 5 );
+	}
+
+	/**
+	 * Overrides the "public_introspection_enabled" setting field in the GraphQL Settings to be
+	 * checked and disabled so users can't uncheck it.
+	 *
+	 * @param array  $field_config The field config for the setting
+	 * @param string $field_name   The name of the field (unfilterable in the config)
+	 * @param string $section      The slug of the section the field is registered to
+	 *
+	 * @return mixed
+	 */
+	public function filter_graphql_introspection_setting_field( $field_config, $field_name, $section ) {
+		if ( 'graphql_general_settings' === $section && 'public_introspection_enabled' === $field_name ) {
+			$field_config['value']    = 'on';
+			$field_config['disabled'] = true;
+			$field_config['desc']     = $field_config['desc'] . ' (<strong>' . __( 'Force enabled by WPGatsby. Gatsby requires WPGraphQL introspection to communicate with WordPress.', 'wp-graphql' ) . '</strong>)';
+		}
+
+		return $field_config;
+	}
+
+	/**
+	 * Filters the value of the "public_introspection_enabled" setting to always be "on" when
+	 * WPGatsby is enabled
+	 *
+	 * @param mixed  $value          The value of the field
+	 * @param mixed  $default        The default value if there is no value set
+	 * @param string $field_name     The name of the option
+	 * @param array  $section_fields The setting values within the section
+	 * @param string $section_name   The name of the section the setting belongs to
+	 *
+	 * @return string
+	 */
+	public function filter_graphql_introspection_setting_value( $value, $default, $field_name, $section_fields, $section_name ) {
+		if ( 'graphql_general_settings' === $section_name && 'public_introspection_enabled' === $field_name ) {
+			return 'on';
+		}
+
+		return $value;
 	}
 
 	function admin_init() {
@@ -53,9 +97,9 @@ class Settings {
 		echo '<div class="wrap">';
 		echo '<div class="notice-info notice">
 			<p>'
-			. '<a target="_blank" href="'
-			. esc_url('https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md')
-			. '">Learn how to configure WPGatsby here.</a></p>
+		     . '<a target="_blank" href="'
+		     . esc_url( 'https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md' )
+		     . '">Learn how to configure WPGatsby here.</a></p>
 		</div>';
 		$this->settings_api->show_navigation();
 		$this->settings_api->show_forms();
@@ -119,10 +163,10 @@ class Settings {
 					}
 				],
 				[
-					'name' => 'enable_gatsby_preview',
+					'name'  => 'enable_gatsby_preview',
 					'label' => __( 'Enable Gatsby Preview?', 'wpgatsby_settings' ),
-					'desc' => __( 'Yes', 'wpgatsby_settings' ),
-					'type' => 'checkbox'
+					'desc'  => __( 'Yes', 'wpgatsby_settings' ),
+					'type'  => 'checkbox'
 				],
 				[
 					'name'              => 'preview_instance_url',
@@ -153,10 +197,10 @@ class Settings {
 					'default'           => self::get_default_secret(),
 				],
 				[
-					'name' => 'enable_gatsby_locations',
-					'label' => __( 'Enable Gatsby Menu Locations?', 'wpgatsby_settings' ),
-					'desc' => __( 'Yes', 'wpgatsby_settings' ),
-					'type' => 'checkbox',
+					'name'    => 'enable_gatsby_locations',
+					'label'   => __( 'Enable Gatsby Menu Locations?', 'wpgatsby_settings' ),
+					'desc'    => __( 'Yes', 'wpgatsby_settings' ),
+					'type'    => 'checkbox',
 					'default' => 'on',
 				],
 			]
