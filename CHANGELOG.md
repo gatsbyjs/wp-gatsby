@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.5.4
+- Force enable WPGraphQL Introspection when WPGatsby is enabled. [WPGraphQL v0.14.0](https://github.com/wp-graphql/wp-graphql/releases/tag/v0.14.0) has Introspection disabled by default with an option to enable it, and Gatsby requires it to be enabled, so WPGatsby force-enables it.
+
 ## 0.5.3
 
 - Meta delta syncing was using the same code for posts and users. In many cases this was causing errors when updating usermeta. This code is now scoped to posts only and we will add usermeta delta syncing separately.
