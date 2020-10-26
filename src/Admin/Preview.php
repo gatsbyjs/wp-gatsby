@@ -96,6 +96,7 @@ class Preview {
 		$token = \WPGatsby\GraphQL\Auth::get_token();
 
 		if ( ! $token ) {
+			error_log('Please set a JWT token in WPGatsby to enable Preview support.');
 			// @todo error message?
 			return;
 		}
