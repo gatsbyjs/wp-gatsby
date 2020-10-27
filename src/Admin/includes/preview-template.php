@@ -244,13 +244,15 @@ $frontend_url = "$preview_url$path";
 
 			console.log({ initialState });
 
+			var timeoutSeconds = 45
+
 			var timeoutWarning = setTimeout(() => {
 				var previewWarningP = document.getElementById("preview-loader-warning")
 
-				previewWarningP.innerHTML = `Preview is taking a very long time to load (more than 45 seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either very slow or there's something wrong.<br /><br /><button onclick="cancelPreviewLoader()">Cancel and Troubleshoot</button>`
+				previewWarningP.innerHTML = `Preview is taking a very long time to load (more than ${timeoutSeconds} seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either very slow or there's something wrong.<br /><br /><button onclick="cancelPreviewLoader()">Cancel and Troubleshoot</button>`
 
 				previewWarningP.style.display = 'initial'
-			}, 0)
+			}, 1000 * timeoutSeconds)
 
 			function cancelPreviewLoader() {
 				showError(`Preview was cancelled.`)
