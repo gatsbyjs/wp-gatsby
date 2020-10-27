@@ -62,6 +62,8 @@ $frontend_url = "$preview_url$path";
 			flex-direction: column;
 			opacity: 1;
 			transition: .125s ease-out opacity;
+			padding: 0 50px;
+    		box-sizing: border-box;
 		}
 
 		@media (max-width: 782px) {
@@ -74,12 +76,24 @@ $frontend_url = "$preview_url$path";
 			opacity: 0;
 		}
 
-		h1, h2, pre, p {
+		button {
+			font-size: 1rem;
+			padding: 15px 30px;
+			cursor: pointer;
+			font-weight: medium;
+			color: white !important;
+			background: rebeccapurple;
+			border: none;
+			margin-top: 20px;
+			letter-spacing: 0.25px;
+		}
+
+		h1, h2, pre, p, button {
 			font-family: "Futura PT", -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 			line-height: 1.45
 		}
 
-		b, p {
+		b, p, button {
 			color: #272727
 		}
 
@@ -150,7 +164,9 @@ $frontend_url = "$preview_url$path";
 			justify-content: center;
 			align-items: center;
 			flex-direction: column;
+		}
 
+		#preview-loader-warning, .content {
 			max-width: 80%;
 			width: 800px;
 			margin: 0 auto;
@@ -228,6 +244,18 @@ $frontend_url = "$preview_url$path";
 
 			console.log({ initialState });
 
+			var timeoutWarning = setTimeout(() => {
+				var previewWarningP = document.getElementById("preview-loader-warning")
+
+				previewWarningP.innerHTML = `Preview is taking a very long time to load (more than 45 seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either very slow or there's something wrong.<br /><br /><button onclick="cancelPreviewLoader()">Cancel and Troubleshoot</button>`
+
+				previewWarningP.style.display = 'initial'
+			}, 0)
+
+			function cancelPreviewLoader() {
+				showError(`Preview was cancelled.`)
+			}
+
 			fetch(initialState.previewFrontendUrl + `/__wpgatsby-preview-status`, {
 				method: 'POST',
 				body: JSON.stringify({  
@@ -243,53 +271,35 @@ $frontend_url = "$preview_url$path";
 				onPreviewReady(response)
 			})
 			.catch(errorMessage => {
+				if (
+					typeof errorMessage === `string` &&
+					errorMessage.str_post(`Unexpected token < in JSON at position 0`)
+				) {
+					errorMessage += `\n\nYour version of gatsby-source-wordpress-experimental is likely out of date.\n\nPlease upgrade to the latest version.`
+				}
 				showError(errorMessage)
 			})
 
 			console.log('emitting subscribeToNodePages');
 			var emitCount = 0
-			// we subscribe every second to mitigate any weird timing issues
-			// where the subscriber on the Gatsby side doesn't come back.
-			// subscribers are stored by nodeId, so adding new ones will overwrite
-			// the old ones, so no big deal here.
-			// since it's a websocket it also doesn't have a downside
-			// like polling would
-			// this is a failsafe and in most cases is not required.
-			// but let's make this thing resilient!
-			// var intervalSubscribe = setInterval(() => {
-			// 	emitCount++
-			// 	socket.emit(
-			// 	"subscribeToNodePages",
-			// 	{  
-			// 		nodeId: initialState.nodeId,
-			// 		modified: initialState.modified
-			// 	}
-			// );
-			// }, 1000);
-
-			// socket.on('wpNotInPreviewMode', () => {
-			// 	console.log(`not in preview mode!`)
-			// 	// @todo handle this state
-			// })
 
 			function onPreviewReady(response) {
+				clearTimeout(timeoutWarning)
+
 				if (response.type && response.type === `wpNotInPreviewMode`) {
 					throw new Error(`Your Gatsby site is not in Preview mode.\nIf you're hosting on Gatsby Cloud, please see below for where to contact support.\nIf you're running Previews locally or are self-hosting, please refer to https://www.gatsbyjs.com/docs/refreshing-content to put Gatsby into Preview mode.`)
 				}
-				// clearInterval(intervalSubscribe)
-				// socket.off('wpPreviewReady')
+
 				console.log(`wpPreviewReady`);
-				console.log(`emitted ${emitCount} times`)
 				var previewIframe = document.getElementById('preview');
 
 				console.log(response);
 				console.log(previewIframe);
+				
 				previewIframe.addEventListener('load', onIframeLoaded)
 
 				previewIframe.src = initialState.previewFrontendUrl + response.payload.pageNode.path;
 			}
-
-			// socket.on('wpPreviewReady', onPreviewReady);
 
 			function onIframeLoaded() {
 				var loader = document.getElementById('loader');
@@ -313,18 +323,17 @@ $frontend_url = "$preview_url$path";
 		}
 
         function showError(error) {
-			console.log(`here ${error}`)
-				const iframe = document.getElementById('preview')
-				iframe.style.display = "none"
-				
-				const loader = document.getElementById('loader')
-				loader.style.display = "none"
-				
-				const errorElement = document.getElementById('error-message-element')
-				errorElement.textContent = error
+			const iframe = document.getElementById('preview')
+			iframe.style.display = "none"
+			
+			const loader = document.getElementById('loader')
+			loader.style.display = "none"
+			
+			const errorElement = document.getElementById('error-message-element')
+			errorElement.textContent = error
 
-				const content = document.querySelector('.content.error')
-				content.style.display = "block"                
+			const content = document.querySelector('.content.error')
+			content.style.display = "block"                
         }
 	</script>
 </head>
@@ -340,6 +349,7 @@ $frontend_url = "$preview_url$path";
         </svg>
 	</div>
 	<h1>Loading Preview</h1>
+	<p id="preview-loader-warning" style="display: none;"></p>
 </div>
 
 <iframe id='preview' frameborder="0"></iframe>
@@ -347,8 +357,11 @@ $frontend_url = "$preview_url$path";
 <div class="content error" style="display: none;">
 	<h1>Preview broken</h1>
 	<p>
-		The Preview frontend url set on the <a
-				href="<?php echo get_bloginfo( 'url' ); ?>/wp-admin/options-general.php?page=gatsbyjs">settings
+		The Preview frontend url set on the
+		 <a
+				href="<?php echo get_bloginfo( 'url' ); ?>/wp-admin/options-general.php?page=gatsbyjs"
+				target="_blank" rel="noopener, nofollow. noreferrer, noopener, external"
+		>settings
 			page</a> isn't working properly.
 		<br>
 		<br>
