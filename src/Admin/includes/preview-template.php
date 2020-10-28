@@ -263,7 +263,9 @@ $frontend_url = "$preview_url$path";
 				showError(`Preview was cancelled.`)
 			}
 
-			function fetchPreviewStatusAndUpdateUI({ ignoreNoIndicationOfSourcing = false } = {}) {
+			function fetchPreviewStatusAndUpdateUI({ 
+				ignoreNoIndicationOfSourcing = false 
+			} = {}) {
 				fetch(
 					initialState.previewFrontendUrl + `/__wpgatsby-preview-status`, 
 					{
@@ -320,6 +322,17 @@ $frontend_url = "$preview_url$path";
 
 				console.log(`Received a response:`);
 				console.log(response);
+
+				if (
+					!response.type ||
+					!response.payload ||
+					!response.payload.pageNode ||
+					!response.payload.pageNode.path
+				) {
+					throw new Error(
+						`Received an improper response from the Preview server.`
+					)
+				}
 
 				var previewIframe = document.getElementById('preview');
 
