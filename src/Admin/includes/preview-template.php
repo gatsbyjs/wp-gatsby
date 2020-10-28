@@ -438,6 +438,15 @@ $frontend_url = "$preview_url$path";
 				rel="noopener, nofollow. noreferrer, noopener, external">set one up now on Gatsby
 			Cloud.</a>
 	</p>
+	<h2>Developer instructions</h2>
+	<p>Please visit 
+		<a
+			href="https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md#setting-up-preview" target="_blank"
+			rel="noopener, nofollow. noreferrer, noopener, external"
+		>
+		the docs
+		</a> for instructions on setting up Gatsby Preview.
+	</p>
 </div>
 </body>
 
