@@ -73,7 +73,7 @@ function printFileContents( $fileName ) {
 <iframe id='preview' frameborder="0"></iframe>
 
 <div class="content error" style="display: none;">
-	<h1>Preview broken</h1>
+	<h1>The Preview couldn't be loaded</h1>
 	<p>
 		The Preview frontend url set on the
 		 <a
