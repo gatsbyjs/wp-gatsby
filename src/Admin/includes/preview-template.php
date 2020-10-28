@@ -252,12 +252,13 @@ $frontend_url = "$preview_url$path";
 			}
 
 			var timeoutSeconds = 45
+			var timeoutMilliseconds = 1000 * timeoutSeconds
 
 			var timeoutWarning = setTimeout(() => {
 				updateLoaderWarning(
-					`Preview is taking a very long time to load (more than ${timeoutSeconds} seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either very slow or there's something wrong.`
+					`Preview is taking a very long time to load (more than ${timeoutSeconds} seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either slow or there's something wrong.`
 				)
-			}, 1000 * timeoutSeconds)
+			}, timeoutMilliseconds)
 
 			function cancelPreviewLoader() {
 				showError(`Preview was cancelled.`)
@@ -304,7 +305,7 @@ $frontend_url = "$preview_url$path";
 					updateLoaderWarning(
 						`There is no indication that preview data is being sourced by the server.<br /><br />A code change for this website might be deploying and blocking preview from working.<br /><br /><b>Please try pressing "preview" in WordPress again.</b><br />If you see this message again, wait 5 - 10 minutes and then try again,<br />or contact your developer for help.`
 					)
-				}, 0)
+				}, timeoutMilliseconds)
 
 				fetchPreviewStatusAndUpdateUI({ ignoreNoIndicationOfSourcing: true })
 			}
