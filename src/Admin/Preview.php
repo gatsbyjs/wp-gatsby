@@ -27,6 +27,12 @@ class Preview {
 		return $template;
 	}
 
+	public static function printFileContents( $fileName ) {
+		$pluginDirectory = plugin_dir_path( __FILE__ );
+		$filePath = $pluginDirectory . $fileName;
+		echo file_get_contents( $filePath );
+	}
+
 	static function get_setting( $key ) {
 		$wpgatsby_settings = get_option( 'wpgatsby_settings' );
 

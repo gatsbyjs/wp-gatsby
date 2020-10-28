@@ -1,6 +1,7 @@
 <?php
 
 use GraphQLRelay\Relay;
+use WPGatsby\Admin\Preview;
 
 global $post;
 $post_id  = $post->ID;
@@ -20,14 +21,6 @@ $global_relay_id = Relay::toGlobalId(
 $preview_url  = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 $preview_url  = rtrim( $preview_url, '/' );
 
-// adding inline JS/CSS because the files are tiny
-// extra requests would take longer than this.
-function printFileContents( $fileName ) {
-	$pluginDirectory = plugin_dir_path( __FILE__ );
-	$filePath = $pluginDirectory . $fileName;
-	echo file_get_contents( $filePath );
-}
-
 ?>
 
 <html lang="en">
@@ -38,7 +31,7 @@ function printFileContents( $fileName ) {
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Preview</title>
 	<style>
-		<?php printFileContents( "../assets/dist/styles.css" ); ?>
+		<?php Preview::printFileContents( "assets/dist/styles.css" ); ?>
 	</style>
 
 	<script>
@@ -52,7 +45,7 @@ function printFileContents( $fileName ) {
 
 		console.log({ initialState });
 		
-		<?php printFileContents( "../assets/dist/script.js" ); ?>
+		<?php Preview::printFileContents( "assets/dist/script.js" ); ?>
 	</script>
 </head>
 
