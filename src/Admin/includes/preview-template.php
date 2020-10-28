@@ -244,63 +244,93 @@ $frontend_url = "$preview_url$path";
 
 			console.log({ initialState });
 
+			function updateLoaderWarning(message) {
+				var previewWarningP = document.getElementById("preview-loader-warning")
+
+				previewWarningP.innerHTML = message + `<br /><br /><button onclick="cancelPreviewLoader()">Cancel and Troubleshoot</button>`
+				previewWarningP.style.display = 'initial'
+			}
+
 			var timeoutSeconds = 45
 
 			var timeoutWarning = setTimeout(() => {
-				var previewWarningP = document.getElementById("preview-loader-warning")
-
-				previewWarningP.innerHTML = `Preview is taking a very long time to load (more than ${timeoutSeconds} seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either very slow or there's something wrong.<br /><br /><button onclick="cancelPreviewLoader()">Cancel and Troubleshoot</button>`
-
-				previewWarningP.style.display = 'initial'
+				updateLoaderWarning(
+					`Preview is taking a very long time to load (more than ${timeoutSeconds} seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either very slow or there's something wrong.`
+				)
 			}, 1000 * timeoutSeconds)
 
 			function cancelPreviewLoader() {
 				showError(`Preview was cancelled.`)
 			}
 
-			fetch(initialState.previewFrontendUrl + `/__wpgatsby-preview-status`, {
-				method: 'POST',
-				body: JSON.stringify({  
-					nodeId: initialState.nodeId,
-					modified: initialState.modified
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			})
-			.then(response => response.json())
-			.then(response => {
-				onPreviewReady(response)
-			})
-			.catch(errorMessage => {
-				if (
-					typeof errorMessage === `string` &&
-					errorMessage.str_post(`Unexpected token < in JSON at position 0`)
-				) {
-					errorMessage += `\n\nYour version of gatsby-source-wordpress-experimental is likely out of date.\n\nPlease upgrade to the latest version.`
-				}
-				showError(errorMessage)
-			})
+			function fetchPreviewStatusAndUpdateUI({ ignoreNoIndicationOfSourcing = false } = {}) {
+				fetch(
+					initialState.previewFrontendUrl + `/__wpgatsby-preview-status`, 
+					{
+						method: 'POST',
+						body: JSON.stringify({  
+							nodeId: initialState.nodeId,
+							modified: initialState.modified,
+							ignoreNoIndicationOfSourcing
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					}
+				)
+				.then(response => response.json())
+				.then(response => {
+					onPreviewReady(response)
+				})
+				.catch(errorMessage => {
+					if (
+						typeof errorMessage === `string` &&
+						errorMessage.str_post(`Unexpected token < in JSON at position 0`)
+					) {
+						errorMessage += `\n\nYour version of gatsby-source-wordpress-experimental is likely out of date.\n\nPlease upgrade to the latest version.`
+					}
+					showError(errorMessage)
+				})
+			}
 
-			console.log('emitting subscribeToNodePages');
-			var emitCount = 0
+			fetchPreviewStatusAndUpdateUI()
+
+			var noIndicationOfSourcingWarningTimeout
+
+			function displayNoIndicationOfSourcingWarningAndTryAgain() {
+				noIndicationOfSourcingWarningTimeout = setTimeout(() => {
+					updateLoaderWarning(
+						`There is no indication that preview data is being sourced by the server.<br /><br />A code change for this website might be deploying and blocking preview from working.<br /><br /><b>Please try pressing "preview" in WordPress again.</b><br />If you see this message again, wait 5 - 10 minutes and then try again,<br />or contact your developer for help.`
+					)
+				}, 0)
+
+				fetchPreviewStatusAndUpdateUI({ ignoreNoIndicationOfSourcing: true })
+			}
 
 			function onPreviewReady(response) {
 				clearTimeout(timeoutWarning)
 
-				if (response.type && response.type === `wpNotInPreviewMode`) {
+				if (response.type && response.type === `NOT_IN_PREVIEW_MODE`) {
 					throw new Error(`Your Gatsby site is not in Preview mode.\nIf you're hosting on Gatsby Cloud, please see below for where to contact support.\nIf you're running Previews locally or are self-hosting, please refer to https://www.gatsbyjs.com/docs/refreshing-content to put Gatsby into Preview mode.`)
 				}
 
-				console.log(`wpPreviewReady`);
+				if (response.type && response.type === `NO_INDICATION_OF_SOURCING`) {
+					return displayNoIndicationOfSourcingWarningAndTryAgain()
+				}
+
+				console.log(`Received a response:`);
+				console.log(response);
+
 				var previewIframe = document.getElementById('preview');
 
-				console.log(response);
-				console.log(previewIframe);
 				
 				previewIframe.addEventListener('load', onIframeLoaded)
 
 				previewIframe.src = initialState.previewFrontendUrl + response.payload.pageNode.path;
+
+				if (!noIndicationOfSourcingWarningTimeout) {
+					clearTimeout(noIndicationOfSourcingWarningTimeout)
+				}
 			}
 
 			function onIframeLoaded() {
