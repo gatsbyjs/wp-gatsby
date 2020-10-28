@@ -9,8 +9,27 @@ class Preview {
     	$enable_gatsby_preview = self::get_setting('enable_gatsby_preview');
 
 		if ($enable_gatsby_preview === 'on') {
-			add_action( 'save_post', [ $this, 'post_to_preview_instance' ], 10, 2 );
-			add_filter( 'template_include', [ $this, 'setup_preview_template' ], 1, 99 );
+			add_action(
+				'save_post',
+				[ $this, 'post_to_preview_instance' ],
+				10,
+				2
+			);
+
+			add_filter(
+				'template_include',
+				[ $this, 'setup_preview_template' ],
+				1,
+				99
+			);
+
+			add_action('enqueue_block_editor_assets', function() {
+				wp_enqueue_script(
+					'wp-gatsby-gutenberg-filters',
+					plugin_dir_url( __FILE__ ) . 'assets/dist/gutenberg.js', 
+					['wp-edit-post']
+				);
+			});
 		}
 	}
 
