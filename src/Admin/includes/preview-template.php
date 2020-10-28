@@ -9,32 +9,25 @@ $post_id  = $post->ID;
 $revision = array_values( wp_get_post_revisions( $post_id ) )[0]
 	// or if revisions are disabled, get the autosave
 	?? wp_get_post_autosave( $post_id, get_current_user_id() )
+	// otherwise we can't preview anything
 	?? null;
-
-$post_type_object = \get_post_type_object( $post->post_type );
 
 $global_relay_id = Relay::toGlobalId(
 	'post',
 	absint( $post_id )
 );
 
-$referenced_node_single_name
-	= $post_type_object->graphql_single_name ?? null;
-
-$post_url = get_the_permalink( $post );
-$path     = str_ireplace( get_home_url(), '', $post_url );
-
-// if the post parent has a ? in it's url, this is a new draft
-// and or the post has no proper permalink that Gatsby can use.
-// so we will create one /post_graphql_name/post_db_id
-// this same logic is on the Gatsby side to account for this situation.
-if ( strpos( $path, '?' ) ) {
-	$path = "/$referenced_node_single_name/$post_id";
-}
-
 $preview_url  = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 $preview_url  = rtrim( $preview_url, '/' );
-$frontend_url = "$preview_url$path";
+
+// adding inline JS/CSS because the files are tiny
+// extra requests would take longer than this.
+function printFileContents( $fileName ) {
+	$pluginDirectory = plugin_dir_path( __FILE__ );
+	$filePath = $pluginDirectory . $fileName;
+	echo file_get_contents( $filePath );
+}
+
 ?>
 
 <html lang="en">
@@ -45,342 +38,21 @@ $frontend_url = "$preview_url$path";
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Preview</title>
 	<style>
-		#loader {
-			position: fixed;
-			top: 32px;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			width: 100%;
-			height: 100%;
-			height: calc(100% - 46px);
-			background: white;	
-			z-index: 100;
-			text-align: center;
-			display: flex;
-			justify-content: center;
-			flex-direction: column;
-			opacity: 1;
-			transition: .125s ease-out opacity;
-			padding: 0 50px;
-    		box-sizing: border-box;
-		}
-
-		@media (max-width: 782px) {
-			#loader {
-				top: 46px;
-			}
-		}
-
-		#loader.loaded {
-			opacity: 0;
-		}
-
-		button {
-			font-size: 1rem;
-			padding: 15px 30px;
-			cursor: pointer;
-			font-weight: medium;
-			color: white !important;
-			background: rebeccapurple;
-			border: none;
-			margin-top: 20px;
-			letter-spacing: 0.25px;
-		}
-
-		h1, h2, pre, p, button {
-			font-family: "Futura PT", -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-			line-height: 1.45
-		}
-
-		b, p, button {
-			color: #272727
-		}
-
-		h1, h2 {
-			color: rebeccapurple;
-		}
-
-		h1 {
-			display: block;
-			font-size: 2em;
-			margin-block-start: 0.67em;
-			margin-block-end: 0.67em;
-			margin-inline-start: 0px;
-			margin-inline-end: 0px;
-			font-weight: bold;
-		}
-
-		body {
-			font-size: 18px;
-		}
-
-		#gatsby-loading-logo {
-			max-width: 80%;
-			width: 64px;
-			margin: 0 auto;
-			margin-bottom: 10px;
-			box-shadow: 0 0 0 rgba(102, 51, 153, 0.4);
-			-webkit-animation: pulse 2s infinite;
-			animation: pulse 2s infinite;
-			border-radius: 50%;
-		}
-
-        @-webkit-keyframes pulse {
-          0% {
-            box-shadow: 0 0 0 0 rgba(102, 51, 153, 0.4);
-          }
-          70% {
-            box-shadow: 0 0 0 30px rgba(102, 51, 153, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(102, 51, 153, 0);
-          }
-        }
-
-        @keyframes pulse {
-          0% {
-            box-shadow: 0 0 0 0 rgba(102, 51, 153, 0.4);
-          }
-          70% {
-            box-shadow: 0 0 0 30px rgba(102, 51, 153, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(102, 51, 153, 0);
-          }
-        }
-      
-
-		.content {
-			width: 100%;
-			left: 0;
-			padding-top: 46px;
-			padding-bottom: 70px;
-			min-height: 100%;
-			min-height: calc(100vh - 46px);
-			box-sizing: border-box;
-
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			flex-direction: column;
-		}
-
-		#preview-loader-warning, .content {
-			max-width: 80%;
-			width: 800px;
-			margin: 0 auto;
-		}
-
-		.content p {
-			margin: 0 auto;
-		}
-
-		iframe {
-			position: fixed;
-
-			width: 100%;
-			left: 0;
-
-			top: 46px;
-			height: 100%;
-			height: calc(100vh - 46px);
-		}
-
-		@media (min-width: 783px) {
-			iframe {
-				top: 32px;
-				height: calc(100vh - 32px);
-			}
-		}
-
-		pre {
-			white-space: pre-wrap;       /* css-3 */
-			white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-			white-space: -pre-wrap;      /* Opera 4-6 */
-			white-space: -o-pre-wrap;    /* Opera 7 */
-			word-wrap: break-word;       /* Internet Explorer 5.5+ */
-
-			background: #f1f1f1;
-			padding: 50px 40px 40px 80px;
-			margin-bottom: 50px;
-
-			position: relative;
-			max-width: 640px;
-			box-sizing: border-box;
-		}
-
-		br {
-			line-height: 1.75
-		}
-
-		#error-message-element::before {
-			content: 'Error';
-			position: absolute;
-			top: 0;
-			left: 0;
-			padding: 5px 10px;
-			background: rebeccapurple;
-			color: white;
-			font-size: 12px;
-		}
-
-		a[target="_blank"]::after {
-			content: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVR42qXKwQkAIAxDUUdxtO6/RBQkQZvSi8I/pL4BoGw/XPkh4XigPmsUgh0626AjRsgxHTkUThsG2T/sIlzdTsp52kSS1wAAAABJRU5ErkJggg==);
-			margin: 0 3px 0 5px;
-		}
-		
+		<?php printFileContents( "../assets/dist/styles.css" ); ?>
 	</style>
 
 	<script>
-		try {
-			var initialState = {
-				nodeId: "<?php echo $global_relay_id; ?>",
-				modified: "<?php echo $revision->post_modified ?? null; ?>",
-				previewFrontendUrl: "<?php echo $preview_url; ?>",
-				revision: <?php echo json_encode($revision); ?>,
-				post: <?php echo json_encode($post); ?>,
-			}
-
-			console.log({ initialState });
-
-			function updateLoaderWarning(message) {
-				var previewWarningP = document.getElementById("preview-loader-warning")
-
-				previewWarningP.innerHTML = message + `<br /><br /><button onclick="cancelPreviewLoader()">Cancel and Troubleshoot</button>`
-				previewWarningP.style.display = 'initial'
-			}
-
-			var timeoutSeconds = 45
-			var timeoutMilliseconds = 1000 * timeoutSeconds
-
-			var timeoutWarning = setTimeout(() => {
-				updateLoaderWarning(
-					`Preview is taking a very long time to load (more than ${timeoutSeconds} seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either slow or there's something wrong.`
-				)
-			}, timeoutMilliseconds)
-
-			function cancelPreviewLoader() {
-				showError(`Preview was cancelled.`)
-			}
-
-			function fetchPreviewStatusAndUpdateUI({ 
-				ignoreNoIndicationOfSourcing = false 
-			} = {}) {
-				fetch(
-					initialState.previewFrontendUrl + `/__wpgatsby-preview-status`, 
-					{
-						method: 'POST',
-						body: JSON.stringify({  
-							nodeId: initialState.nodeId,
-							modified: initialState.modified,
-							ignoreNoIndicationOfSourcing
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					}
-				)
-				.then(response => response.json())
-				.then(response => {
-					onPreviewReady(response)
-				})
-				.catch(errorMessage => {
-					if (
-						typeof errorMessage === `string` &&
-						errorMessage.str_post(`Unexpected token < in JSON at position 0`)
-					) {
-						errorMessage += `\n\nYour version of gatsby-source-wordpress-experimental is likely out of date.\n\nPlease upgrade to the latest version.`
-					}
-					showError(errorMessage)
-				})
-			}
-
-			fetchPreviewStatusAndUpdateUI()
-
-			var noIndicationOfSourcingWarningTimeout
-
-			function displayNoIndicationOfSourcingWarningAndTryAgain() {
-				noIndicationOfSourcingWarningTimeout = setTimeout(() => {
-					updateLoaderWarning(
-						`There is no indication that preview data is being sourced by the server.<br /><br />A code change for this website might be deploying and blocking preview from working.<br /><br /><b>Please try pressing "preview" in WordPress again.</b><br />If you see this message again, wait 5 - 10 minutes and then try again,<br />or contact your developer for help.`
-					)
-				}, timeoutMilliseconds)
-
-				fetchPreviewStatusAndUpdateUI({ ignoreNoIndicationOfSourcing: true })
-			}
-
-			function onPreviewReady(response) {
-				clearTimeout(timeoutWarning)
-
-				if (response.type && response.type === `NOT_IN_PREVIEW_MODE`) {
-					throw new Error(`Your Gatsby site is not in Preview mode.\nIf you're hosting on Gatsby Cloud, please see below for where to contact support.\nIf you're running Previews locally or are self-hosting, please refer to https://www.gatsbyjs.com/docs/refreshing-content to put Gatsby into Preview mode.`)
-				}
-
-				if (response.type && response.type === `NO_INDICATION_OF_SOURCING`) {
-					return displayNoIndicationOfSourcingWarningAndTryAgain()
-				}
-
-				console.log(`Received a response:`);
-				console.log(response);
-
-				if (
-					!response.type ||
-					!response.payload ||
-					!response.payload.pageNode ||
-					!response.payload.pageNode.path
-				) {
-					throw new Error(
-						`Received an improper response from the Preview server.`
-					)
-				}
-
-				var previewIframe = document.getElementById('preview');
-
-				
-				previewIframe.addEventListener('load', onIframeLoaded)
-
-				previewIframe.src = initialState.previewFrontendUrl + response.payload.pageNode.path;
-
-				if (!noIndicationOfSourcingWarningTimeout) {
-					clearTimeout(noIndicationOfSourcingWarningTimeout)
-				}
-			}
-
-			function onIframeLoaded() {
-				var loader = document.getElementById('loader');
-
-				// this delay prevents a flash between 
-				// the iframe painting and the loader dissapearing
-				setTimeout(() => {
-					// there is a fadeout css animation on this
-					loader.classList.add("loaded")
-
-					setTimeout(() => {
-						// we wait a sec to display none so the css animation fadeout can complete
-						loader.style.display = 'none'
-					}, 100)
-				}, 50);
-			}
-		} catch(e) {
-			document.addEventListener('DOMContentLoaded', () => {
-				showError(e)
-			})
+		var initialState = {
+			nodeId: "<?php echo $global_relay_id; ?>",
+			modified: "<?php echo $revision->post_modified ?? null; ?>",
+			previewFrontendUrl: "<?php echo $preview_url; ?>",
+			revision: <?php echo json_encode($revision); ?>,
+			post: <?php echo json_encode($post); ?>,
 		}
 
-        function showError(error) {
-			const iframe = document.getElementById('preview')
-			iframe.style.display = "none"
-			
-			const loader = document.getElementById('loader')
-			loader.style.display = "none"
-			
-			const errorElement = document.getElementById('error-message-element')
-			errorElement.textContent = error
-
-			const content = document.querySelector('.content.error')
-			content.style.display = "block"                
-        }
+		console.log({ initialState });
+		
+		<?php printFileContents( "../assets/dist/script.js" ); ?>
 	</script>
 </head>
 
