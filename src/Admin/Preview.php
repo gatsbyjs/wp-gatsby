@@ -94,26 +94,12 @@ class Preview {
 			return;
 		}
 
-
-		// if ( ! $is_new_post_draft && ! $is_revision ) {
-		// 	return;
-		// }
-
 		$token = \WPGatsby\GraphQL\Auth::get_token();
 
 		if ( ! $token ) {
 			error_log('Please set a JWT token in WPGatsby to enable Preview support.');
-			// @todo error message?
 			return;
 		}
-
-		error_log(print_r('sending', true)); 
-		error_log(print_r('$is_draft', true)); 
-		error_log(print_r($is_draft, true)); 
-		error_log(print_r('$is_new_post_draft', true)); 
-		error_log(print_r($is_new_post_draft, true)); 
-		error_log(print_r('$is_revision', true)); 
-		error_log(print_r($is_revision, true)); 
 
 		$preview_webhook = $this::get_gatsby_preview_webhook();
 
