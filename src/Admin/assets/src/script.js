@@ -61,7 +61,7 @@ try {
 			updateLoaderWarning(
 				`There is no indication that preview data is being sourced by the server.<br /><br />A code change for this website might be deploying and blocking preview from working.<br /><br /><b>Please try pressing "preview" in WordPress again.</b><br />If you see this message again, wait 5 - 10 minutes and then try again,<br />or contact your developer for help.`,
 			)
-		}, timeoutMilliseconds)
+		}, 15000)
 
 		fetchPreviewStatusAndUpdateUI({ ignoreNoIndicationOfSourcing: true })
 	}
