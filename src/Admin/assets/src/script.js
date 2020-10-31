@@ -26,20 +26,45 @@ try {
 	function fetchPreviewStatusAndUpdateUI({
 		ignoreNoIndicationOfSourcing = false,
 	} = {}) {
-		fetch(initialState.previewFrontendUrl + `/__wpgatsby-preview-status`, {
+		const queryRequestBody = {
+			query: /* GraphQL */ `
+				query PREVIEW_STATUS_QUERY($postId: Float!) {
+					wpGatsby {
+						gatsbyPreviewStatus(nodeId: $postId) {
+							pageNode {
+								path
+							}
+							statusType
+						}
+					}
+				}
+			`,
+			variables: {
+				postId: initialState.postId,
+			},
+		}
+
+		console.log({ queryRequestBody })
+
+		fetch(`/graphql`, {
 			method: "POST",
-			body: JSON.stringify({
-				nodeId: initialState.nodeId,
-				modified: initialState.modified,
-				ignoreNoIndicationOfSourcing,
-			}),
+			body: JSON.stringify(queryRequestBody),
 			headers: {
 				"Content-Type": "application/json",
 			},
 		})
 			.then((response) => response.json())
 			.then((response) => {
-				onPreviewReady(response)
+				if (
+					response.data.wpGatsby.gatsbyPreviewStatus.statusType ===
+					`PREVIEW_NOT_READY`
+				) {
+					setTimeout(() => {
+						fetchPreviewStatusAndUpdateUI()
+					}, 500)
+				} else {
+					onPreviewReady(response)
+				}
 			})
 			.catch((errorMessage) => {
 				if (
@@ -52,7 +77,11 @@ try {
 			})
 	}
 
-	fetchPreviewStatusAndUpdateUI()
+	if (initialState.previewWebhookIsOnline) {
+		fetchPreviewStatusAndUpdateUI()
+	} else {
+		throw new Error(`The Gatsby Preview instance can't be reached.`)
+	}
 
 	let noIndicationOfSourcingWarningTimeout
 
@@ -67,26 +96,41 @@ try {
 	}
 
 	function onPreviewReady(response) {
+		console.log(response)
 		clearTimeout(timeoutWarning)
 
-		if (response.type && response.type === `NOT_IN_PREVIEW_MODE`) {
+		const {
+			data: {
+				wpGatsby: { gatsbyPreviewStatus },
+			},
+		} = response || { data: { wpGatsby: { gatsbyPreviewStatus: {} } } }
+
+		if (
+			gatsbyPreviewStatus.statusType &&
+			gatsbyPreviewStatus.statusType === `NOT_IN_PREVIEW_MODE`
+		) {
 			throw new Error(
 				`Your Gatsby site is not in Preview mode.\nIf you're hosting on Gatsby Cloud, please see below for where to contact support.\nIf you're running Previews locally or are self-hosting, please refer to https://www.gatsbyjs.com/docs/refreshing-content to put Gatsby into Preview mode.`,
 			)
 		}
 
-		if (response.type && response.type === `NO_INDICATION_OF_SOURCING`) {
+		if (
+			gatsbyPreviewStatus.statusType &&
+			gatsbyPreviewStatus.statusType === `NO_INDICATION_OF_SOURCING`
+		) {
 			return displayNoIndicationOfSourcingWarningAndTryAgain()
 		}
 
 		console.log(`Received a response:`)
 		console.log(response)
 
+		console.log({ gatsbyPreviewStatus })
+
 		if (
-			!response.type ||
-			!response.payload ||
-			!response.payload.pageNode ||
-			!response.payload.pageNode.path
+			!gatsbyPreviewStatus ||
+			!gatsbyPreviewStatus.statusType ||
+			!gatsbyPreviewStatus.pageNode ||
+			!gatsbyPreviewStatus.pageNode.path
 		) {
 			throw new Error(`Received an improper response from the Preview server.`)
 		}
@@ -96,7 +140,7 @@ try {
 		previewIframe.addEventListener("load", onIframeLoaded)
 
 		previewIframe.src =
-			initialState.previewFrontendUrl + response.payload.pageNode.path
+			initialState.previewFrontendUrl + gatsbyPreviewStatus.pageNode.path
 
 		if (!noIndicationOfSourcingWarningTimeout) {
 			clearTimeout(noIndicationOfSourcingWarningTimeout)
