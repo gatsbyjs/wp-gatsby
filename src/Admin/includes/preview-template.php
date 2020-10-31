@@ -1,25 +1,17 @@
 <?php
 
-use GraphQLRelay\Relay;
 use WPGatsby\Admin\Preview;
 
 global $post;
 $post_id  = $post->ID;
 
-// get the latest revision
-$revision = array_values( wp_get_post_revisions( $post_id ) )[0]
-	// or if revisions are disabled, get the autosave
-	?? wp_get_post_autosave( $post_id, get_current_user_id() )
-	// otherwise we can't preview anything
-	?? null;
-
-$global_relay_id = Relay::toGlobalId(
-	'post',
-	absint( $post_id )
-);
-
 $preview_url  = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 $preview_url  = rtrim( $preview_url, '/' );
+
+$preview_webhook_online =
+	get_option( 'wp-gatsby-preview-webhook-is-online' )
+		? 'true'
+		: 'false';
 
 ?>
 
@@ -36,11 +28,9 @@ $preview_url  = rtrim( $preview_url, '/' );
 
 	<script>
 		var initialState = {
-			nodeId: "<?php echo $global_relay_id; ?>",
-			modified: "<?php echo $revision->post_modified ?? null; ?>",
+			postId: <?php echo $post_id; ?>,
 			previewFrontendUrl: "<?php echo $preview_url; ?>",
-			revision: <?php echo json_encode($revision); ?>,
-			post: <?php echo json_encode($post); ?>,
+			previewWebhookIsOnline: <?php echo $preview_webhook_online; ?>
 		}
 
 		console.log({ initialState });
