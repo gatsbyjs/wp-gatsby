@@ -11,7 +11,145 @@ class Preview {
 		if ($enable_gatsby_preview === 'on') {
 			add_action( 'save_post', [ $this, 'post_to_preview_instance' ], 10, 2 );
 			add_filter( 'template_include', [ $this, 'setup_preview_template' ], 1, 99 );
+
+			add_action( 'graphql_register_types', function() {
+				$this->registerPreviewStatusFieldsAndMutations ();
+			} );
 		}
+	}
+
+	function registerPreviewStatusFieldsAndMutations() {
+		register_graphql_mutation( 'wpGatsbyRevisionStatus', [
+			'inputFields'         => [
+				'pagePath' => [
+					'type' => [ 'non_null' => 'String' ],
+					'description' => __( 'The Gatsby page path for this preview.', 'wp-gatsby' ),
+				],
+				'modified' => [
+					'type' => [ 'non_null' => 'String' ],
+					'description' => __( 'The modified date of the latest revision for this preview.', 'wp-gatsby' ),
+				],
+				'parentId' => [
+					'type' => [ 'non_null' => 'Number' ],
+					'description' => __( 'The previewed revisions post parent id', 'wp-gatsby' ),
+				],
+			],
+			'outputFields'        => [
+				'success' => [
+					'type' => 'Boolean',
+					'description' => __( 'Wether or not the revision mutation was successful', 'wp-gatsby' ),
+					'resolve' => function( $payload, $args, $context, $info ) {
+						$success = $payload['success'] ?? null;
+
+						return [
+							'success' => $success
+						];
+					}
+				]
+			],
+			'mutateAndGetPayload' => function( $input, $context, $info ) {
+				$page_path = $input['pagePath'];
+				$parent_id = $input['parentId'];
+				$modified = $input['modified'];
+
+				if ( !$parent_id ) {
+					return [
+						'success' => false
+					];	
+				}
+
+				update_post_meta( $parent_id, 'wpgatsby_page_path', $page_path );
+				update_post_meta( $parent_id, 'wpgatsby_node_modified', $modified );
+
+				return [
+					'success' => true
+				];
+			}
+		] );
+		
+		register_graphql_object_type( 'WPGatsbyPageNode', [
+			'description' => __( 'A previewed Gatsby page node.' ),
+			'fields'      => [
+				'path' => [
+					'type' => 'String'
+				],
+			]
+		] );
+
+		register_graphql_object_type( 'WPGatsbyPreviewStatus', [
+			'description' => __( 'Check compatibility with a given version of gatsby-source-wordpress and the WordPress source site.' ),
+			'fields'      => [
+				'pageNode' => [
+					'type' => 'WPGatsbyPageNode'
+				],
+				'statusType' => [
+					'type' => 'String'
+				]
+			]
+		] );
+
+        register_graphql_field( 'WPGatsby', 'gatsbyPreviewStatus', [
+			'description' => __( 'The current status of a Gatsby Preview.', 'wp-gatsby' ),
+			'type'        => 'WPGatsbyPreviewStatus',
+			'args'        => [
+				'nodeId'    => [
+					'type'        => [ 'non_null' => 'Number' ],
+					'description' => __( 'The post id for the previewed node.', 'wp-gatsby' ),
+				],
+			],
+			'resolve'     => function( $root, $args, $context, $info ) {
+				$post_id = $args['nodeId'] ?? null;
+
+				// make sure post_id is a valid post
+				$post = get_post( $post_id );
+
+
+				if ( !$post ) {
+					return [
+						'statusType' => 'NO_POST_FOUND',
+					];	
+				}
+				
+				$found_page_page_post_meta = get_post_meta(
+					$post_id,
+					'wpgatsby_page_path',
+					true,
+				);
+
+				$revision = array_values(
+					wp_get_post_revisions( $post_id )
+				)[0]
+					// or if revisions are disabled, get the autosave
+					?? wp_get_post_autosave( $post_id, get_current_user_id() )
+					// otherwise we can't preview anything
+					?? null;
+
+				$revision_modified = $revision->post_modified ?? null;
+
+				$modified = $revision_modified ?? $post->post_modified;
+
+				$gatsby_node_modified = get_post_meta(
+					$post_id,
+					'wpgatsby_node_modified',
+					true
+				);
+
+				$node_was_updated = $gatsby_node_modified === $modified;
+
+				if ( !$found_page_page_post_meta || !$node_was_updated ) {
+					return [
+						'statusType' => 'PREVIEW_NOT_READY',
+					];	
+				}
+
+				return [
+					'pageNode' => [
+						'path' => $found_page_page_post_meta
+					],
+					'statusType' => 'PREVIEW_READY'
+				];
+			}
+		] );
 	}
 
 	public function setup_preview_template( $template ) {
@@ -83,21 +221,30 @@ class Preview {
 			$post->post_status === 'draft' &&
 			$post->post_date_gmt === '0000-00-00 00:00:00';
 
-		if ($is_new_post_draft) {
-			return;
-		}
-
 		$is_revision = $post->post_type === 'revision';
 		$is_draft = $post->post_status === 'draft';
 
-		if (!$is_revision) {
+		$revisions_are_disabled = 
+			defined( 'WP_POST_REVISIONS' ) && !WP_POST_REVISIONS;
+
+		if ( !$is_revision && !$revisions_are_disabled ) {
+			return;
+		}
+
+		if ( !$is_revision && $revisions_are_disabled && !$is_new_post_draft ) {
+			return;
+		}
+
+		if ( $is_draft && !$is_new_post_draft ) {
 			return;
 		}
 
 		$token = \WPGatsby\GraphQL\Auth::get_token();
 
 		if ( ! $token ) {
-			error_log('Please set a JWT token in WPGatsby to enable Preview support.');
+			error_log(
+				'Please set a JWT token in WPGatsby to enable Preview support.'
+			);
 			return;
 		}
 
@@ -122,26 +269,46 @@ class Preview {
 		$graphql_url = get_site_url() . '/' . ltrim( $graphql_endpoint, '/' );
 
 		$post_body = [
-			'preview'        => true,
-			'token'          => $token,
-			'previewId'      => $post_ID,
-			'id'             => $global_relay_id,
-			'singleName'     => $referenced_node_single_name,
-			'isNewPostDraft' => $is_new_post_draft,
-			'isDraft'        => $is_draft,
-			'isRevision'     => $is_revision,
-			'remoteUrl'      => $graphql_url
+			'preview'              => true,
+			'token'                => $token,
+			'previewId'            => $post_ID,
+			'id'                   => $global_relay_id,
+			'singleName'           => $referenced_node_single_name,
+			'isNewPostDraft'       => $is_new_post_draft,
+			'isDraft'              => $is_draft,
+			'isRevision'           => $is_revision,
+			'remoteUrl'            => $graphql_url,
+			'modified'             => $post->post_modified,
+			'parentId'             => $post->post_parent,
+			'revisionsAreDisabled' => $revisions_are_disabled
 		];
 
-		// @todo error message if this doesn't work?
-		wp_remote_post(
+		$response = wp_remote_post(
 			$preview_webhook,
 			[
 				'body'        => wp_json_encode( $post_body ),
-				'headers'     => [ 'Content-Type' => 'application/json; charset=utf-8' ],
+				'headers'     => [
+					'Content-Type' => 'application/json; charset=utf-8'
+				],
 				'method'      => 'POST',
 				'data_format' => 'body',
 			]
 		);
+
+		$webhook_success = 
+			!is_wp_error( $response ) &&
+			($response['response']['code'] ?? null) === 200;
+
+		update_option(
+			'wp-gatsby-preview-webhook-is-online',
+			$webhook_success, // boolean
+			true
+		); 
+
+		if ( !$webhook_success ) {
+			error_log(
+				'WPGatsby couldn\'t reach the Preview webhook set in plugin options.'
+			);	
+		}
 	}
 }
