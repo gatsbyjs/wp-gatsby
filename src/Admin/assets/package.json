@@ -8,23 +8,31 @@
 	"devDependencies": {
 		"@babel/cli": "^7.6.4",
 		"@babel/core": "^7.6.4",
+		"@babel/plugin-transform-regenerator": "^7.12.1",
+		"@babel/plugin-transform-runtime": "^7.12.1",
 		"@babel/preset-env": "^7.12.1",
+		"@rollup/plugin-babel": "^5.2.1",
+		"@rollup/plugin-commonjs": "^16.0.0",
+		"@rollup/plugin-node-resolve": "^10.0.0",
 		"babel-preset-minify": "^0.5.1",
 		"core-js": "2",
 		"cssnano": "^4.1.10",
+		"node-sass": "^5.0.0",
 		"postcss": "^8.1.4",
 		"postcss-cli": "^8.1.0",
-		"postcss-preset-env": "^6.7.0"
+		"postcss-preset-env": "^6.7.0",
+		"rollup": "^2.33.1",
+		"rollup-plugin-cleanup": "^3.2.1",
+		"rollup-plugin-postcss": "^3.1.8"
 	},
 	"scripts": {
-		"build-js": "babel src --out-dir dist --ignore **/__tests__ --extensions \".ts,.js\"",
-		"watch-js": "babel -w src --out-dir dist --ignore **/__tests__ --verbose --extensions \".ts,.js\"",
-		"build-css": "postcss src/styles.scss --output dist/styles.css --verbose",
-		"watch-css": "postcss src/styles.scss --output dist/styles.css --verbose --watch"
+		"build": "rollup --config",
+		"watch": "rollup --watch --config"
 	},
 	"browserslist": [
 		"> 0.25%",
 		"not dead",
 		"last 2 versions"
-	]
+	],
+	"dependencies": {}
 }
