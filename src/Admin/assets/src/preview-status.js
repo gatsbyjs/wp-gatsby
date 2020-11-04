@@ -8,6 +8,7 @@ const previewStatusQuery = /* GraphQL */ `
 					path
 				}
 				statusType
+				remoteStatusType
 			}
 		}
 	}
@@ -19,6 +20,8 @@ const previewStatusQuery = /* GraphQL */ `
  * When the preview is ready, it calls onPreviewReadyUpdateUI() which updates the UI
  *
  * If a status besides PREVIEW_READY comes back, we wait a bit and try again
+ *
+ * This function doesn't return anything
  */
 export async function fetchPreviewStatusAndUpdateUI({
 	refetchCount = 0,
@@ -41,7 +44,16 @@ export async function fetchPreviewStatusAndUpdateUI({
 		})
 	).json()
 
-	const { statusType } = response?.data?.wpGatsby?.gatsbyPreviewStatus || {}
+	const { statusType, remoteStatusType } =
+		response?.data?.wpGatsby?.gatsbyPreviewStatus || {}
+
+	if (remoteStatusType === `NO_PAGE_CREATED_FOR_PREVIEWED_NODE`) {
+		// we clear this timeout when the preview is ready so that the
+		// long preview time warning doesn't appear
+		clearTimeout(timeoutWarning)
+
+		throw Error(remoteStatusType)
+	}
 
 	if (statusType === `PREVIEW_READY`) {
 		// we clear this timeout when the preview is ready so that the
@@ -50,7 +62,8 @@ export async function fetchPreviewStatusAndUpdateUI({
 
 		onPreviewReadyUpdateUI(response)
 
-		// if the preview is ready we don't need to continue
+		// if the preview is ready we don't need to continue so we return here
+		// this function isn't expected to return anything
 		return
 	}
 
@@ -67,15 +80,22 @@ export async function fetchPreviewStatusAndUpdateUI({
 	// our delay increases if we have a value for the current refetchCount
 	refetchDelay = refetchDelayMap[refetchCount] || refetchDelay
 
-	setTimeout(() => {
-		console.log({ previewStatusCheck: { response, refetchCount, refetchDelay } })
-		console.log(`Preview not yet updated, retrying...`)
+	await new Promise((resolve) =>
+		setTimeout(() => {
+			console.log({
+				previewStatusCheck: { response, refetchCount, refetchDelay },
+			})
+			console.log(`Preview not yet updated, retrying...`)
 
-		fetchPreviewStatusAndUpdateUI({
-			refetchCount,
-			refetchDelay,
-		})
-	}, refetchDelay)
+			resolve()
+		}, refetchDelay),
+	)
+
+	// we need to await this so our top level start() fn can properly try/catch and display the error view
+	await fetchPreviewStatusAndUpdateUI({
+		refetchCount,
+		refetchDelay,
+	})
 }
 
 function onPreviewReadyUpdateUI(response) {

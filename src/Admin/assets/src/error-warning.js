@@ -18,10 +18,25 @@ export function showError(error) {
 	loader.style.display = "none"
 
 	const errorElement = document.getElementById("error-message-element")
-	errorElement.textContent = error
+	errorElement.textContent = error.message
 
 	const content = document.querySelector(".content.error")
 	content.style.display = "block"
+
+	if (error.message.includes(`NO_PAGE_CREATED_FOR_PREVIEWED_NODE`)) {
+		document.getElementById("troubleshooting-html-area").innerHTML = `
+			<p>If you're not a developer, please screenshot this page and send it to your developer.<br /><br /><b>Note:</b> Once this error is fixed, you'll need to press "preview" again to clear out this message.<br/><br/>Gatsby wasn't able to find a page for the post you're trying to preview. This can mean one of two things:
+			</p>
+			<ol>
+				 <li>A page is not being built for the post being previewed.</li>
+				 <li>The id of this post is not being included in the pageContext of it's Gatsby page.</li>
+			</ol>
+			<br /> 
+			<p>
+				<b>Hint:</b> if you want to account for any possible post type (even those that haven't yet been registered) you can use the WpContentNode interface as a fallback template in gatsby-node.js when you're creating pages and you'll never see this message when registering new post types.
+			</p>			
+		`
+	}
 }
 
 export function updateLoaderWarning(message) {

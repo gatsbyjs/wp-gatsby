@@ -19,10 +19,23 @@ class Preview {
 	}
 
 	function registerPreviewStatusFieldsAndMutations() {
-		register_graphql_mutation( 'wpGatsbyRevisionStatus', [
+		register_graphql_enum_type( 'WPGatsbyRemotePreviewStatusEnum', [
+			'description' => __( 'The different statuses a Gatsby Preview can be in for a single node.', 'wp-gatsby' ),
+			'values' => [
+				'PREVIEW_SUCCESS' => [
+					'value' => 'PREVIEW_SUCCESS'
+				],
+				'NO_PAGE_CREATED_FOR_PREVIEWED_NODE' => [
+					'value' => 'NO_PAGE_CREATED_FOR_PREVIEWED_NODE'
+				]
+			]
+		] );
+
+
+		register_graphql_mutation( 'wpGatsbyRemotePreviewStatus', [
 			'inputFields'         => [
 				'pagePath' => [
-					'type' => [ 'non_null' => 'String' ],
+					'type' => 'String',
 					'description' => __( 'The Gatsby page path for this preview.', 'wp-gatsby' ),
 				],
 				'modified' => [
@@ -32,6 +45,10 @@ class Preview {
 				'parentId' => [
 					'type' => [ 'non_null' => 'Number' ],
 					'description' => __( 'The previewed revisions post parent id', 'wp-gatsby' ),
+				],
+				'status' => [
+					'type' => [ 'non_null' => 'WPGatsbyRemotePreviewStatusEnum' ],
+					'description' => __( 'The remote status of the previewed node', 'wp-gatsby' ),
 				],
 			],
 			'outputFields'        => [
@@ -49,8 +66,10 @@ class Preview {
 			],
 			'mutateAndGetPayload' => function( $input, $context, $info ) {
 				$page_path = $input['pagePath'];
-				$parent_id = $input['parentId'];
 				$modified = $input['modified'];
+				$parent_id = $input['parentId'];
+				$remote_status = $input['status'];
+
 
 				if ( !$parent_id ) {
 					return [
@@ -60,6 +79,7 @@ class Preview {
 
 				update_post_meta( $parent_id, 'wpgatsby_page_path', $page_path );
 				update_post_meta( $parent_id, 'wpgatsby_node_modified', $modified );
+				update_post_meta( $parent_id, 'wpgatsby_node_remote_preview_status', $remote_status );
 
 				return [
 					'success' => true
@@ -84,6 +104,9 @@ class Preview {
 				],
 				'statusType' => [
 					'type' => 'String'
+				],
+				'remoteStatusType' => [
+					'type' => 'WPGatsbyRemotePreviewStatusEnum'
 				],
 				'modifiedLocal' => [
 					'type' => 'String'
@@ -112,11 +135,11 @@ class Preview {
 
 				if ( !$post ) {
 					return [
-						'statusType' => 'NO_POST_FOUND',
+						'statusType' => 'NO_NODE_FOUND',
 					];	
 				}
 				
-				$found_page_page_post_meta = get_post_meta(
+				$found_preview_path_post_meta = get_post_meta(
 					$post_id,
 					'wpgatsby_page_path',
 					true,
@@ -140,24 +163,37 @@ class Preview {
 					true
 				);
 
+				
 				$node_was_updated = 
-					strtotime( $gatsby_node_modified ) >= strtotime( $modified );
+				strtotime( $gatsby_node_modified ) >= strtotime( $modified );
+				
+				$remote_status = get_post_meta(
+					$post_id,
+					'wpgatsby_node_remote_preview_status',
+					true
+				);
 
+				// if the node wasn't updated, then any status we have is stale
+				$remote_status_type = $remote_status && $node_was_updated 
+					? $remote_status
+					: null;
+				
 				$status_type = 'PREVIEW_READY';
-
-				if ( !$found_page_page_post_meta) {
-					$status_type = 'NO_STORED_PAGE_PATH';
-				}
 
 				if ( !$node_was_updated ) {
 					$status_type = 'REMOTE_NODE_NOT_YET_UPDATED';	
 				}
 
+				if ( !$found_preview_path_post_meta) {
+					$status_type = 'NO_PREVIEW_PATH_FOUND';
+				}
+
 				return [
 					'statusType' => $status_type,
+					'remoteStatusType' => $remote_status_type,
 					'pageNode' => [
-						'path' => $found_page_page_post_meta !== "" 
-							? $found_page_page_post_meta
+						'path' => $found_preview_path_post_meta !== "" 
+							? $found_preview_path_post_meta
 							: null
 					],
 					'modifiedLocal' => $modified,

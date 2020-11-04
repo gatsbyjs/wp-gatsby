@@ -80,23 +80,25 @@ $preview_webhook_online =
 	<br>
 	<pre id="error-message-element"></pre>
 	<h2>Troubleshooting</h2>
-	<p>
-		Please ensure your URL is correct and your Preview instance is up and running.
-		<br>
-		<br>
-		If you've set the correct URL, your Preview instance is currently running, and you're still having trouble, please <a
-				href="https://www.gatsbyjs.com/cloud/docs/wordpress/getting-started/" target="_blank"
-				rel="noopener, nofollow. noreferrer, noopener, external">refer to the docs</a> for
-		troubleshooting steps, ask your developer, or <a href="https://www.gatsbyjs.com/contact-us/" target="_blank"
-									rel="noopener, nofollow. noreferrer, noopener, external">contact
-			support</a> if that doesn't solve your issue.
-		<br>
-		<br>
-		If you don't have a valid Gatsby Preview instance, you can <a
-				href="https://www.gatsbyjs.com/preview/" target="_blank"
-				rel="noopener, nofollow. noreferrer, noopener, external">set one up now on Gatsby
-			Cloud.</a>
-	</p>
+	<span id="troubleshooting-html-area">
+		<p>
+			Please ensure your URL is correct and your Preview instance is up and running.
+			<br>
+			<br>
+			If you've set the correct URL, your Preview instance is currently running, and you're still having trouble, please <a
+					href="https://www.gatsbyjs.com/cloud/docs/wordpress/getting-started/" target="_blank"
+					rel="noopener, nofollow. noreferrer, noopener, external">refer to the docs</a> for
+			troubleshooting steps, ask your developer, or <a href="https://www.gatsbyjs.com/contact-us/" target="_blank"
+										rel="noopener, nofollow. noreferrer, noopener, external">contact
+				support</a> if that doesn't solve your issue.
+			<br>
+			<br>
+			If you don't have a valid Gatsby Preview instance, you can <a
+					href="https://www.gatsbyjs.com/preview/" target="_blank"
+					rel="noopener, nofollow. noreferrer, noopener, external">set one up now on Gatsby
+				Cloud.</a>
+			</p>
+	</span>
 	<h2>Developer instructions</h2>
 	<p>Please visit 
 		<a

@@ -5,8 +5,10 @@ import { fetchPreviewStatusAndUpdateUI } from "./preview-status"
  * This file is printed out in preview-template.php
  * initialState global comes from preview-template.php above where this is printed to the page
  */
-;(() => {
-	start().catch((e) => {
+;(async () => {
+	try {
+		await start()
+	} catch (e) {
 		console.error(e)
 		if (document.readyState === "complete" || document.readyState === "loaded") {
 			// document is already ready to go so show the error
@@ -17,24 +19,23 @@ import { fetchPreviewStatusAndUpdateUI } from "./preview-status"
 				showError(e)
 			})
 		}
-	})
+	}
 })()
 
 async function start() {
-	if (initialState.previewWebhookIsOnline) {
+	const [, fetchResponse] = await Promise.all([
 		// optimistically try to load the UI
-		fetchPreviewStatusAndUpdateUI()
-	}
+		initialState.previewWebhookIsOnline && fetchPreviewStatusAndUpdateUI(),
+		// Also check if the frontend has been online
+		// since the last backend check
+		fetch(initialState.previewFrontendUrl),
+	])
 
-	// Simultaneously check if the frontend has been online
-	// since the last backend check
-	const response = await fetch(initialState.previewFrontendUrl)
-
-	if (response.ok) {
+	if (fetchResponse.ok) {
 		// if the response came back ok and we haven't already started loading the UI
 		if (!initialState.previewWebhookIsOnline) {
 			// start loading it because the frontend actually is online
-			fetchPreviewStatusAndUpdateUI()
+			await fetchPreviewStatusAndUpdateUI()
 		}
 	} else {
 		// otherwise throwing this will display the error UI
