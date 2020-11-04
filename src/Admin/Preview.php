@@ -153,6 +153,13 @@ class Preview {
 	}
 
 	public function setup_preview_template( $template ) {
+		global $post;
+		$post_type = get_post_type_object( $post->post_type );
+
+		if ( !$post_type->show_in_graphql ?? true ) {
+			return plugin_dir_path( __FILE__ ) . 'includes/post-type-not-shown-in-graphql.php';
+		}
+
 		$is_preview  = is_preview();
 		$preview_url = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 
