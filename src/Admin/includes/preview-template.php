@@ -1,6 +1,7 @@
 <?php
 
 use WPGatsby\Admin\Preview;
+use WPGraphQL\Router;
 
 global $post;
 $post_id  = $post->ID;
@@ -31,7 +32,8 @@ $preview_webhook_online =
 		var initialState = {
 			postId: <?php echo $post_id; ?>,
 			previewFrontendUrl: "<?php echo $preview_url; ?>",
-			previewWebhookIsOnline: <?php echo $preview_webhook_online; ?>
+			previewWebhookIsOnline: <?php echo $preview_webhook_online; ?>,
+			graphqlEndpoint: "<?php echo Router::$route; ?>"
 		}
 
 		console.log({ initialState });
