@@ -13,5 +13,6 @@ module.exports = {
 	plugins: [
 		"@babel/plugin-transform-runtime",
 		"@babel/plugin-transform-regenerator",
+		"@babel/plugin-proposal-optional-chaining",
 	],
 }

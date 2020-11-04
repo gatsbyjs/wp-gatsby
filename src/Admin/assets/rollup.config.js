@@ -1,7 +1,6 @@
 import commonjs from "@rollup/plugin-commonjs"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
 import babel from "@rollup/plugin-babel"
-import postcss from "rollup-plugin-postcss"
 import postcssPresetEnv from "postcss-preset-env"
 
 import cleanup from "rollup-plugin-cleanup"
@@ -13,19 +12,12 @@ const config = {
 		format: "iife",
 		sourcemap: true,
 		inputSourceMap: true,
+		name: "WPGatsbyPreviewClient",
 	},
 	plugins: [
 		commonjs(),
 		nodeResolve(),
 		babel({ babelHelpers: "runtime" }),
-		postcss({
-			plugins: [
-				postcssPresetEnv(),
-				require("cssnano")({
-					preset: "default",
-				}),
-			],
-		}),
 		cleanup(),
 	],
 }
