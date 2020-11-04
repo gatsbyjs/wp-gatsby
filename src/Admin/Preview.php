@@ -27,6 +27,9 @@ class Preview {
 				],
 				'NO_PAGE_CREATED_FOR_PREVIEWED_NODE' => [
 					'value' => 'NO_PAGE_CREATED_FOR_PREVIEWED_NODE'
+				],
+				'GATSBY_PREVIEW_PROCESS_ERROR' => [
+					'value' => 'GATSBY_PREVIEW_PROCESS_ERROR'
 				]
 			]
 		] );
@@ -50,6 +53,10 @@ class Preview {
 					'type' => [ 'non_null' => 'WPGatsbyRemotePreviewStatusEnum' ],
 					'description' => __( 'The remote status of the previewed node', 'wp-gatsby' ),
 				],
+				'statusContext' => [
+					'type' => 'String',
+					'description' => __( 'Additional context about the preview status', 'wp-gatsby' ),
+				],
 			],
 			'outputFields'        => [
 				'success' => [
@@ -65,10 +72,11 @@ class Preview {
 				]
 			],
 			'mutateAndGetPayload' => function( $input, $context, $info ) {
-				$page_path = $input['pagePath'];
-				$modified = $input['modified'];
-				$parent_id = $input['parentId'];
-				$remote_status = $input['status'];
+				$page_path = $input['pagePath'] ?? null;
+				$modified = $input['modified'] ?? null;
+				$parent_id = $input['parentId'] ?? null;
+				$remote_status = $input['status'] ?? null;
+				$preview_context = $input['statusContext'] ?? null;
 
 
 				if ( !$parent_id ) {
@@ -77,9 +85,33 @@ class Preview {
 					];	
 				}
 
-				update_post_meta( $parent_id, 'wpgatsby_page_path', $page_path );
-				update_post_meta( $parent_id, 'wpgatsby_node_modified', $modified );
-				update_post_meta( $parent_id, 'wpgatsby_node_remote_preview_status', $remote_status );
+				if ( $page_path ) {
+					update_post_meta( $parent_id, '_wpgatsby_page_path', $page_path );
+				}
+
+				if ( $modified ) {
+					update_post_meta(
+						$parent_id,
+						'_wpgatsby_node_modified',
+						$modified
+					);
+				}
+				
+				if ( $remote_status ) {
+					update_post_meta(
+						$parent_id,
+						'_wpgatsby_node_remote_preview_status',
+						$remote_status
+					);
+				}
+				
+				if ( $preview_context ) {
+					update_post_meta(
+						$parent_id,
+						'_wpgatsby_node_remote_preview_status_context',
+						$preview_context
+					);
+				}
 
 				return [
 					'success' => true
@@ -114,6 +146,9 @@ class Preview {
 				'modifiedRemote' => [
 					'type' => 'String'
 				],
+				'statusContext' => [
+					'type' => 'String'
+				]
 			]
 		] );
 
@@ -132,7 +167,6 @@ class Preview {
 				// make sure post_id is a valid post
 				$post = get_post( $post_id );
 
-
 				if ( !$post ) {
 					return [
 						'statusType' => 'NO_NODE_FOUND',
@@ -141,7 +175,7 @@ class Preview {
 				
 				$found_preview_path_post_meta = get_post_meta(
 					$post_id,
-					'wpgatsby_page_path',
+					'_wpgatsby_page_path',
 					true,
 				);
 
@@ -159,7 +193,7 @@ class Preview {
 
 				$gatsby_node_modified = get_post_meta(
 					$post_id,
-					'wpgatsby_node_modified',
+					'_wpgatsby_node_modified',
 					true
 				);
 
@@ -169,7 +203,7 @@ class Preview {
 				
 				$remote_status = get_post_meta(
 					$post_id,
-					'wpgatsby_node_remote_preview_status',
+					'_wpgatsby_node_remote_preview_status',
 					true
 				);
 
@@ -188,13 +222,23 @@ class Preview {
 					$status_type = 'NO_PREVIEW_PATH_FOUND';
 				}
 
+				$status_context = get_post_meta(
+					$post_id,
+					'_wpgatsby_node_remote_preview_status_context',
+					true
+				);
+
+				$normalized_preview_page_path = 
+					$found_preview_path_post_meta !== "" 
+						? $found_preview_path_post_meta
+						: null;
+
 				return [
 					'statusType' => $status_type,
+					'statusContext' => $status_context,
 					'remoteStatusType' => $remote_status_type,
 					'pageNode' => [
-						'path' => $found_preview_path_post_meta !== "" 
-							? $found_preview_path_post_meta
-							: null
+						'path' => $normalized_preview_page_path
 					],
 					'modifiedLocal' => $modified,
 					'modifiedRemote' => $gatsby_node_modified
@@ -283,6 +327,13 @@ class Preview {
 	 * Send a Preview to Gatsby
 	 */
 	public function post_to_preview_instance( $post_ID, $post ) {
+		if (
+			defined( 'DOING_AUTOSAVE' )
+			&& DOING_AUTOSAVE
+		) {
+			return;
+		}
+
 		if ( $post->post_type === 'action_monitor' ) {
 			return;
 		}
@@ -291,15 +342,15 @@ class Preview {
 			return;
 		}
 
+		$revisions_are_disabled = 
+			defined( 'WP_POST_REVISIONS' ) && !WP_POST_REVISIONS;
+
 		$is_new_post_draft =
 			$post->post_status === 'draft' &&
 			$post->post_date_gmt === '0000-00-00 00:00:00';
 
 		$is_revision = $post->post_type === 'revision';
 		$is_draft = $post->post_status === 'draft';
-
-		$revisions_are_disabled = 
-			defined( 'WP_POST_REVISIONS' ) && !WP_POST_REVISIONS;
 
 		if ( !$is_revision && !$is_new_post_draft ) {
 			return;
@@ -414,7 +465,7 @@ class Preview {
 			($response['response']['code'] ?? null) === 200;
 
 		update_option(
-			'wp-gatsby-preview-webhook-is-online',
+			'_wp_gatsby_preview_webhook_is_online',
 			$webhook_success, // boolean
 			true
 		); 

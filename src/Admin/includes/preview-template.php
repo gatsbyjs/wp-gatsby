@@ -10,7 +10,7 @@ $preview_url  = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 $preview_url  = rtrim( $preview_url, '/' );
 
 $preview_webhook_online =
-	get_option( 'wp-gatsby-preview-webhook-is-online' )
+	get_option( '_wp_gatsby_preview_webhook_is_online' )
 		? 'true'
 		: 'false';
 

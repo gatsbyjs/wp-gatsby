@@ -9,6 +9,7 @@ const previewStatusQuery = /* GraphQL */ `
 				}
 				statusType
 				remoteStatusType
+				statusContext
 			}
 		}
 	}
@@ -44,20 +45,27 @@ export async function fetchPreviewStatusAndUpdateUI({
 		})
 	).json()
 
-	const { statusType, remoteStatusType } =
+	const { statusType, remoteStatusType, statusContext } =
 		response?.data?.wpGatsby?.gatsbyPreviewStatus || {}
 
-	if (remoteStatusType === `NO_PAGE_CREATED_FOR_PREVIEWED_NODE`) {
+	if (
+		[
+			`NO_PAGE_CREATED_FOR_PREVIEWED_NODE`,
+			`GATSBY_PREVIEW_PROCESS_ERROR`,
+		].includes(remoteStatusType)
+	) {
+		console.log({ response })
 		// we clear this timeout when the preview is ready so that the
 		// long preview time warning doesn't appear
 		clearTimeout(timeoutWarning)
 
-		throw Error(remoteStatusType)
+		throw {
+			message: remoteStatusType,
+			context: statusContext,
+		}
 	}
 
 	if (statusType === `PREVIEW_READY`) {
-		// we clear this timeout when the preview is ready so that the
-		// long preview time warning doesn't appear
 		clearTimeout(timeoutWarning)
 
 		onPreviewReadyUpdateUI(response)
