@@ -84,7 +84,13 @@ class Preview {
 				],
 				'statusType' => [
 					'type' => 'String'
-				]
+				],
+				'modifiedLocal' => [
+					'type' => 'String'
+				],
+				'modifiedRemote' => [
+					'type' => 'String'
+				],
 			]
 		] );
 
@@ -134,19 +140,28 @@ class Preview {
 					true
 				);
 
-				$node_was_updated = $gatsby_node_modified === $modified;
+				$node_was_updated = 
+					strtotime( $gatsby_node_modified ) >= strtotime( $modified );
 
-				if ( !$found_page_page_post_meta || !$node_was_updated ) {
-					return [
-						'statusType' => 'PREVIEW_NOT_READY',
-					];	
+				$status_type = 'PREVIEW_READY';
+
+				if ( !$found_page_page_post_meta) {
+					$status_type = 'NO_STORED_PAGE_PATH';
+				}
+
+				if ( !$node_was_updated ) {
+					$status_type = 'REMOTE_NODE_NOT_YET_UPDATED';	
 				}
 
 				return [
+					'statusType' => $status_type,
 					'pageNode' => [
-						'path' => $found_page_page_post_meta
+						'path' => $found_page_page_post_meta !== "" 
+							? $found_page_page_post_meta
+							: null
 					],
-					'statusType' => 'PREVIEW_READY'
+					'modifiedLocal' => $modified,
+					'modifiedRemote' => $gatsby_node_modified
 				];
 			}
 		] );
@@ -172,18 +187,28 @@ class Preview {
 		return $template;
 	}
 
+	/**
+	 * This is used to print out the client JS file directly to the
+	 * Preview template html
+	 */
 	public static function printFileContents( $fileName ) {
 		$pluginDirectory = plugin_dir_path( __FILE__ );
 		$filePath = $pluginDirectory . $fileName;
 		echo file_get_contents( $filePath );
 	}
 
+	/**
+	 * Get a WPGatsby setting by setting key
+	 */
 	static function get_setting( $key ) {
 		$wpgatsby_settings = get_option( 'wpgatsby_settings' );
 
 		return $wpgatsby_settings[ $key ] ?? null;
 	}
 
+	/**
+	 * Get the normalized/validated frontend url of the Gatsby Preview
+	 */
 	static function get_gatsby_preview_instance_url() {
 		$preview_url = self::get_setting( 'preview_instance_url' );
 
@@ -198,6 +223,9 @@ class Preview {
 		return $preview_url;
 	}
 
+	/**
+	 * Get the Gatsby Preview instance refresh webhook
+	 */
 	static function get_gatsby_preview_webhook() {
 		$preview_webhook = self::get_setting( 'preview_api_webhook' );
 
@@ -215,6 +243,9 @@ class Preview {
 		return $preview_webhook;
 	}
 
+	/**
+	 * Send a Preview to Gatsby
+	 */
 	public function post_to_preview_instance( $post_ID, $post ) {
 		if ( $post->post_type === 'action_monitor' ) {
 			return;
@@ -234,15 +265,7 @@ class Preview {
 		$revisions_are_disabled = 
 			defined( 'WP_POST_REVISIONS' ) && !WP_POST_REVISIONS;
 
-		if ( !$is_revision && !$revisions_are_disabled ) {
-			return;
-		}
-
-		if ( !$is_revision && $revisions_are_disabled && !$is_new_post_draft ) {
-			return;
-		}
-
-		if ( $is_draft && !$is_new_post_draft ) {
+		if ( !$is_revision && !$is_new_post_draft ) {
 			return;
 		}
 
@@ -259,12 +282,57 @@ class Preview {
 
 		$original_post = get_post( $post->post_parent );
 
+		$parent_post_id = $original_post->ID ?? $post_ID;
+
 		$post_type_object = $original_post
 			? \get_post_type_object( $original_post->post_type )
 			: \get_post_type_object( $post->post_type );
 
+		if ( !$post_type_object->show_in_graphql ?? true ) {
+			// if the post type doesn't have show_in_graphql set,
+			// we don't want to send a preview webhook for this post type
+			return;
+		}
+
+		$last_sent_modified_time_key = '_wpgatsby_last_preview_modified_time';
+
+		$last_sent_modified_time = get_post_meta(
+			$parent_post_id,
+			$last_sent_modified_time_key,
+			true
+		);
+
+		$last_sent_modified_time_unix = strtotime( $last_sent_modified_time );
+		$this_sent_modified_time_unix = strtotime( $post->post_modified );
+
+		$difference_between_last_modified_and_this_modified = 
+			$this_sent_modified_time_unix - $last_sent_modified_time_unix;
+
+		if (
+			$last_sent_modified_time &&
+			(
+				// if the last time was the same as this
+				$last_sent_modified_time === $post->post_modified ||
+				// or the last time was within the last 5 seconds
+				$difference_between_last_modified_and_this_modified < 5
+			)
+		) {
+			// we've already sent a webhook for this revision.
+			// return early to prevent extra builds
+			return;
+		} else {
+			// otherwise store this modified time so we can compare it next time
+			update_post_meta(
+				$parent_post_id,
+				$last_sent_modified_time_key,
+				$post->post_modified
+			);
+		}
+
 		$global_relay_id = Relay::toGlobalId(
 			'post',
+			// sometimes this is a draft instead of a revision
+			// so we can't expect original post to exist
 			absint( $original_post->ID ?? $post_ID )
 		);
 
@@ -302,6 +370,9 @@ class Preview {
 			]
 		);
 
+		// this is used to optimistically load the preview iframe
+		// we also check if the frontend is responding to requests from the 
+		// preview template JS
 		$webhook_success = 
 			!is_wp_error( $response ) &&
 			($response['response']['code'] ?? null) === 200;
