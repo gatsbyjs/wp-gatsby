@@ -23,6 +23,10 @@ $preview_webhook_online =
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Preview</title>
 
+	<style>
+		<?php Preview::printFileContents( "assets/dist/styles.css" ); ?>
+	</style>
+
 	<script>
 		var initialState = {
 			postId: <?php echo $post_id; ?>,
