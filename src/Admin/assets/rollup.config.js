@@ -6,9 +6,9 @@ import postcssPresetEnv from "postcss-preset-env"
 import cleanup from "rollup-plugin-cleanup"
 
 const config = {
-	input: "src/index.js",
+	input: "src/start-preview-client.js",
 	output: {
-		file: "dist/script.js",
+		file: "dist/preview-client.js",
 		format: "iife",
 		sourcemap: true,
 		inputSourceMap: true,

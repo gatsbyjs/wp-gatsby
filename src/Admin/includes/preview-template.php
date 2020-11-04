@@ -38,7 +38,7 @@ $preview_webhook_online =
 
 		console.log({ initialState });
 		
-		<?php Preview::printFileContents( "assets/dist/script.js" ); ?>
+		<?php Preview::printFileContents( "assets/dist/preview-client.js" ); ?>
 	</script>
 </head>
 
