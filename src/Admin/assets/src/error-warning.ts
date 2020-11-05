@@ -1,31 +1,49 @@
-const timeoutSeconds = 45
-const timeoutMilliseconds = 1000 * timeoutSeconds
+const timeoutSeconds: number = 45
+const timeoutMilliseconds: number = 1000 * timeoutSeconds
 
 /**
  * After 45 seconds, display a warning, unless cancelled by clearing this timeout once the UI is updated and the iframe is loaded.
  */
-export const timeoutWarning = setTimeout(() => {
+export const timeoutWarning: NodeJS.Timeout = setTimeout(() => {
 	updateLoaderWarning(
 		`Preview is taking a very long time to load (more than ${timeoutSeconds} seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either slow or there's something wrong.`,
 	)
 }, timeoutMilliseconds)
 
-export function showError(error) {
-	const iframe = document.getElementById("preview")
+export type CustomError = {
+	message: string
+	context?: string
+}
+
+export function showError(error: CustomError | string): void {
+	if (typeof error === `string`) {
+		error = {
+			message: error,
+		}
+	}
+
+	const iframe: HTMLIFrameElement = document.getElementById(
+		"preview",
+	) as HTMLIFrameElement
+
 	iframe.style.display = "none"
 
-	const loader = document.getElementById("loader")
+	const loader: HTMLElement = document.getElementById("loader")
+
 	loader.style.display = "none"
 
-	const errorElement = document.getElementById("error-message-element")
+	const errorElement: HTMLElement = document.getElementById(
+		"error-message-element",
+	)
+
 	errorElement.textContent = `${error.message}${
-		error.context
-			? `:
-${error.context}`
-			: ``
+		error.context ? `:\n${error.context}` : ``
 	}`
 
-	const content = document.querySelector(".content.error")
+	const content: HTMLElement = document.querySelector(
+		".content.error",
+	) as HTMLElement
+
 	content.style.display = "block"
 
 	if (error.message === `NO_PAGE_CREATED_FOR_PREVIEWED_NODE`) {
@@ -50,7 +68,7 @@ ${error.context}`
 	}
 }
 
-export function updateLoaderWarning(message) {
+export function updateLoaderWarning(message: string): void {
 	const previewWarningP = document.getElementById("preview-loader-warning")
 
 	previewWarningP.innerHTML = `${message}<br /><br /><button id="cancel-button" onclick="cancelPreviewLoader()">Cancel and Troubleshoot</button>`
@@ -67,6 +85,6 @@ export function updateLoaderWarning(message) {
 	cancelButton.addEventListener("click", cancelPreviewLoader)
 }
 
-function cancelPreviewLoader() {
+function cancelPreviewLoader(): void {
 	showError(`Preview was cancelled.`)
 }

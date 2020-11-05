@@ -4,8 +4,10 @@ import babel from "@rollup/plugin-babel"
 
 import cleanup from "rollup-plugin-cleanup"
 
+const extensions = [".ts", ".js"]
+
 const config = {
-	input: "src/start-preview-client.js",
+	input: "src/start-preview-client.ts",
 	output: {
 		file: "dist/preview-client.js",
 		format: "iife",
@@ -15,8 +17,10 @@ const config = {
 	},
 	plugins: [
 		commonjs(),
-		nodeResolve(),
-		babel({ babelHelpers: "runtime" }),
+		nodeResolve({
+			extensions,
+		}),
+		babel({ babelHelpers: "runtime", extensions }),
 		cleanup(),
 	],
 }

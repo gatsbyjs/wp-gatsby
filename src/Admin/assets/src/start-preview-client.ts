@@ -1,13 +1,22 @@
 import { showError } from "./error-warning"
 import { fetchPreviewStatusAndUpdateUI } from "./preview-status"
 
+export type InitialState = {
+	previewWebhookIsOnline: boolean
+	previewFrontendUrl: string
+	postId: number
+	graphqlEndpoint: string
+}
+
+declare var initialState: InitialState
+
 /**
  * This file is printed out in preview-template.php
  * initialState global comes from preview-template.php above where this is printed to the page
  */
 start().catch((e) => {
 	console.error(e)
-	if (document.readyState === "complete" || document.readyState === "loaded") {
+	if (document.readyState === "complete") {
 		// document is already ready to go so show the error
 		showError(e)
 	} else {
@@ -18,7 +27,7 @@ start().catch((e) => {
 	}
 })
 
-async function start() {
+async function start(): Promise<void> {
 	const [, fetchResponse] = await Promise.all([
 		// optimistically try to load the UI
 		initialState.previewWebhookIsOnline && fetchPreviewStatusAndUpdateUI(),

@@ -1,6 +1,10 @@
 import { timeoutWarning } from "./error-warning"
 
-const previewStatusQuery = /* GraphQL */ `
+import type { InitialState } from "./start-preview-client"
+
+declare var initialState: InitialState
+
+const previewStatusQuery: string = /* GraphQL */ `
 	query PREVIEW_STATUS_QUERY($postId: Float!) {
 		wpGatsby {
 			gatsbyPreviewStatus(nodeId: $postId) {
@@ -15,6 +19,21 @@ const previewStatusQuery = /* GraphQL */ `
 	}
 `
 
+type PreviewStatusResponseJson = {
+	data: {
+		wpGatsby: {
+			gatsbyPreviewStatus: {
+				pageNode: {
+					path: string
+				}
+				statusType: string
+				remoteStatusType: string
+				statusContext: string
+			}
+		}
+	}
+}
+
 /**
  * This function checks the preview status that Gatsby has stored in post meta for
  * the parent post of this preview
@@ -27,10 +46,10 @@ const previewStatusQuery = /* GraphQL */ `
 export async function fetchPreviewStatusAndUpdateUI({
 	refetchCount = 0,
 	refetchDelay = 500,
-} = {}) {
+} = {}): Promise<void> {
 	// Ask WPGraphQL for the status of this preview
 	// Gatsby will update this when the preview is ready
-	const response = await (
+	const response: PreviewStatusResponseJson = await (
 		await fetch(`/?${initialState.graphqlEndpoint}`, {
 			method: "POST",
 			body: JSON.stringify({
@@ -48,15 +67,15 @@ export async function fetchPreviewStatusAndUpdateUI({
 	const { statusType, remoteStatusType, statusContext } =
 		response?.data?.wpGatsby?.gatsbyPreviewStatus || {}
 
-	if (
-		[
-			`NO_PAGE_CREATED_FOR_PREVIEWED_NODE`,
-			`GATSBY_PREVIEW_PROCESS_ERROR`,
-		].includes(remoteStatusType)
-	) {
+	const isSpecialStatus: boolean = [
+		`NO_PAGE_CREATED_FOR_PREVIEWED_NODE`,
+		`GATSBY_PREVIEW_PROCESS_ERROR`,
+	].includes(remoteStatusType)
+
+	if (isSpecialStatus) {
 		console.log({ response })
 		// we clear this timeout when the preview is ready so that the
-		// long preview time warning doesn't appear
+		// "long preview time" warning doesn't appear
 		clearTimeout(timeoutWarning)
 
 		throw {
@@ -106,7 +125,7 @@ export async function fetchPreviewStatusAndUpdateUI({
 	})
 }
 
-function onPreviewReadyUpdateUI(response) {
+function onPreviewReadyUpdateUI(response: PreviewStatusResponseJson): void {
 	const { gatsbyPreviewStatus } = response?.data?.wpGatsby || {}
 
 	console.log({ previewReady: { gatsbyPreviewStatus } })
@@ -119,7 +138,9 @@ function onPreviewReadyUpdateUI(response) {
 		throw Error(`Received an improper response from the Preview server.`)
 	}
 
-	const previewIframe = document.getElementById("preview")
+	const previewIframe: HTMLIFrameElement = document.getElementById(
+		"preview",
+	) as HTMLIFrameElement
 
 	// when the iframe loads we want our iframe loaded to fire
 	// so we can remove the loader
@@ -130,8 +151,8 @@ function onPreviewReadyUpdateUI(response) {
 		initialState.previewFrontendUrl + gatsbyPreviewStatus.pageNode.path
 }
 
-function onIframeLoadedHideLoaderUI() {
-	const loader = document.getElementById("loader")
+function onIframeLoadedHideLoaderUI(): void {
+	const loader: HTMLElement = document.getElementById("loader")
 
 	// this delay prevents a flash between
 	// the iframe painting and the loader dissapearing
