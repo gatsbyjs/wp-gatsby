@@ -3,6 +3,7 @@
 namespace WPGatsby\Admin;
 
 use GraphQLRelay\Relay;
+use GraphQL\Error\UserError;
 
 class Preview {
 	function __construct() {
@@ -78,15 +79,37 @@ class Preview {
 				$remote_status = $input['status'] ?? null;
 				$preview_context = $input['statusContext'] ?? null;
 
+				$post = get_post( $parent_id );
 
-				if ( !$parent_id ) {
-					return [
-						'success' => false
-					];	
+				$post_type_object = $post 
+					? get_post_type_object( $post->post_type )
+					: null;
+
+				$user_can_edit_this_post = $post
+					? current_user_can(
+						$post_type_object->cap->edit_posts,
+						$parent_id
+					) 
+					: null;
+
+				if ( !$post || !$user_can_edit_this_post ) {
+					throw new UserError(
+						sprintf(
+							__(
+								'Sorry, you are not allowed to update post %1$s',
+								'wp-gatsby'
+							),
+							$parent_id,
+						)
+					);
 				}
 
 				if ( $page_path ) {
-					update_post_meta( $parent_id, '_wpgatsby_page_path', $page_path );
+					update_post_meta(
+						$parent_id,
+						'_wpgatsby_page_path',
+						$page_path
+					);
 				}
 
 				if ( $modified ) {
@@ -166,6 +189,29 @@ class Preview {
 
 				// make sure post_id is a valid post
 				$post = get_post( $post_id );
+
+				$post_type_object = $post 
+					? get_post_type_object( $post->post_type )
+					: null;
+
+				$user_can_edit_this_post = $post
+					? current_user_can(
+						$post_type_object->cap->edit_posts,
+						$post_id
+					) 
+					: null;
+
+				if ( !$post || !$user_can_edit_this_post ) {
+					throw new UserError(
+						sprintf(
+							__(
+								'Sorry, you are not allowed to access the Preview status of post %1$s',
+								'wp-gatsby'
+							),
+							$post_id,
+						)
+					);
+				}
 
 				if ( !$post ) {
 					return [
