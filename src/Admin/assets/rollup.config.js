@@ -4,7 +4,7 @@ import babel from "@rollup/plugin-babel"
 
 import cleanup from "rollup-plugin-cleanup"
 
-const extensions = [".ts", ".js"]
+const extensions = [".ts"]
 
 const config = {
 	input: "src/start-preview-client.ts",
