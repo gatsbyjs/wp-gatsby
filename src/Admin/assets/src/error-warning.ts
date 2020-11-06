@@ -46,7 +46,7 @@ export function showError(error: CustomError | string): void {
 
 	content.style.display = "block"
 
-	if (error.message === `NO_PAGE_CREATED_FOR_PREVIEWED_NODE`) {
+	if (error.message.includes(`NO_PAGE_CREATED_FOR_PREVIEWED_NODE`)) {
 		document.getElementById("troubleshooting-html-area").innerHTML = `
 			<p>If you're not a developer, please screenshot this page and send it to your developer.<br /><br /><b>Note:</b> Once this error is fixed, you'll need to press "preview" again to clear out this message.<br/><br/>Gatsby wasn't able to find a page for the post you're trying to preview. This can mean one of three things:
 			</p>
@@ -60,7 +60,7 @@ export function showError(error: CustomError | string): void {
 				<b>Hint:</b> if you want to account for any possible post type (even those that haven't yet been registered) you can use the WpContentNode interface as a fallback template in gatsby-node.js when you're creating pages and you'll never see this message when registering new post types.
 			</p>			
 		`
-	} else if (error.message === `GATSBY_PREVIEW_PROCESS_ERROR`) {
+	} else if (error.message.includes(`GATSBY_PREVIEW_PROCESS_ERROR`)) {
 		document.getElementById("troubleshooting-html-area").innerHTML = `
 			<p>If you're not a developer, please screenshot this page and send it to your developer.<br /><br /><b>Note:</b> Once this error is fixed, you'll need to press "preview" again to clear out this message.<br/><br/>The Gatsby Preview process errored while sourcing this preview.<br />Please check your error logs for additional information.
 			</p>			
