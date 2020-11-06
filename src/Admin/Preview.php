@@ -503,12 +503,17 @@ class Preview {
 			]
 		);
 
+		$status_code = $response['response']['code'] ?? null;
+
 		// this is used to optimistically load the preview iframe
 		// we also check if the frontend is responding to requests from the 
 		// preview template JS
 		$webhook_success = 
 			!is_wp_error( $response ) &&
-			($response['response']['code'] ?? null) === 200;
+			(
+				$status_code === 200 ||
+				$status_code === 204
+			);
 
 		update_option(
 			'_wp_gatsby_preview_webhook_is_online',
