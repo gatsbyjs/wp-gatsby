@@ -142,7 +142,7 @@ function onPreviewReadyUpdateUI(response: PreviewStatusResponseJson): void {
 		"preview",
 	) as HTMLIFrameElement
 
-	// when the iframe loads we want our iframe loaded to fire
+	// when the iframe loads we want our iframe loaded event to fire
 	// so we can remove the loader
 	previewIframe.addEventListener("load", onIframeLoadedHideLoaderUI)
 
