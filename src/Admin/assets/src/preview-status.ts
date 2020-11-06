@@ -166,3 +166,18 @@ function onIframeLoadedHideLoaderUI(): void {
 		}, 100)
 	}, 50)
 }
+
+export async function doubleCheckIfPreviewFrontendIsOnline() {
+	const fetchResponse = await fetch(initialState.previewFrontendUrl)
+
+	if (fetchResponse.ok) {
+		// if the response came back ok and we haven't already started loading the UI
+		if (!initialState.previewWebhookIsOnline) {
+			// start loading it because the frontend actually is online
+			await fetchPreviewStatusAndUpdateUI()
+		}
+	} else {
+		// otherwise throwing this will display the error UI
+		throw Error(`The Gatsby Preview instance can't be reached.`)
+	}
+}

@@ -4,8 +4,11 @@ namespace WPGatsby\Admin;
 
 use GraphQLRelay\Relay;
 use GraphQL\Error\UserError;
+use WPGraphQL\Router;
 
 class Preview {
+	public static $last_sent_modified_time_key = '_wpgatsby_last_preview_modified_time';
+
 	function __construct() {
     	$enable_gatsby_preview = self::get_setting('enable_gatsby_preview');
 
@@ -17,6 +20,69 @@ class Preview {
 				$this->registerPreviewStatusFieldsAndMutations ();
 			} );
 		}
+	}
+
+	public static function printInitialPreviewTemplateStateJS() {
+		global $post;
+		$post_id  = $post->ID;
+
+		$preview_url  = self::get_gatsby_preview_instance_url();
+		$preview_url  = rtrim( $preview_url, '/' );
+
+		$preview_webhook_online =
+			get_option( '_wp_gatsby_preview_webhook_is_online' )
+				? 'true'
+				: 'false';
+
+		$initial_state = json_encode([
+			'postId' =>  $post_id,
+			'previewFrontendUrl' => $preview_url,
+			'previewWebhookIsOnline' =>  $preview_webhook_online,
+			'graphqlEndpoint' => Router::$route,
+			'webhookWasCalled' => Preview::wasPreviewWebhookCalledForPostId(
+				$post_id
+			)
+		]);
+
+		echo "var initialState = $initial_state; console.log({ initialState: initialState });";
+	}
+
+	static function getLastSentModifiedTimeByPostId( $post_id ) {
+		return get_post_meta(
+			$post_id,
+			self::$last_sent_modified_time_key,
+			true
+		);
+	}
+
+	public static function wasPreviewWebhookCalledForPostId( $post_id ) {
+		$revision = self::getPreviewablePostObjectByPostId( $post_id );
+
+		error_log(print_r($revision, true)); 
+
+		$revision_modified = $revision->post_modified ?? null;
+
+		$last_sent_modified_time = self::getLastSentModifiedTimeByPostId(
+			$post_id
+		);
+
+		return $revision_modified === $last_sent_modified_time;
+	}
+
+	static function getPreviewablePostObjectByPostId( $post_id ) {
+		$revision = array_values(
+			wp_get_post_revisions( $post_id )
+		)[0]
+			// or if revisions are disabled, get the autosave
+			?? wp_get_post_autosave( $post_id, get_current_user_id() )
+			// otherwise we can't preview anything
+			?? null;
+
+		if ( $revision ) {
+			return $revision;
+		}
+
+		return get_post( $post_id );
 	}
 
 	function registerPreviewStatusFieldsAndMutations() {
@@ -225,13 +291,7 @@ class Preview {
 					true,
 				);
 
-				$revision = array_values(
-					wp_get_post_revisions( $post_id )
-				)[0]
-					// or if revisions are disabled, get the autosave
-					?? wp_get_post_autosave( $post_id, get_current_user_id() )
-					// otherwise we can't preview anything
-					?? null;
+				$revision = $this::getPreviewablePostObjectByPostId( $post_id );
 
 				$revision_modified = $revision->post_modified ?? null;
 
@@ -373,12 +433,14 @@ class Preview {
 	 * Send a Preview to Gatsby
 	 */
 	public function post_to_preview_instance( $post_ID, $post ) {
-		if (
-			defined( 'DOING_AUTOSAVE' )
-			&& DOING_AUTOSAVE
-		) {
-			return;
-		}
+		// @todo commenting this out on WPEngine breaks preview..
+		// 
+		// if (
+		// 	defined( 'DOING_AUTOSAVE' )
+		// 	&& DOING_AUTOSAVE
+		// ) {
+		// 	return;
+		// }
 
 		if ( $post->post_type === 'action_monitor' ) {
 			return;
@@ -427,12 +489,8 @@ class Preview {
 			return;
 		}
 
-		$last_sent_modified_time_key = '_wpgatsby_last_preview_modified_time';
-
-		$last_sent_modified_time = get_post_meta(
-			$parent_post_id,
-			$last_sent_modified_time_key,
-			true
+		$last_sent_modified_time = $this::getLastSentModifiedTimeByPostId(
+			$parent_post_id
 		);
 
 		$last_sent_modified_time_unix = strtotime( $last_sent_modified_time );
@@ -457,7 +515,7 @@ class Preview {
 			// otherwise store this modified time so we can compare it next time
 			update_post_meta(
 				$parent_post_id,
-				$last_sent_modified_time_key,
+				self::$last_sent_modified_time_key,
 				$post->post_modified
 			);
 		}

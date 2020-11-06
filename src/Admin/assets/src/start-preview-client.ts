@@ -1,13 +1,17 @@
 import "whatwg-fetch"
 
 import { showError } from "./error-warning"
-import { fetchPreviewStatusAndUpdateUI } from "./preview-status"
+import {
+	fetchPreviewStatusAndUpdateUI,
+	doubleCheckIfPreviewFrontendIsOnline,
+} from "./preview-status"
 
 export type InitialState = {
 	previewWebhookIsOnline: boolean
 	previewFrontendUrl: string
 	postId: number
 	graphqlEndpoint: string
+	webhookWasCalled: boolean
 }
 
 declare var initialState: InitialState
@@ -30,22 +34,15 @@ start().catch((e) => {
 })
 
 async function start(): Promise<void> {
-	const [, fetchResponse] = await Promise.all([
+	if (!initialState.webhookWasCalled) {
+		throw Error(`The Gatsby Preview webhook was not successfully called.`)
+	}
+	// awaiting these to make them catcheable
+	await Promise.all([
 		// optimistically try to load the UI
 		initialState.previewWebhookIsOnline && fetchPreviewStatusAndUpdateUI(),
 		// Also check if the frontend has been online
 		// since the last backend check
-		fetch(initialState.previewFrontendUrl),
+		doubleCheckIfPreviewFrontendIsOnline(),
 	])
-
-	if (fetchResponse.ok) {
-		// if the response came back ok and we haven't already started loading the UI
-		if (!initialState.previewWebhookIsOnline) {
-			// start loading it because the frontend actually is online
-			await fetchPreviewStatusAndUpdateUI()
-		}
-	} else {
-		// otherwise throwing this will display the error UI
-		throw Error(`The Gatsby Preview instance can't be reached.`)
-	}
 }

@@ -1,19 +1,8 @@
 <?php
 
 use WPGatsby\Admin\Preview;
-use WPGraphQL\Router;
 
-global $post;
-$post_id  = $post->ID;
-
-$preview_url  = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
-$preview_url  = rtrim( $preview_url, '/' );
-
-$preview_webhook_online =
-	get_option( '_wp_gatsby_preview_webhook_is_online' )
-		? 'true'
-		: 'false';
-
+$preview_url = Preview::get_gatsby_preview_instance_url();
 ?>
 
 <html lang="en">
@@ -29,15 +18,7 @@ $preview_webhook_online =
 	</style>
 
 	<script>
-		var initialState = {
-			postId: <?php echo $post_id; ?>,
-			previewFrontendUrl: "<?php echo $preview_url; ?>",
-			previewWebhookIsOnline: <?php echo $preview_webhook_online; ?>,
-			graphqlEndpoint: "<?php echo Router::$route; ?>"
-		}
-
-		console.log({ initialState });
-		
+		<?php Preview::printInitialPreviewTemplateStateJS(); ?>		
 		<?php Preview::printFileContents( "assets/dist/preview-client.js" ); ?>
 	</script>
 </head>
