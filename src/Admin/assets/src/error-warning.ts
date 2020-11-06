@@ -4,7 +4,7 @@ const timeoutMilliseconds: number = 1000 * timeoutSeconds
 /**
  * After 45 seconds, display a warning, unless cancelled by clearing this timeout once the UI is updated and the iframe is loaded.
  */
-export const timeoutWarning: NodeJS.Timeout = setTimeout(() => {
+export const timeoutWarning: number = setTimeout(() => {
 	updateLoaderWarning(
 		`Preview is taking a very long time to load (more than ${timeoutSeconds} seconds).<br />Try pressing "preview" again from the WordPress edit screen.<br />If you see this again, your preview builds are either slow or there's something wrong.`,
 	)
