@@ -40,5 +40,7 @@
 		"not dead",
 		"last 2 versions"
 	],
-	"dependencies": {}
+	"dependencies": {
+		"whatwg-fetch": "^3.4.1"
+	}
 }

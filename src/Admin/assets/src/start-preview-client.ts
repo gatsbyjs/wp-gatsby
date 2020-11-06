@@ -1,3 +1,5 @@
+import "whatwg-fetch"
+
 import { showError } from "./error-warning"
 import { fetchPreviewStatusAndUpdateUI } from "./preview-status"
 
