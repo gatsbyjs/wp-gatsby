@@ -29,10 +29,9 @@ class Preview {
 		$preview_url  = self::get_gatsby_preview_instance_url();
 		$preview_url  = rtrim( $preview_url, '/' );
 
-		$preview_webhook_online =
-			get_option( '_wp_gatsby_preview_webhook_is_online' )
-				? 'true'
-				: 'false';
+		$preview_webhook_online = get_option(
+			'_wp_gatsby_preview_webhook_is_online'
+		);
 
 		$initial_state = json_encode([
 			'postId' =>  $post_id,
@@ -97,6 +96,9 @@ class Preview {
 				],
 				'GATSBY_PREVIEW_PROCESS_ERROR' => [
 					'value' => 'GATSBY_PREVIEW_PROCESS_ERROR'
+				],
+				'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' => [
+					'value' => 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL'
 				]
 			]
 		] );
@@ -109,11 +111,11 @@ class Preview {
 					'description' => __( 'The Gatsby page path for this preview.', 'wp-gatsby' ),
 				],
 				'modified' => [
-					'type' => [ 'non_null' => 'String' ],
+					'type' => 'String',
 					'description' => __( 'The modified date of the latest revision for this preview.', 'wp-gatsby' ),
 				],
 				'parentId' => [
-					'type' => [ 'non_null' => 'Number' ],
+					'type' => 'Number',
 					'description' => __( 'The previewed revisions post parent id', 'wp-gatsby' ),
 				],
 				'status' => [
@@ -125,7 +127,7 @@ class Preview {
 					'description' => __( 'Additional context about the preview status', 'wp-gatsby' ),
 				],
 			],
-			'outputFields'        => [
+			'outputFields' => [
 				'success' => [
 					'type' => 'Boolean',
 					'description' => __( 'Wether or not the revision mutation was successful', 'wp-gatsby' ),
@@ -217,6 +219,24 @@ class Preview {
 			]
 		] );
 
+		register_graphql_enum_type( 'WPGatsbyWPPreviewedNodeStatus', [
+			'description' => __( 'The different statuses a Gatsby Preview can be in for a single node.', 'wp-gatsby' ),
+			'values' => [
+				'NO_NODE_FOUND' => [
+					'value' => 'NO_NODE_FOUND'
+				],
+				'PREVIEW_READY' => [
+					'value' => 'PREVIEW_READY'
+				],
+				'REMOTE_NODE_NOT_YET_UPDATED' => [
+					'value' => 'REMOTE_NODE_NOT_YET_UPDATED'
+				],
+				'NO_PREVIEW_PATH_FOUND' => [
+					'value' => 'NO_PREVIEW_PATH_FOUND'
+				],
+			]
+		] );
+
 		register_graphql_object_type( 'WPGatsbyPreviewStatus', [
 			'description' => __( 'Check compatibility with a given version of gatsby-source-wordpress and the WordPress source site.' ),
 			'fields'      => [
@@ -224,9 +244,9 @@ class Preview {
 					'type' => 'WPGatsbyPageNode'
 				],
 				'statusType' => [
-					'type' => 'String'
+					'type' => 'WPGatsbyWPPreviewedNodeStatus'
 				],
-				'remoteStatusType' => [
+				'remoteStatus' => [
 					'type' => 'WPGatsbyRemotePreviewStatusEnum'
 				],
 				'modifiedLocal' => [
@@ -302,7 +322,6 @@ class Preview {
 					'_wpgatsby_node_modified',
 					true
 				);
-
 				
 				$node_was_updated = 
 				strtotime( $gatsby_node_modified ) >= strtotime( $modified );
@@ -328,6 +347,10 @@ class Preview {
 					$status_type = 'NO_PREVIEW_PATH_FOUND';
 				}
 
+				if ( $remote_status === 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' ) {
+					$status_type = 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL';
+				}
+
 				$status_context = get_post_meta(
 					$post_id,
 					'_wpgatsby_node_remote_preview_status_context',
@@ -342,7 +365,7 @@ class Preview {
 				return [
 					'statusType' => $status_type,
 					'statusContext' => $status_context,
-					'remoteStatusType' => $remote_status_type,
+					'remoteStatus' => $remote_status_type,
 					'pageNode' => [
 						'path' => $normalized_preview_page_path
 					],
@@ -433,14 +456,17 @@ class Preview {
 	 * Send a Preview to Gatsby
 	 */
 	public function post_to_preview_instance( $post_ID, $post ) {
-		// @todo commenting this out on WPEngine breaks preview..
-		// 
-		// if (
-		// 	defined( 'DOING_AUTOSAVE' )
-		// 	&& DOING_AUTOSAVE
-		// ) {
-		// 	return;
-		// }
+		$revisions_are_disabled = 
+			!wp_revisions_enabled( $post );
+
+		if (
+			defined( 'DOING_AUTOSAVE' )
+			&& DOING_AUTOSAVE
+			// if revisions are disabled, our autosave is our preview
+			&& !$revisions_are_disabled
+		) {
+			return;
+		}
 
 		if ( $post->post_type === 'action_monitor' ) {
 			return;
@@ -449,9 +475,6 @@ class Preview {
 		if ( $post->post_status === 'auto-draft'  ) {
 			return;
 		}
-
-		$revisions_are_disabled = 
-			defined( 'WP_POST_REVISIONS' ) && !WP_POST_REVISIONS;
 
 		$is_new_post_draft =
 			$post->post_status === 'draft' &&
@@ -561,13 +584,15 @@ class Preview {
 			]
 		);
 
-		$status_code = $response['response']['code'] ?? null;
+		$is_wp_error = is_wp_error( $response );
+
+		$status_code = !$is_wp_error ? $response['response']['code'] ?? null : null;
 
 		// this is used to optimistically load the preview iframe
 		// we also check if the frontend is responding to requests from the 
 		// preview template JS
 		$webhook_success = 
-			!is_wp_error( $response ) &&
+			!$is_wp_error &&
 			(
 				$status_code === 200 ||
 				$status_code === 204

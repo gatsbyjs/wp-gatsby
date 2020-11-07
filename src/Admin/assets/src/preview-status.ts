@@ -12,12 +12,29 @@ const previewStatusQuery: string = /* GraphQL */ `
 					path
 				}
 				statusType
-				remoteStatusType
+				remoteStatus
 				statusContext
 			}
 		}
 	}
 `
+
+const wpPreviewedNodeStatus = [
+	`NO_NODE_FOUND`,
+	`PREVIEW_READY`,
+	`REMOTE_NODE_NOT_YET_UPDATED`,
+	`NO_PREVIEW_PATH_FOUND`,
+] as const
+
+type WpPreviewedNodeStatusUnion = typeof wpPreviewedNodeStatus[number]
+
+const remoteStatuses = [
+	`NO_PAGE_CREATED_FOR_PREVIEWED_NODE`,
+	`GATSBY_PREVIEW_PROCESS_ERROR`,
+	`RECEIVED_PREVIEW_DATA_FROM_WRONG_URL`,
+] as const
+
+export type RemoteStatusUnion = typeof remoteStatuses[number]
 
 type PreviewStatusResponseJson = {
 	data: {
@@ -26,8 +43,8 @@ type PreviewStatusResponseJson = {
 				pageNode: {
 					path: string
 				}
-				statusType: string
-				remoteStatusType: string
+				statusType: WpPreviewedNodeStatusUnion
+				remoteStatus: RemoteStatusUnion
 				statusContext: string
 			}
 		}
@@ -64,13 +81,10 @@ export async function fetchPreviewStatusAndUpdateUI({
 		})
 	).json()
 
-	const { statusType, remoteStatusType, statusContext } =
+	const { statusType, remoteStatus, statusContext } =
 		response?.data?.wpGatsby?.gatsbyPreviewStatus || {}
 
-	const isSpecialStatus: boolean = [
-		`NO_PAGE_CREATED_FOR_PREVIEWED_NODE`,
-		`GATSBY_PREVIEW_PROCESS_ERROR`,
-	].includes(remoteStatusType)
+	const isSpecialStatus: boolean = remoteStatuses.includes(remoteStatus)
 
 	if (isSpecialStatus) {
 		console.log({ response })
@@ -79,8 +93,10 @@ export async function fetchPreviewStatusAndUpdateUI({
 		clearTimeout(timeoutWarning)
 
 		throw {
-			message: remoteStatusType,
-			context: statusContext,
+			remoteStatus,
+			message: `Gatsby returned unsuccessful Preview status:\n${remoteStatus}${
+				statusContext ? `\n\nWith additional context:\n${statusContext}` : ``
+			}`,
 		}
 	}
 
