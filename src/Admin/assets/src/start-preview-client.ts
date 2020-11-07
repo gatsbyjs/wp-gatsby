@@ -37,6 +37,7 @@ async function start(): Promise<void> {
 	if (!initialState.webhookWasCalled) {
 		throw Error(`The Gatsby Preview webhook was not successfully called.`)
 	}
+
 	// awaiting these to make them catcheable
 	await Promise.all([
 		// optimistically try to load the UI

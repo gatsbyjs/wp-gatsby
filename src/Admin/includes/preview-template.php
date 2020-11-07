@@ -92,5 +92,6 @@ $preview_url = Preview::get_gatsby_preview_instance_url();
 </div>
 </body>
 
-</html>
 <?php wp_footer(); ?>
+
+</html>

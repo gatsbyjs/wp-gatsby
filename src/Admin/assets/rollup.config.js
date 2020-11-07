@@ -12,7 +12,6 @@ const config = {
 		file: "dist/preview-client.js",
 		format: "iife",
 		sourcemap: true,
-		inputSourceMap: true,
 		name: "WPGatsbyPreviewClient",
 	},
 	plugins: [
