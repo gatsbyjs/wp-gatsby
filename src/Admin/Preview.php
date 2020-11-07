@@ -57,8 +57,6 @@ class Preview {
 	public static function wasPreviewWebhookCalledForPostId( $post_id ) {
 		$revision = self::getPreviewablePostObjectByPostId( $post_id );
 
-		error_log(print_r($revision, true)); 
-
 		$revision_modified = $revision->post_modified ?? null;
 
 		$last_sent_modified_time = self::getLastSentModifiedTimeByPostId(
@@ -234,6 +232,9 @@ class Preview {
 				'NO_PREVIEW_PATH_FOUND' => [
 					'value' => 'NO_PREVIEW_PATH_FOUND'
 				],
+				'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' => [
+					'value' => 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL'
+				]
 			]
 		] );
 
@@ -347,15 +348,15 @@ class Preview {
 					$status_type = 'NO_PREVIEW_PATH_FOUND';
 				}
 
-				if ( $remote_status === 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' ) {
-					$status_type = 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL';
-				}
-
 				$status_context = get_post_meta(
 					$post_id,
 					'_wpgatsby_node_remote_preview_status_context',
 					true
 				);
+
+				if ( $status_context === "" ) {
+					$status_context = null;
+				}
 
 				$normalized_preview_page_path = 
 					$found_preview_path_post_meta !== "" 
