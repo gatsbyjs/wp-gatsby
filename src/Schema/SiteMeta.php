@@ -198,7 +198,7 @@ class SiteMeta {
                     } '
 						]
 					);
-					$json_string = \wp_json_encode( $graphql );
+					$json_string = \wp_json_encode( $graphql['data'] );
 					$md5         = md5( $json_string );
 
 					return $md5;
