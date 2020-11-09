@@ -160,42 +160,32 @@ class SiteMeta {
 				'resolve'     => function() {
 					$graphql     = \graphql(
 						[
-							'query' => ' {
-                      __schema {
-                        types {
-                          kind
-                          name
-                          possibleTypes {
-                            kind
-                            name
-                          }
-                          interfaces {
-                            kind
-                            name
-                          }
-                          ofType {
-                            kind
-                            name
-                          }
-                          fields {
-                            name
-                            args {
-                              type {
-                                kind
-                              }
-                            }
-                            type {
-                              name
-                              kind
-                              ofType {
-                                kind
-                                name
-                              }
-                            }
-                          }
-                        }
-                      }
-                    } '
+							'query' => '{
+								__schema {
+								  types {
+									kind
+									name
+									possibleTypes {
+									  kind
+									  name
+									}
+									interfaces {
+									  kind
+									  name
+									}
+									ofType {
+									  kind
+									  name
+									}
+									fields {
+									  name
+									  type {
+										name
+									  }
+									}
+								  }
+								}
+							  }'
 						]
 					);
 					$json_string = \wp_json_encode( $graphql['data'] );
