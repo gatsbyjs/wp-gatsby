@@ -1,37 +1,8 @@
 <?php
 
-use GraphQLRelay\Relay;
+use WPGatsby\Admin\Preview;
 
-wp_head();
-
-global $post;
-$post_id  = $post->ID;
-$revision = array_values( wp_get_post_revisions( $post_id ) )[0] ?? null;
-
-$post_type_object = \get_post_type_object( $post->post_type );
-
-$global_relay_id = Relay::toGlobalId(
-	'post',
-	absint( $post_id )
-);
-
-$referenced_node_single_name
-	= $post_type_object->graphql_single_name ?? null;
-
-$post_url = get_the_permalink( $post );
-$path     = str_ireplace( get_home_url(), '', $post_url );
-
-// if the post parent has a ? in it's url, this is a new draft
-// and or the post has no proper permalink that Gatsby can use.
-// so we will create one /post_graphql_name/post_db_id
-// this same logic is on the Gatsby side to account for this situation.
-if ( strpos( $path, '?' ) ) {
-	$path = "/$referenced_node_single_name/$post_id";
-}
-
-$preview_url  = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
-$preview_url  = rtrim( $preview_url, '/' );
-$frontend_url = "$preview_url$path";
+$preview_url = Preview::get_gatsby_preview_instance_url();
 ?>
 
 <html lang="en">
@@ -41,105 +12,86 @@ $frontend_url = "$preview_url$path";
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Preview</title>
+
 	<style>
-		.content {
-			width: 100%;
-			left: 0;
-			top: 46px;
-			height: 100%;
-			height: calc(100vh - 46px);
-
-			text-align: center;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			flex-direction: column;
-
-			max-width: 80%;
-			margin: 0 auto;
-		}
-
-		.content p {
-			max-width: 800px;
-			margin: 0 auto;
-		}
-
-		iframe {
-			position: fixed;
-
-			width: 100%;
-			left: 0;
-
-			top: 46px;
-			height: 100%;
-			height: calc(100vh - 46px);
-		}
-
-		@media (min-width: 783px) {
-			iframe {
-				top: 32px;
-				height: calc(100vh - 32px);
-			}
-		}
+		<?php Preview::printFileContents( "assets/dist/styles.css" ); ?>
 	</style>
 
-	<script async>
-        function showError() {
-            document.addEventListener("DOMContentLoaded", function () {
-                try {
-                    const iframe = document.querySelector('#preview')
-                    iframe.style.display = "none"
-                } catch (e) {
-                }
-
-                try {
-                    const content = document.querySelector('.content')
-                    content.style.display = "block"
-                } catch (e) {
-                }
-            })
-        }
-
-        fetch("<?php echo $frontend_url; ?>", {mode: 'no-cors'})
-            .catch(e => {
-                showError()
-            });
+	<script>
+		<?php Preview::printInitialPreviewTemplateStateJS(); ?>		
+		<?php Preview::printFileContents( "assets/dist/preview-client.js" ); ?>
 	</script>
 </head>
 
 <body>
-<?php if ( $frontend_url ): ?>
-	<iframe
-			id='preview'
-			src="<?= $frontend_url; ?>"
-			frameborder="0"
-	></iframe>
-<?php endif; ?>
+
+<div id="loader">
+	<div id="gatsby-loading-logo">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" focusable="false" class="logo">
+		<title>Gatsby Logo</title>
+		<circle cx="14" cy="14" r="14" fill="#639" data-darkreader-inline-fill="" style="--darkreader-inline-fill:#52297a;"></circle>
+		<path fill="#fff" d="M6.2 21.8C4.1 19.7 3 16.9 3 14.2L13.9 25c-2.8-.1-5.6-1.1-7.7-3.2zm10.2 2.9L3.3 11.6C4.4 6.7 8.8 3 14 3c3.7 0 6.9 1.8 8.9 4.5l-1.5 1.3C19.7 6.5 17 5 14 5c-3.9 0-7.2 2.5-8.5 6L17 22.5c2.9-1 5.1-3.5 5.8-6.5H18v-2h7c0 5.2-3.7 9.6-8.6 10.7z" data-darkreader-inline-fill="" style="--darkreader-inline-fill:#181a1b;"></path>
+        </svg>
+	</div>
+	<h1>Loading Preview</h1>
+	<p id="preview-loader-warning" style="display: none;"></p>
+</div>
+
+<iframe id='preview' frameborder="0"></iframe>
 
 <div class="content error" style="display: none;">
-	<h1>Preview broken</h1>
-	<p>The Preview webhook set on the <a
-				href="<?php echo get_bloginfo( 'url' ); ?>/wp-admin/options-general.php?page=gatsbyjs">settings
+	<h1>The Preview couldn't be loaded</h1>
+	<p>
+		The Preview frontend url set on the
+		 <a
+				href="<?php echo get_bloginfo( 'url' ); ?>/wp-admin/options-general.php?page=gatsbyjs"
+				target="_blank" rel="noopener, nofollow. noreferrer, noopener, external"
+		>settings
 			page</a> isn't working properly.
 		<br>
-		Please ensure your URL is correct.
 		<br>
-		<br>
-		If you've set the correct URL and you're still having trouble, please <a
-				href="https://www.gatsbyjs.com/preview/" target="_blank"
-				rel="noopener, nofollow. noreferrer, noopener, external">refer to the docs</a> for
-		troubleshooting steps, or <a href="https://www.gatsbyjs.com/preview/" target="_blank"
-									 rel="noopener, nofollow. noreferrer, noopener, external">contact
-			support</a> if that doesn't solve your issue.
-		<br>
-		<br>
-		If you don't have a valid Gatsby Preview instance, you can <a
-				href="https://www.gatsbyjs.com/preview/" target="_blank"
-				rel="noopener, nofollow. noreferrer, noopener, external">set one up now on Gatsby
-			Cloud.</a>
+		<b>Preview URL: </b>
+		<a 
+			href="<?php echo $preview_url; ?>"
+			target="_blank" rel="noopener, nofollow. noreferrer, noopener, external"
+		>
+			<?php echo $preview_url; ?>
+		</a>
+	</p>
+	<br>
+	<pre id="error-message-element"></pre>
+	<h2>Troubleshooting</h2>
+	<span id="troubleshooting-html-area">
+		<p>
+			Please ensure your URL is correct and your Preview instance is up and running.
+			<br>
+			<br>
+			If you've set the correct URL, your Preview instance is currently running, and you're still having trouble, please <a
+					href="https://www.gatsbyjs.com/cloud/docs/wordpress/getting-started/" target="_blank"
+					rel="noopener, nofollow. noreferrer, noopener, external">refer to the docs</a> for
+			troubleshooting steps, ask your developer, or <a href="https://www.gatsbyjs.com/contact-us/" target="_blank"
+										rel="noopener, nofollow. noreferrer, noopener, external">contact
+				support</a> if that doesn't solve your issue.
+			<br>
+			<br>
+			If you don't have a valid Gatsby Preview instance, you can <a
+					href="https://www.gatsbyjs.com/preview/" target="_blank"
+					rel="noopener, nofollow. noreferrer, noopener, external">set one up now on Gatsby
+				Cloud.</a>
+			</p>
+	</span>
+	<h2>Developer instructions</h2>
+	<p>Please visit 
+		<a
+			href="https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md#setting-up-preview" target="_blank"
+			rel="noopener, nofollow. noreferrer, noopener, external"
+		>
+		the docs
+		</a> for instructions on setting up Gatsby Preview.
 	</p>
 </div>
 </body>
 
-</html>
 <?php wp_footer(); ?>
+
+</html>
