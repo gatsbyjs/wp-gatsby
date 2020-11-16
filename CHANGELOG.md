@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.6.0
+
+- This release adds a major re-work to the Gatsby Preview experience! It adds remote Gatsby state management and error handling in WordPress so that WP and Gatsby don't get out of sync during the Preview process.
 ## 0.5.4
 - Force enable WPGraphQL Introspection when WPGatsby is enabled. [WPGraphQL v0.14.0](https://github.com/wp-graphql/wp-graphql/releases/tag/v0.14.0) has Introspection disabled by default with an option to enable it, and Gatsby requires it to be enabled, so WPGatsby force-enables it.
 
