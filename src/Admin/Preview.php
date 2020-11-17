@@ -165,7 +165,7 @@ class Preview {
 								'Sorry, you are not allowed to update post %1$s',
 								'wp-gatsby'
 							),
-							$parent_id,
+							$parent_id
 						)
 					);
 				}
@@ -295,7 +295,7 @@ class Preview {
 								'Sorry, you are not allowed to access the Preview status of post %1$s',
 								'wp-gatsby'
 							),
-							$post_id,
+							$post_id
 						)
 					);
 				}
@@ -309,7 +309,7 @@ class Preview {
 				$found_preview_path_post_meta = get_post_meta(
 					$post_id,
 					'_wpgatsby_page_path',
-					true,
+					true
 				);
 
 				$revision = $this::getPreviewablePostObjectByPostId( $post_id );
