@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.6.2
+
+- More PHP 7.1 syntax fixes. We will soon have CI tests which will prevent these issues.
 ## 0.6.1
 
 - Fixed an unexpected token syntax error.
