@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.6.1
+
+- Fixed an unexpected token syntax error.
+
 ## 0.6.0
 
 - This release adds a major re-work to the Gatsby Preview experience! It adds remote Gatsby state management and error handling in WordPress so that WP and Gatsby don't get out of sync during the Preview process.
