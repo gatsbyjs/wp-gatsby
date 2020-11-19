@@ -159,15 +159,15 @@ class Preview {
 					: null;
 
 				if ( !$post || !$user_can_edit_this_post ) {
-					throw new UserError(
-						sprintf(
-							__(
-								'Sorry, you are not allowed to update post %1$s',
-								'wp-gatsby'
-							),
-							$parent_id,
-						)
+					$message = sprintf(
+						__(
+							'Sorry, you are not allowed to update post %1$s',
+							'wp-gatsby'
+						),
+						$parent_id,
 					);
+
+					throw new UserError( $message );
 				}
 
 				if ( $page_path ) {
