@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.6.4
+
+- Extended WPGatsby JWT expiry to 1 hour. It was previously 30 seconds which can be problematic for slower servers and Gatsby setups.
+
 ## 0.6.3
 
 - graphql_single_name's that start with a capital letter were causing issues because WPGatsby was not making the first character lowercase but WPGraphQL does do this when adding the field to schema.
