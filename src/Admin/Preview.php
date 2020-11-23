@@ -553,6 +553,10 @@ class Preview {
 
 		$referenced_node_single_name
 			= $post_type_object->graphql_single_name ?? null;
+			
+		$referenced_node_single_name_normalized = lcfirst(
+			$referenced_node_single_name
+		);
 
 		$graphql_endpoint = apply_filters( 'graphql_endpoint', 'graphql' );
 
@@ -563,7 +567,7 @@ class Preview {
 			'token'                => $token,
 			'previewId'            => $post_ID,
 			'id'                   => $global_relay_id,
-			'singleName'           => $referenced_node_single_name,
+			'singleName'           => $referenced_node_single_name_normalized,
 			'isNewPostDraft'       => $is_new_post_draft,
 			'isDraft'              => $is_draft,
 			'isRevision'           => $is_revision,
