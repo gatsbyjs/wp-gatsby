@@ -40,22 +40,29 @@ class ActionMonitor {
 
 		$this->registerGraphQLFields();
 		$this->monitorActions();
+
 	}
 
+	/**
+	 * Deletes all posts of the action_monitor post_type that are 7 days old, as well as any associated post meta and term relationships.
+	 *
+	 * @return bool|int
+	 */
 	function garbageCollectActions() {
-		$posts = get_posts( [
-			'numberposts' => - 1,
-			'post_type'   => 'action_monitor',
-			'date_query'  => [
-				'before' => date( "Y-m-d H:i:s", strtotime( '-7 days' ) ),
-			],
-		] );
 
-		if ( ! empty( $posts ) ) {
-			foreach ( $posts as $post ) {
-				wp_delete_post( $post->ID );
-			}
-		}
+		global $wpdb;
+		$post_type = 'action_monitor';
+		$sql = wp_strip_all_tags(
+		'DELETE posts, pm, pt
+			FROM ' . $wpdb->prefix . 'posts AS posts
+			LEFT JOIN ' . $wpdb->prefix . 'term_relationships AS pt ON pt.object_id = posts.ID
+			LEFT JOIN ' . $wpdb->prefix . 'postmeta AS pm ON pm.post_id = posts.ID
+			WHERE posts.post_type = \'%1$s\'
+			AND posts.post_modified < \'%2$s\'', true
+		);
+
+		$query = $wpdb->prepare( $sql, $post_type, date( "Y-m-d H:i:s", strtotime( '-7 days' ) ) );
+		return $wpdb->query( $query );
 	}
 
 	/**
@@ -141,6 +148,7 @@ class ActionMonitor {
 		$this->should_dispatch = true;
 
 		$this->garbageCollectActions();
+
 	}
 
 	/**
@@ -615,7 +623,7 @@ class ActionMonitor {
 		}
 
 		$menu_locations = get_nav_menu_locations();
-		
+
 		// if no menu locations are assigned to this menu,
 		// bail early because it's a private menu
 		if ( !in_array( $menu_id, $menu_locations ) ) {
@@ -1029,11 +1037,11 @@ class ActionMonitor {
 		];
 
 		$WPGraphQL_debug_mode = !!(
-			defined( 'GRAPHQL_DEBUG' ) && GRAPHQL_DEBUG 
-			|| ( 
-				class_exists( 'WPGraphQL') 
-				&& method_exists( 'WPGraphQL', 'debug' ) 
-				&& \WPGraphQL::debug() 
+			defined( 'GRAPHQL_DEBUG' ) && GRAPHQL_DEBUG
+			|| (
+				class_exists( 'WPGraphQL')
+				&& method_exists( 'WPGraphQL', 'debug' )
+				&& \WPGraphQL::debug()
 			)
 		);
 
