@@ -1092,7 +1092,7 @@ class ActionMonitor {
 		if ( $we_should_call_webhooks ) {
 			$webhooks = array_merge(
 				explode( ',', $build_webhook_field ),
-				explode( ',', $preview_webhook_field)
+				explode( ',', $preview_webhook_field )
 			);
 
 			$truthy_webhooks = array_filter( $webhooks );
