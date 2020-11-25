@@ -501,6 +501,14 @@ class Preview {
 
 		$original_post = get_post( $post->post_parent );
 
+		$this_is_a_publish_not_a_preview = 
+			$original_post && $original_post->post_modified === $post->post_modified;
+
+		if ( $this_is_a_publish_not_a_preview ) {
+			// we will handle this in ActionMonitor.php, not here
+			return;
+		}
+
 		$parent_post_id = $original_post->ID ?? $post_ID;
 
 		$post_type_object = $original_post
