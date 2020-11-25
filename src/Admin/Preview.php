@@ -83,6 +83,108 @@ class Preview {
 	}
 
 	function registerPreviewStatusFieldsAndMutations() {
+
+		// register_graphql_field( 'WPGatsby', 'hasPreviewNodeDatabaseIdDeployed', [
+		// 	'description' => __( 'Wether or not the Gatsby Preview for a node id has deployed.', 'wp-gatsby' ),
+		// 	'type'        => 'Boolean',
+		// 	'args'        => [
+		// 		'nodeId'    => [
+		// 			'type'        => [ 'non_null' => 'Number' ],
+		// 			'description' => __( 'The database id for the previewed node.', 'wp-gatsby' ),
+		// 		]
+		// 	],
+		// 	'resolve'     => function( $root, $args, $context, $info ) {
+		// 		$post_id = $args['nodeId'];
+
+		// 		$post = get_post( $post_id );
+
+		// 		$post_type_object = $post 
+		// 			? get_post_type_object( $post->post_type )
+		// 			: null;
+
+		// 		$user_can_edit_this_post = $post
+		// 			? current_user_can(
+		// 				$post_type_object->cap->edit_posts,
+		// 				$post_id
+		// 			) 
+		// 			: null;
+
+		// 		if ( !$post || !$user_can_edit_this_post ) {
+		// 			throw new UserError(
+		// 				sprintf(
+		// 					__(
+		// 						'Sorry, you are not allowed to access the Preview status of post %1$s',
+		// 						'wp-gatsby'
+		// 					),
+		// 					$post_id
+		// 				)
+		// 			);
+		// 		}
+
+		// 		$revision = $this::getPreviewablePostObjectByPostId( $post_id );
+
+		// 		$revision_modified = $revision->post_modified ?? null;
+
+		// 		$modified = $revision_modified ?? $post->post_modified;
+
+		// 		$gatsby_node_modified = get_post_meta(
+		// 			$post_id,
+		// 			'_wpgatsby_node_modified',
+		// 			true
+		// 		);
+				
+		// 		$node_was_updated = 
+		// 		strtotime( $gatsby_node_modified ) >= strtotime( $modified );
+				
+		// 		$remote_status = get_post_meta(
+		// 			$post_id,
+		// 			'_wpgatsby_node_remote_preview_status',
+		// 			true
+		// 		);
+
+		// 		// if the node wasn't updated, then any status we have is stale
+		// 		$remote_status_type = $remote_status && $node_was_updated 
+		// 			? $remote_status
+		// 			: null;
+				
+		// 		$status_type = 'PREVIEW_READY';
+
+		// 		if ( !$node_was_updated ) {
+		// 			$status_type = 'REMOTE_NODE_NOT_YET_UPDATED';	
+		// 		}
+
+		// 		if ( !$found_preview_path_post_meta) {
+		// 			$status_type = 'NO_PREVIEW_PATH_FOUND';
+		// 		}
+
+		// 		$status_context = get_post_meta(
+		// 			$post_id,
+		// 			'_wpgatsby_node_remote_preview_status_context',
+		// 			true
+		// 		);
+
+		// 		if ( $status_context === "" ) {
+		// 			$status_context = null;
+		// 		}
+
+		// 		$normalized_preview_page_path = 
+		// 			$found_preview_path_post_meta !== "" 
+		// 				? $found_preview_path_post_meta
+		// 				: null;
+
+		// 		return [
+		// 			'statusType' => $status_type,
+		// 			'statusContext' => $status_context,
+		// 			'remoteStatus' => $remote_status_type,
+		// 			'pageNode' => [
+		// 				'path' => $normalized_preview_page_path
+		// 			],
+		// 			'modifiedLocal' => $modified,
+		// 			'modifiedRemote' => $gatsby_node_modified
+		// 		];
+		// 	}
+		// ] );
+
 		register_graphql_enum_type( 'WPGatsbyRemotePreviewStatusEnum', [
 			'description' => __( 'The different statuses a Gatsby Preview can be in for a single node.', 'wp-gatsby' ),
 			'values' => [
@@ -100,7 +202,6 @@ class Preview {
 				]
 			]
 		] );
-
 
 		register_graphql_mutation( 'wpGatsbyRemotePreviewStatus', [
 			'inputFields'         => [
@@ -234,6 +335,9 @@ class Preview {
 				],
 				'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' => [
 					'value' => 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL'
+				],
+				'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED' => [
+					'value' => 'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED'
 				]
 			]
 		] );
@@ -324,8 +428,45 @@ class Preview {
 					true
 				);
 				
-				$node_was_updated = 
+				$node_page_was_created = 
 				strtotime( $gatsby_node_modified ) >= strtotime( $modified );
+
+				$node_was_updated = false;
+
+				if ( $node_page_was_created ) {
+					error_log(print_r('node page was created', true)); 
+					$gatbsy_preview_frontend_url =
+						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
+						
+					$modified_deployed_url = 
+						$gatbsy_preview_frontend_url .
+						"__wp-preview/$post_id/modified";
+						
+					// check if node page was deployed
+					$request = wp_remote_get( $modified_deployed_url );
+					$modified_response = wp_remote_retrieve_body( $request );
+
+					$preview_was_deployed =
+						strtotime( $modified_response ) >= strtotime( $modified );
+					
+					if ( ! $preview_was_deployed ) {
+						// error_log(print_r('preview was not deployed', true)); 
+						// if not, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED
+						return [
+							'statusType' =>
+							'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED',
+							'statusContext' => null,
+							'remoteStatus' => null
+						];
+					} else {
+						// error_log(print_r('preview was deployed', true)); 
+						// error_log(print_r([$modified, $modified_response], true)); 
+						// if it is, send back PREVIEW_READY below
+						$node_was_updated = true;
+					}
+				} else {
+					error_log(print_r('node page was not created', true)); 
+				}
 				
 				$remote_status = get_post_meta(
 					$post_id,
@@ -379,16 +520,19 @@ class Preview {
 
 	public function setup_preview_template( $template ) {
 		global $post;
-		$post_type = get_post_type_object( $post->post_type );
 
-		if ( !$post_type->show_in_graphql ?? true ) {
+		$post_type = $post->post_type ?? null;
+
+		$post_type_object = get_post_type_object( $post->post_type ) ?? null;
+
+		if ( $post_type && !$post_type_object->show_in_graphql ?? true ) {
 			return plugin_dir_path( __FILE__ ) . 'includes/post-type-not-shown-in-graphql.php';
 		}
 
 		$is_preview  = is_preview();
 		$preview_url = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 
-		if ( $is_preview && $preview_url ) {
+		if ( $is_preview && $preview_url || ! $post ) {
 			return plugin_dir_path( __FILE__ ) . 'includes/preview-template.php';
 		} elseif ( $is_preview && ! $preview_url ) {
 			return plugin_dir_path( __FILE__ ) . 'includes/no-preview-url-set.php';
