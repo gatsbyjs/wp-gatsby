@@ -83,7 +83,6 @@ class Preview {
 	}
 
 	function registerPreviewStatusFieldsAndMutations() {
-
 		register_graphql_enum_type( 'WPGatsbyRemotePreviewStatusEnum', [
 			'description' => __( 'The different statuses a Gatsby Preview can be in for a single node.', 'wp-gatsby' ),
 			'values' => [
