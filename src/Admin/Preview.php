@@ -354,7 +354,7 @@ class Preview {
 						strtotime( $modified_response ) >= strtotime( $modified );
 					
 					if ( ! $preview_was_deployed ) {
-						// if preview was not nodeployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED
+						// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED
 						return [
 							'statusType' =>
 							'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED',
