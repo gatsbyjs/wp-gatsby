@@ -1,7 +1,8 @@
 # Change Log
-## Upcoming
+## 0.6.6
 
 - Fixed a timing issue between Previews and WPGatsby. WPGatsby now reads the page-data.json of the page being previewed in order to determine wether or not it's been deployed.
+- Added publish webhooks for Preview so that polling is not needed in Gatsby Preview on the source plugin side.
 
 ## 0.6.5
 
