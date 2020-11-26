@@ -1,4 +1,7 @@
 # Change Log
+## Upcoming
+
+- Fixed a timing issue between Previews and WPGatsby. WPGatsby now reads the page-data.json of the page being previewed in order to determine wether or not it's been deployed.
 
 ## 0.6.5
 
