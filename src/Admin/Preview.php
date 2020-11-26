@@ -431,7 +431,7 @@ class Preview {
 		$is_preview  = is_preview();
 		$preview_url = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 
-		if ( $is_preview && $preview_url || ! $post ) {
+		if ( $is_preview && $preview_url ) {
 			return plugin_dir_path( __FILE__ ) . 'includes/preview-template.php';
 		} elseif ( $is_preview && ! $preview_url ) {
 			return plugin_dir_path( __FILE__ ) . 'includes/no-preview-url-set.php';
