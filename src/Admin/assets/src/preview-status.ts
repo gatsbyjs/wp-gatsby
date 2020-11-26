@@ -24,6 +24,7 @@ const wpPreviewedNodeStatus = [
 	`PREVIEW_READY`,
 	`REMOTE_NODE_NOT_YET_UPDATED`,
 	`NO_PREVIEW_PATH_FOUND`,
+	`PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED`,
 ] as const
 
 type WpPreviewedNodeStatusUnion = typeof wpPreviewedNodeStatus[number]

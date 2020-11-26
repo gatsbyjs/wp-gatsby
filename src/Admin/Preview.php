@@ -101,7 +101,6 @@ class Preview {
 			]
 		] );
 
-
 		register_graphql_mutation( 'wpGatsbyRemotePreviewStatus', [
 			'inputFields'         => [
 				'pagePath' => [
@@ -234,6 +233,9 @@ class Preview {
 				],
 				'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' => [
 					'value' => 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL'
+				],
+				'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED' => [
+					'value' => 'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED'
 				]
 			]
 		] );
@@ -324,8 +326,46 @@ class Preview {
 					true
 				);
 				
-				$node_was_updated = 
+				$node_page_was_created = 
 				strtotime( $gatsby_node_modified ) >= strtotime( $modified );
+
+				$node_was_updated = false;
+
+				if ( $node_page_was_created && $found_preview_path_post_meta ) {
+					$gatbsy_preview_frontend_url =
+						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
+						
+					$modified_deployed_url = 
+						$gatbsy_preview_frontend_url .
+						"page-data/$found_preview_path_post_meta/page-data.json";
+						
+					// check if node page was deployed
+					$request = wp_remote_get( $modified_deployed_url );
+					$response = wp_remote_retrieve_body( $request );
+
+					$page_data = json_decode( $response );
+
+					$modified_response =
+						$page_data->result->pageContext->__wpGatsbyNodeModified
+						?? null;
+
+					$preview_was_deployed =
+						$modified_response &&
+						strtotime( $modified_response ) >= strtotime( $modified );
+					
+					if ( ! $preview_was_deployed ) {
+						// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED
+						return [
+							'statusType' =>
+							'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED',
+							'statusContext' => null,
+							'remoteStatus' => null
+						];
+					} else {
+						// if it is deployed, send back PREVIEW_READY below
+						$node_was_updated = true;
+					}
+				}
 				
 				$remote_status = get_post_meta(
 					$post_id,
@@ -379,9 +419,12 @@ class Preview {
 
 	public function setup_preview_template( $template ) {
 		global $post;
-		$post_type = get_post_type_object( $post->post_type );
 
-		if ( !$post_type->show_in_graphql ?? true ) {
+		$post_type = $post->post_type ?? null;
+
+		$post_type_object = get_post_type_object( $post->post_type ) ?? null;
+
+		if ( $post_type && !$post_type_object->show_in_graphql ?? true ) {
 			return plugin_dir_path( __FILE__ ) . 'includes/post-type-not-shown-in-graphql.php';
 		}
 
