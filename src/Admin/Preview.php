@@ -333,7 +333,6 @@ class Preview {
 				$node_was_updated = false;
 
 				if ( $node_page_was_created && $found_preview_path_post_meta ) {
-					error_log(print_r('node page was created', true)); 
 					$gatbsy_preview_frontend_url =
 						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 						
@@ -347,21 +346,16 @@ class Preview {
 
 					$page_data = json_decode( $response );
 
-					error_log(print_r($page_data, true)); 
-
 					$modified_response =
 						$page_data->result->pageContext->__wpGatsbyNodeModified
 						?? null;
-
-					error_log(print_r($modified_response, true)); 
 
 					$preview_was_deployed =
 						$modified_response &&
 						strtotime( $modified_response ) >= strtotime( $modified );
 					
 					if ( ! $preview_was_deployed ) {
-						error_log(print_r('preview was not deployed', true)); 
-						// if not, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED
+						// if preview was not nodeployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED
 						return [
 							'statusType' =>
 							'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED',
@@ -369,13 +363,9 @@ class Preview {
 							'remoteStatus' => null
 						];
 					} else {
-						error_log(print_r('preview was deployed', true)); 
-						// error_log(print_r([$modified, $modified_response], true)); 
-						// if it is, send back PREVIEW_READY below
+						// if it is deployed, send back PREVIEW_READY below
 						$node_was_updated = true;
 					}
-				} else {
-					error_log(print_r('node page was not created', true)); 
 				}
 				
 				$remote_status = get_post_meta(
