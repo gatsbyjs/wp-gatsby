@@ -4,6 +4,7 @@
 
 - Gatsby Preview process errors were not coming through for new post drafts. They do now :)
 - I was checking if the Gatsby webhook hit by WPGatsby returned any errors and displaying an error in the preview client if it did. It turns out this is problematic because the webhook can return errors in WPGatsby and yet Gatsby can still have successfully received it. So the logic is now more optimistic and tries to load the preview regardless of wether or not we received an error when posting to the webhook.
+
 ## 0.6.6
 
 - Fixed a timing issue between Previews and WPGatsby. WPGatsby now reads the page-data.json of the page being previewed in order to determine wether or not it's been deployed.
