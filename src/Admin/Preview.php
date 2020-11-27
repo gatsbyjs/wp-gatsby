@@ -377,6 +377,10 @@ class Preview {
 				$remote_status_type = $remote_status && $node_was_updated 
 					? $remote_status
 					: null;
+
+				if ( $remote_status === 'GATSBY_PREVIEW_PROCESS_ERROR' ) {
+					$remote_status_type = $remote_status;
+				}
 				
 				$status_type = 'PREVIEW_READY';
 
@@ -384,7 +388,7 @@ class Preview {
 					$status_type = 'REMOTE_NODE_NOT_YET_UPDATED';	
 				}
 
-				if ( !$found_preview_path_post_meta) {
+				if ( !$found_preview_path_post_meta ) {
 					$status_type = 'NO_PREVIEW_PATH_FOUND';
 				}
 
