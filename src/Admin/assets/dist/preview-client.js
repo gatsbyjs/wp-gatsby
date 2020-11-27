@@ -5016,10 +5016,10 @@
   a.classList.add("loaded"),setTimeout(function(){// we wait a sec to display none so the css animation fadeout can complete
   a.style.display="none";},100);},50);}function doubleCheckIfPreviewFrontendIsOnline(){return _doubleCheckIfPreviewFrontendIsOnline.apply(this,arguments)}function _doubleCheckIfPreviewFrontendIsOnline(){return _doubleCheckIfPreviewFrontendIsOnline=asyncToGenerator(/*#__PURE__*/regenerator.mark(function a(){var b;return regenerator.wrap(function(a){for(;;)switch(a.prev=a.next){case 0:return a.next=2,fetch(initialState.previewFrontendUrl);case 2:if(b=a.sent,!b.ok){a.next=9;break}if(initialState.previewWebhookIsOnline){a.next=7;break}return a.next=7,fetchPreviewStatusAndUpdateUI();case 7:a.next=10;break;case 9:throw Error("The Gatsby Preview instance can't be reached.");case 10:case"end":return a.stop();}},a)})),_doubleCheckIfPreviewFrontendIsOnline.apply(this,arguments)}
 
-  start().catch(function(a){console.error(a),"complete"===document.readyState?showError(a):document.addEventListener("DOMContentLoaded",function(){showError(a);});});function start(){return _start.apply(this,arguments)}function _start(){return _start=asyncToGenerator(/*#__PURE__*/regenerator.mark(function a(){return regenerator.wrap(function(a){for(;;)switch(a.prev=a.next){case 0:if(initialState.webhookWasCalled){a.next=2;break}throw Error("The Gatsby Preview webhook was not successfully called.");case 2:return a.next=4,Promise.all([// optimistically try to load the UI
+  start().catch(function(a){console.error(a),"complete"===document.readyState?showError(a):document.addEventListener("DOMContentLoaded",function(){showError(a);});});function start(){return _start.apply(this,arguments)}function _start(){return _start=asyncToGenerator(/*#__PURE__*/regenerator.mark(function a(){return regenerator.wrap(function(a){for(;;)switch(a.prev=a.next){case 0:return a.next=2,Promise.all([// optimistically try to load the UI
   initialState.previewWebhookIsOnline&&fetchPreviewStatusAndUpdateUI(),// Also check if the frontend has been online
   // since the last backend check
-  doubleCheckIfPreviewFrontendIsOnline()]);case 4:case"end":return a.stop();}},a)})),_start.apply(this,arguments)}
+  doubleCheckIfPreviewFrontendIsOnline()]);case 2:case"end":return a.stop();}},a)})),_start.apply(this,arguments)}
 
 }());
 //# sourceMappingURL=preview-client.js.map
