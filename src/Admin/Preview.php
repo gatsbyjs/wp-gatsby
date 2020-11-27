@@ -378,6 +378,9 @@ class Preview {
 					? $remote_status
 					: null;
 
+				/**
+				 * We need the above check for wether the node was updated so we don't show stale statuses on existing nodes, but in the case that it's a brand new draft, $node_was_updated will always be false because at this point we're potentially getting an error on a node that was never created. So GATSBY_PREVIEW_PROCESS_ERROR is a special case where we always need to show the status regardless of wether the node was updated.
+				 */
 				if ( $remote_status === 'GATSBY_PREVIEW_PROCESS_ERROR' ) {
 					$remote_status_type = $remote_status;
 				}
