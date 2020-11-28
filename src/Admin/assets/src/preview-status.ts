@@ -199,9 +199,6 @@ const requestPreviewFrontendIsOnline = async (): Promise<boolean> =>
 				method: "POST",
 				body: JSON.stringify({
 					query: previewFrontendIsOnlineQuery,
-					variables: {
-						postId: initialState.postId,
-					},
 				}),
 				headers: {
 					"Content-Type": "application/json",
