@@ -4,6 +4,14 @@ import type { InitialState } from "./start-preview-client"
 
 declare var initialState: InitialState
 
+const previewFrontendIsOnlineQuery: string = /* GraphQL */ `
+	query PREVIEW_FRONTEND_IS_ONLINE {
+		wpGatsby {
+			isPreviewFrontendOnline
+		}
+	}
+`
+
 const previewStatusQuery: string = /* GraphQL */ `
 	query PREVIEW_STATUS_QUERY($postId: Float!) {
 		wpGatsby {
@@ -184,17 +192,48 @@ function onIframeLoadedHideLoaderUI(): void {
 	}, 50)
 }
 
-export async function doubleCheckIfPreviewFrontendIsOnline() {
-	const fetchResponse = await fetch(initialState.previewFrontendUrl)
+const requestPreviewFrontendIsOnline = async (): Promise<boolean> =>
+	(
+		await (
+			await fetch(`/?${initialState.graphqlEndpoint}`, {
+				method: "POST",
+				body: JSON.stringify({
+					query: previewFrontendIsOnlineQuery,
+					variables: {
+						postId: initialState.postId,
+					},
+				}),
+				headers: {
+					"Content-Type": "application/json",
+				},
+			})
+		).json()
+	)?.data?.wpGatsby?.isPreviewFrontendOnline
 
-	if (fetchResponse.ok) {
-		// if the response came back ok and we haven't already started loading the UI
-		if (!initialState.previewWebhookIsOnline) {
-			// start loading it because the frontend actually is online
-			await fetchPreviewStatusAndUpdateUI()
-		}
+let frontendOnlineCheckCount = 0
+
+/**
+ * If our backend webhook preview POST came back with an error, we can't be sure our frontend is online.
+ * So this function checks just that and then after 10 seconds of it not being online it will show an error
+ * If it's online it will start the preview status watcher and update the UI
+ */
+export async function doubleCheckIfPreviewFrontendIsOnline(): Promise<void> {
+	const previewFrontendIsOnline: boolean = await requestPreviewFrontendIsOnline()
+
+	if (previewFrontendIsOnline) {
+		// if the response came back ok start loading the frontend
+		//  because the frontend actually is online
+		await fetchPreviewStatusAndUpdateUI()
+	} else if (frontendOnlineCheckCount < 10) {
+		console.log(`frontend not online.. rechecking`)
+
+		frontendOnlineCheckCount++
+
+		await new Promise((resolve) => setTimeout(resolve, 1000))
+
+		await doubleCheckIfPreviewFrontendIsOnline()
 	} else {
 		// otherwise throwing this will display the error UI
-		throw Error(`The Gatsby Preview instance can't be reached.`)
+		throw Error(`The Gatsby Preview frontend is not responding to requests.`)
 	}
 }
