@@ -223,7 +223,8 @@ class ActionMonitor {
 	/**
 	 * Insert new action
 	 *
-	 * $args = [$action_type, $title, $status, $node_id, $relay_id, $graphql_single_name, $graphql_plural_name]
+	 * $args = [$action_type, $title, $status, $node_id, $relay_id, $graphql_single_name,
+	 * $graphql_plural_name]
 	 *
 	 * @param array $args Array of arguments to configure the action to be inserted
 	 */
@@ -341,7 +342,7 @@ class ActionMonitor {
 				'ID'          => $action_monitor_post_id,
 				'post_status' => 'publish'
 			] );
-			
+
 		}
 
 		// we've saved at least 1 action, so we should update
@@ -392,7 +393,10 @@ class ActionMonitor {
 
 		$theme_slug = get_option( 'stylesheet' );
 
-		add_filter( "update_option_theme_mods_${theme_slug}", [ $this, 'deleteMenusWithNoLocation' ], 10, 2 );
+		add_filter( "update_option_theme_mods_${theme_slug}", [
+			$this,
+			'deleteMenusWithNoLocation'
+		], 10, 2 );
 
 		// User actions
 		add_action( 'save_post', [ $this, 'updateUserIsPublic' ], 10, 2 );
@@ -419,13 +423,13 @@ class ActionMonitor {
 
 		$this->insertNewAction(
 			[
-				'action_type' => 'NON_NODE_ROOT_FIELDS',
-				'title' => 'Saved Option: ' . $option_name,
-				'node_id' => $id,
-				'relay_id' => $id,
+				'action_type'         => 'NON_NODE_ROOT_FIELDS',
+				'title'               => 'Saved Option: ' . $option_name,
+				'node_id'             => $id,
+				'relay_id'            => $id,
 				'graphql_single_name' => false,
 				'graphql_plural_name' => false,
-				'status' => false
+				'status'              => false
 			]
 		);
 	}
@@ -610,7 +614,7 @@ class ActionMonitor {
 		];
 
 		return $term_info;
-  }
+	}
 
   function isTermPrivate( $taxonomy_object ) {
     // if the terms tax is not public, don't monitor it
@@ -626,70 +630,70 @@ class ActionMonitor {
     return apply_filters( 'gatsby_track_taxonomy', $taxonomy_object, false );
   }
 
-  function getTermParent( $term_info ) {
-    $taxonomy_object = $term_info['taxonomy_object'] ?? null;
+	function getTermParent( $term_info ) {
+		$taxonomy_object = $term_info['taxonomy_object'] ?? null;
 
-    // if the tax isn't hierarchical we can duck out here
-    if ( ! $taxonomy_object->hierarchical ?? null ) {
-      return false;
-    }
+		// if the tax isn't hierarchical we can duck out here
+		if ( ! $taxonomy_object->hierarchical ?? null ) {
+			return false;
+		}
 
-    $term_parent_id = $term_info['term']->parent ?? null;
+		$term_parent_id = $term_info['term']->parent ?? null;
 
-    return $term_parent_id;
-  }
+		return $term_parent_id;
+	}
 
-  function getTermChildren( $term_info ) {
-    $taxonomy_object = $term_info['taxonomy_object'] ?? null;
+	function getTermChildren( $term_info ) {
+		$taxonomy_object = $term_info['taxonomy_object'] ?? null;
 
-    // if the tax isn't hierarchical we can duck out here
-    if ( ! $taxonomy_object->hierarchical ?? null ) {
-      return false;
-    }
+		// if the tax isn't hierarchical we can duck out here
+		if ( ! $taxonomy_object->hierarchical ?? null ) {
+			return false;
+		}
 
-    $term = $term_info['term'] ?? null;
-    $term_id = $term->term_id ?? null;
+		$term    = $term_info['term'] ?? null;
+		$term_id = $term->term_id ?? null;
 
-    if ( ! $term_id ) {
-      return null;
-    }
+		if ( ! $term_id ) {
+			return null;
+		}
 
-    $term_children = get_terms( [
-      'parent' => $term_id,
-      'taxonomy' => $taxonomy_object->name ?? null,
-      'hide_empty' => false
-    ] );
+		$term_children = get_terms( [
+			'parent'     => $term_id,
+			'taxonomy'   => $taxonomy_object->name ?? null,
+			'hide_empty' => false
+		] );
 
-    return $term_children;
-  }
+		return $term_children;
+	}
 
-  function saveChildTerms( $term_info, $taxonomy, $action_type ) {
-    $child_terms = $this->getTermChildren( $term_info );
+	function saveChildTerms( $term_info, $taxonomy, $action_type ) {
+		$child_terms = $this->getTermChildren( $term_info );
 
-    if ( $child_terms && count( $child_terms ) ) {
-      foreach ( $child_terms as $term ) {
-        if ( $term->term_id ?? null ) {
-          $this->saveTerm( $term->term_id, $taxonomy, $action_type, 'DOWN' );
-        }
-      }
-    }
-  }
+		if ( $child_terms && count( $child_terms ) ) {
+			foreach ( $child_terms as $term ) {
+				if ( $term->term_id ?? null ) {
+					$this->saveTerm( $term->term_id, $taxonomy, $action_type, 'DOWN' );
+				}
+			}
+		}
+	}
 
-  function saveTermRelatives( $term_info, $taxonomy, $action_type, $recursing ) {
-    if ( $recursing ) {
-      return;
-    }
+	function saveTermRelatives( $term_info, $taxonomy, $action_type, $recursing ) {
+		if ( $recursing ) {
+			return;
+		}
 
-    $term_parent_id = $this->getTermParent( $term_info );
+		$term_parent_id = $this->getTermParent( $term_info );
 
-    if ( $term_parent_id ) {
-      // re-save the parent to make sure the cache is in sync
-      $this->saveTerm( $term_parent_id, $taxonomy, $action_type, 'UP' );
-    }
+		if ( $term_parent_id ) {
+			// re-save the parent to make sure the cache is in sync
+			$this->saveTerm( $term_parent_id, $taxonomy, $action_type, 'UP' );
+		}
 
-    // re-save direct children so they have this term as their parent
-    $this->saveChildTerms( $term_info, $taxonomy, $action_type );
-  }
+		// re-save direct children so they have this term as their parent
+		$this->saveChildTerms( $term_info, $taxonomy, $action_type );
+	}
 
 	function deleteTerm(
 		$term_id,
@@ -698,12 +702,12 @@ class ActionMonitor {
 		$deleted_term,
 		$object_ids
 	) {
-    $term_info = $this->getTermInfo( $term_id, $taxonomy, $deleted_term );
-    $taxonomy_object = $term_info['taxonomy_object'] ?? null;
+		$term_info       = $this->getTermInfo( $term_id, $taxonomy, $deleted_term );
+		$taxonomy_object = $term_info['taxonomy_object'] ?? null;
 
-    if ( $this->isTermPrivate( $taxonomy_object ) ) {
-      return;
-    }
+		if ( $this->isTermPrivate( $taxonomy_object ) ) {
+			return;
+		}
 
 		$this->insertNewAction( [
 			'action_type'         => 'DELETE',
@@ -713,16 +717,16 @@ class ActionMonitor {
 			'relay_id'            => $term_info['global_relay_id'],
 			'graphql_single_name' => $term_info['graphql_single_name'],
 			'graphql_plural_name' => $term_info['graphql_plural_name'],
-    ] );
+		] );
 
-    $this->saveTermRelatives( $term_info, $taxonomy, 'UPDATE', null );
-  }
+		$this->saveTermRelatives( $term_info, $taxonomy, 'UPDATE', null );
+	}
 
 	function saveTerm( $term_id, $taxonomy, $action_type, $recursing = null ) {
-		$term_info = $this->getTermInfo( $term_id, $taxonomy );
+		$term_info       = $this->getTermInfo( $term_id, $taxonomy );
 		$taxonomy_object = $term_info['taxonomy_object'] ?? null;
 
-		if ( $this->isTermPrivate( $taxonomy_object) ) {
+		if ( $this->isTermPrivate( $taxonomy_object ) ) {
 			return;
 		}
 
@@ -823,7 +827,7 @@ class ActionMonitor {
 
 		// if no menu locations are assigned to this menu,
 		// bail early because it's a private menu
-		if ( !in_array( $menu_id, $menu_locations ) ) {
+		if ( ! in_array( $menu_id, $menu_locations ) ) {
 			return $menu_id;
 		}
 
@@ -864,7 +868,7 @@ class ActionMonitor {
 				$new_locations
 			);
 
-			foreach( $menu_ids_removed_from_locations as $location => $menu_id ) {
+			foreach ( $menu_ids_removed_from_locations as $location => $menu_id ) {
 				$this->deleteMenu( $menu_id );
 			}
 		}
@@ -880,8 +884,8 @@ class ActionMonitor {
 		}
 
 		$last_status_wasnt_publish
-			= ($this->post_object_before_update->post_status ?? null)
-				!== 'publish';
+			= ( $this->post_object_before_update->post_status ?? null )
+			  !== 'publish';
 
 		if (
 			$last_status_wasnt_publish &&
@@ -900,7 +904,7 @@ class ActionMonitor {
 
 		// if we've recorded this post being updated already
 		// no need to do it twice
-		if ( !$in_pre_save_post && in_array( $post->ID, $this->updated_post_ids ) ) {
+		if ( ! $in_pre_save_post && in_array( $post->ID, $this->updated_post_ids ) ) {
 			return false;
 		}
 
