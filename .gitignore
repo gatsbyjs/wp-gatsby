@@ -19,8 +19,10 @@ vendor/*
 !vendor/autoload.php
 !vendor/composer
 !vendor/firebase
+!vendor/ircmaxell
 vendor/composer/installed.json
 vendor/composer/*/
+!vendor/composer/semver/*
 !tests
 tests/*.suite.yml
 build/

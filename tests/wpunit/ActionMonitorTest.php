@@ -272,13 +272,13 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$actual = $this->graphql( compact( 'query' ) );
 
 		/**
-		 * There should be 1 action for deleting the page
+		 * There should be 1 action for deleting the post
 		 */
 		$this->assertSame( 1, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
 		codecept_debug( $actual );
 
-		// Assert the action monitor has the actions for the page being created
+		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
 				'actionType' => 'DELETE',
@@ -315,11 +315,11 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$actual = $this->graphql( compact( 'query' ) );
 
 		/**
-		 * There should be 3 actions
+		 * There should be 2 actions
 		 * - 1 for the created post
 		 * - 1 for the updated author
 		 */
-		$this->assertSame( 3, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+		$this->assertSame( 2, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
 		codecept_debug( $actual );
 
@@ -341,7 +341,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testPublishScheduledPostCreatesActionMonitorAction() {
 
-		// same as above test
+		// same as above test ^
 		$test_written = false;
 		$this->assertTrue( $test_written );
 
@@ -354,6 +354,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$this->assertTrue( $test_written );
 
 	}
+
+
 
 	public function testDeletePostMetaOfUnublishedPostDoesNotCreatesActionMonitorAction() {
 
@@ -440,15 +442,38 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	}
 
+	// @todo
+	public function testNewPostTypesDetectedWithGraphqlSupportCreateActionMonitorAction() {
+    	// we should store the post types that are registered
+		// and on init we should diff it and see if the
+		// new post types have been registered and
+		// create an action for that
+	}
+
+	// @todo
+	public function testPostTypeRemovedFromGraphQLCreateActionMonitorAction() {
+		// we should store the post types that are registered
+		// and on init we should diff it and see if the
+		// new post types have been registered and
+		// create an action for that
+	}
+
+	// @todo
+	public function testPostTypeWithGraphQLSupportIsUpdatedCreateActionMonitorAction() {
+		// when a post type registry is changed in some critical way
+		// create an update action
+	}
+
+
 	// @todo: review the ones below this with Tyler
-	public function testCreateCustomPostTypeCreatesActionMonitorAction() {
+	public function testCreatePostOfACustomPostTypeCreatesActionMonitorAction() {
 
     	// register a post type
     	register_post_type( 'wp_gatsby_test', [
     		'public' => true,
 		    'show_in_graphql' => true,
-		    'graphql_single_name' => 'WPGatsbyTest',
-		    'graphql_plural_name' => 'WPGatsbyTests',
+		    'graphql_single_name' => 'wpGatsbyTest',
+		    'graphql_plural_name' => 'wpGatsbyTests',
 	    ] );
 
 		// Create a post
@@ -473,31 +498,25 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Creating a post assigned to an author should trigger 3 actions:
 		// - 1 for the post
 		// - 1 for the author
-		// - 1 for the term
-		$this->assertSame( 3, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+		$this->assertSame( 2, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
 		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
 				'actionType' => 'CREATE',
 				'referencedNodeID' => (string) $post_id,
-				'referencedNodeSingularName' => 'post',
+				'referencedNodeSingularName' => 'wpGatsbyTest',
 			] ),
 			$this->expectedNode( 'actionMonitorActions.nodes', [
 				'actionType' => 'UPDATE',
 				'referencedNodeID' => (string) $this->admin,
-				'referencedNodeSingularName' => 'user'
-			] ),
-			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $this->tag,
-				'referencedNodeSingularName' => 'term'
+				'referencedNodeSingularName' => 'user',
 			] ),
 		] );
 
 	}
 
-	public function testCreateCustomPostTypeNotInGraphQLDoesNotCreateActionMonitorAction() {
+	public function testCreatePostOfCustomPostTypeNotInGraphQLDoesNotCreateActionMonitorAction() {
 
 		// register a post type to NOT show in GraphQL
 		register_post_type( 'wp_gatsby_no', [
@@ -506,7 +525,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		] );
 
 		// Create a post
-		$post_id = $this->factory()->post->create([
+		$this->factory()->post->create([
 			'post_type' => 'wp_gatsby_no',
 			'post_status' => 'publish',
 			'post_title' => 'Title',
@@ -542,16 +561,16 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 		$this->assertIsValidQueryResponse( $actual );
 
-		// Creating a post assigned to an author should trigger 1 actions:
+		// Creating a category trigger 1 actions:
 		// - 1 for the category being created
 		$this->assertSame( 1, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
 		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
+				'actionType' => 'CREATE',
 				'referencedNodeID' => (string) $category_id,
-				'referencedNodeSingularName' => 'term'
+				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
 
@@ -581,8 +600,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 		$this->assertIsValidQueryResponse( $actual );
 
-		// Creating a post assigned to an author should trigger 1 actions:
-		// - 1 for the category being updated
+		// Updating a category should trigger 1 action
 		$this->assertSame( 1, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
 		// Assert the action monitor has the actions for the post being created
@@ -590,15 +608,12 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 			$this->expectedNode( 'actionMonitorActions.nodes', [
 				'actionType' => 'UPDATE',
 				'referencedNodeID' => (string) $category_id,
-				'referencedNodeSingularName' => 'term'
+				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
 
 	}
 
-	/**
-	 * @todo: Should this _also_ create an action for each post associated with the term? As each page showing the category will need to be rebuilt
-	 */
 	public function testDeleteCategoryCreatesActionMonitorAction() {
 
 		// Create a post
@@ -630,7 +645,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 			$this->expectedNode( 'actionMonitorActions.nodes', [
 				'actionType' => 'DELETE',
 				'referencedNodeID' => (string) $category_id,
-				'referencedNodeSingularName' => 'term'
+				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
 
@@ -667,7 +682,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 			$this->expectedNode( 'actionMonitorActions.nodes', [
 				'actionType' => 'UPDATE',
 				'referencedNodeID' => (string) $category_id,
-				'referencedNodeSingularName' => 'term'
+				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
 
@@ -706,7 +721,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 			$this->expectedNode( 'actionMonitorActions.nodes', [
 				'actionType' => 'UPDATE',
 				'referencedNodeID' => (string) $category_id,
-				'referencedNodeSingularName' => 'term'
+				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
 
@@ -796,6 +811,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 				'referencedNodeID' => (string) $user_id,
 				'referencedNodeSingularName' => 'user'
 			] ),
+			// @todo: BULK_UPDATE ACTION FOR POSTS THAT THE USER WAS THE AUTHOR OF
 		] );
 
 	}
@@ -941,6 +957,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testCreateHierarchicalTermWithParentCreatesActionMonitorAction() {
 
+    	// @todo
 		// If a hierarchical term is created with a parent term,
 		// We need a CREATE action for the term and an UPDATE action for the parent
 
@@ -948,6 +965,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testUpdateHierarchicalTermWithParentAndChildCreatesActionMonitorAction() {
 
+		// @todo
 		// If a hierarchical term is update with a parent term and child
 		// We need a UPDATE action for the term
 
@@ -955,6 +973,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testDeleteHierarchicalTermThatHasParentAndChildrenCreatesActionMonitorAction() {
 
+		// @todo
 		// If a hierarchical term is update with a parent term and child
 		// We need a DELETE action for the term being deleted, UPDATE action for the parent, UPDATE action for each child
 

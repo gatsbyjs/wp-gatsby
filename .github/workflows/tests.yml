@@ -5,12 +5,12 @@ on:
     - cron:  '0 4 * * 5'
   push:
     branches:
-      - tests
       - develop
       - master
   pull_request:
     branches:
       - develop
+      - master
     paths:
       - '**.php'
       - '!docs/**'

@@ -160,9 +160,14 @@ setup_plugin() {
 	# Add this repo as a plugin to the repo
 	if [ ! -d $WP_CORE_DIR/wp-content/plugins/wp-gatsby ]; then
 		ln -s $PLUGIN_DIR $WP_CORE_DIR/wp-content/plugins/wp-gatsby
+		cd $WP_CORE_DIR/wp-content/plugins
+		pwd
+		ls
 	fi
 
 	cd $WP_CORE_DIR
+
+    wp plugin list
 
 	# activate the plugin
 	wp plugin activate wp-gatsby
