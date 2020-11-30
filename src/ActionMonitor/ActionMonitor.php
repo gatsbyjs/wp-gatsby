@@ -244,20 +244,6 @@ class ActionMonitor {
 
 		$time = time();
 
-		$tax_input = [];
-
-		if ( isset( $args['action_type'] ) ) {
-			$tax_input['gatsby_action_type'] = sanitize_text_field( $args['action_type'] );
-		}
-
-		if ( isset( $args['relay_id'] ) ) {
-			$tax_input['gatsby_action_ref_node_id'] = sanitize_text_field( $args['relay_id'] );
-		}
-
-		if ( isset( $args['node_id'] ) ) {
-			$tax_input['gatsby_action_ref_node_dbid'] = sanitize_text_field( $args['node_id'] );
-		}
-
 		$node_type = 'unknown';
 		if ( isset( $args['graphql_single_name'] ) ) {
 			$node_type = $args['graphql_single_name'];
@@ -267,8 +253,6 @@ class ActionMonitor {
 				$node_type = $id_parts['type'];
 			}
 		}
-
-		$tax_input['gatsby_action_ref_node_type'] = sanitize_text_field( $node_type );
 
 		// Check to see if an action already exists for this node type/database id
 		$existing = new \WP_Query( [
@@ -302,9 +286,6 @@ class ActionMonitor {
 				'post_content' => wp_json_encode( $args )
 			] );
 
-			$term = get_term_by( 'name', $args['action_type'], 'gatsby_action_type' );
-			wp_set_object_terms( $action_monitor_post_id, $term->term_id, 'gatsby_action_type' );
-
 		} else {
 
 			$action_monitor_post_id = \wp_insert_post(
@@ -314,10 +295,15 @@ class ActionMonitor {
 					'post_status' => 'private',
 					'author'      => - 1,
 					'post_name'   => sanitize_title( "{$args['title']}-{$time}" ),
-					'tax_input'   => $tax_input,
 					'post_content' => wp_json_encode( $args ),
 				]
 			);
+
+			wp_set_object_terms( $action_monitor_post_id, $args['action_type'], 'gatsby_action_type' );
+			wp_set_object_terms( $action_monitor_post_id, sanitize_text_field( $args['relay_id'] ), 'gatsby_action_ref_node_id' );
+			wp_set_object_terms( $action_monitor_post_id, sanitize_text_field( $args['node_id'] ), 'gatsby_action_ref_node_dbid' );
+			wp_set_object_terms( $action_monitor_post_id, sanitize_text_field( $node_type ), 'gatsby_action_ref_node_type' );
+
 		}
 
 
@@ -1063,10 +1049,17 @@ class ActionMonitor {
 							'WPGatsby'
 						),
 						'resolve'     => function( $post ) {
-							$action_type
-								= get_post_meta( $post->ID, 'action_type', true );
 
-							return $action_type ?? null;
+							$terms = get_the_terms( $post->databaseId, 'gatsby_action_type' );
+
+							if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+								$action_type = $terms[0]->name;
+							} else {
+								$action_type
+									= get_post_meta( $post->ID, 'action_type', true );
+							}
+
+							return $action_type ? $action_type : null;
 						}
 					]
 				);
@@ -1100,11 +1093,17 @@ class ActionMonitor {
 							'WPGatsby'
 						),
 						'resolve'     => function( $post ) {
-							$referenced_node_id = get_post_meta(
-								$post->ID,
-								'referenced_node_id',
-								true
-							);
+
+							$terms = get_the_terms( $post->databaseId, 'gatsby_action_ref_node_dbid' );
+							if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+								$referenced_node_id = $terms[0]->name;
+							} else {
+								$referenced_node_id = get_post_meta(
+									$post->ID,
+									'referenced_node_id',
+									true
+								);
+							}
 
 							return $referenced_node_id ?? null;
 						}
@@ -1120,11 +1119,18 @@ class ActionMonitor {
 							'WPGatsby'
 						),
 						'resolve'     => function( $post ) {
-							$referenced_node_relay_id = get_post_meta(
-								$post->ID,
-								'referenced_node_relay_id',
-								true
-							);
+
+							$terms = get_the_terms( $post->databaseId, 'gatsby_action_ref_node_id' );
+							if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+								$referenced_node_relay_id = $terms[0]->name;
+							} else {
+
+								$referenced_node_relay_id = get_post_meta(
+									$post->ID,
+									'referenced_node_relay_id',
+									true
+								);
+							}
 
 							return $referenced_node_relay_id ?? null;
 						}
