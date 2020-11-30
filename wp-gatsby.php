@@ -230,3 +230,82 @@ if ( ! function_exists( 'gatsby_init' ) ) {
 add_action( 'plugins_loaded', function() {
 	gatsby_init();
 } );
+
+add_action( 'init', function() {
+
+	if ( isset( $_GET['generate'] ) ) {
+
+		for ( $x = 0; $x <= 250; $x ++ ) {
+			$post_id = wp_insert_post( [
+				'post_type'    => 'action_monitor',
+				'post_status'  => 'private',
+				'author'       => - 1,
+				'post_content' => 'test...',
+				'post_title'   => 'test...',
+				'tax_input'    => [
+					'gatsby_action_ref_node_dbid' => $x,
+					'gatsby_action_ref_node_type' => 'post',
+				],
+			] );
+
+			update_post_meta( $post_id, 'referenced_node_post_modified', 'time: ' . $x );
+			update_post_meta( $post_id, 'referenced_node_id', $x );
+
+		}
+	} else if ( isset( $_GET['test_query'] ) ) {
+
+		$start_time = microtime( true );
+
+		if ( isset( $_GET['meta'] ) ) {
+
+			$duplicate_actions = new \WP_Query( [
+					'post_type'   => 'action_monitor',
+					'post_status' => 'any',
+					'meta_query'  => [
+						'relation' => 'AND',
+						[
+							'key'   => 'referenced_node_post_modified',
+							'value' => 'time: 88'
+						],
+						[
+							'key'   => 'referenced_node_id',
+							'value' => 88
+						],
+					],
+				]
+			);
+
+		} else {
+
+			$duplicate_actions = new \WP_Query( [
+				'post_type'      => 'action_monitor',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+				'tax_query'      => [
+					'relation' => 'AND',
+					[
+						'taxonomy' => 'gatsby_action_ref_node_dbid',
+						'field'    => 'name',
+						'terms'    => 88,
+					],
+					[
+						'taxonomy' => 'gatsby_action_ref_node_type',
+						'field'    => 'name',
+						'terms'    => 'post',
+					],
+				],
+			] );
+		}
+
+		$end_time   = microtime( true );
+		$total_time = $end_time - $start_time;
+
+		wp_send_json( [
+			'total_time' => $total_time,
+			'query'      => $duplicate_actions,
+		] );
+	}
+
+}, 9999 );
