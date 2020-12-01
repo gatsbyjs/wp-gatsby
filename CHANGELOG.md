@@ -1,5 +1,10 @@
 # Change Log
 
+## Upcoming
+
+- The preview-template.php check for wether or not the preview frontend is online could occasionally come back with a false negative. It is now more resilient and will recheck for 10 seconds before showing an error.
+- The above check used to throw harmless CORS errors in the console, this check is now done server-side so that CORS isn't an issue.
+
 ## 0.6.7
 
 - Gatsby Preview process errors were not coming through for new post drafts. They do now :)
