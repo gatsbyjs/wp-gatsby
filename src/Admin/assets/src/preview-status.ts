@@ -211,7 +211,7 @@ let frontendOnlineCheckCount = 0
 
 /**
  * If our backend webhook preview POST came back with an error, we can't be sure our frontend is online.
- * So this function checks just that and then after 10 seconds of it not being online it will show an error
+ * So this function checks just that and then after 10 seconds (+ request time) of it not being online it will show an error
  * If it's online it will start the preview status watcher and update the UI
  */
 export async function doubleCheckIfPreviewFrontendIsOnline(): Promise<void> {
