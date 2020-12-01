@@ -40,8 +40,16 @@ class ActionMonitor {
 	 */
 	public $post_object_before_update = null;
 
+	/**
+	 * Stores a list of post type names that the Gatsby Action Monitor should track
+	 * @var array
+	 */
 	protected $tracked_post_types = [];
 
+	/**
+	 * Stores a list of taxonomy names that the Gatsby Action Monitor should track
+	 * @var array
+	 */
 	protected $tracked_taxonomies = [];
 
 	/**
@@ -481,27 +489,30 @@ class ActionMonitor {
 			// get all their posts that are
 			// available in wpgraphql and update each of them
 
-			foreach ( $this->tracked_post_types as $post_type ) {
-				$query = new \WP_Query( [
-					'post_type'      => $post_type,
-					'author'         => $user_id,
-					'no_found_rows'  => true,
-					'posts_per_page' => -1
-					// @todo this is a big no-no. Could break a large site.
-					// In Gatsby we should store potential 2 way connections and if there is a 2 way
-					// connection and a post is updated, check its child nodes for 2 way connections.
-					// For any 2 way connections check if this node is a child of that node.
-					// If it's not then refetch that node as well.
-				] );
+			if ( ! empty( $this->tracked_post_types ) ) {
 
-				if ( $query->have_posts() ) {
-					while ( $query->have_posts() ) {
-						$query->the_post();
-						$post = get_post();
-						$this->save_post( $post->ID, $post );
+				foreach ( $this->tracked_post_types as $post_type ) {
+					$query = new \WP_Query( [
+						'post_type'      => $post_type,
+						'author'         => $user_id,
+						'no_found_rows'  => true,
+						'posts_per_page' => - 1
+						// @todo this is a big no-no. Could break a large site.
+						// In Gatsby we should store potential 2 way connections and if there is a 2 way
+						// connection and a post is updated, check its child nodes for 2 way connections.
+						// For any 2 way connections check if this node is a child of that node.
+						// If it's not then refetch that node as well.
+					] );
+
+					if ( $query->have_posts() ) {
+						while ( $query->have_posts() ) {
+							$query->the_post();
+							$post = get_post();
+							$this->save_post( $post->ID, $post );
+						}
+
+						wp_reset_postdata();
 					}
-
-					wp_reset_postdata();
 				}
 			}
 
@@ -543,17 +554,20 @@ class ActionMonitor {
 
 		$user_is_public = false;
 
-		foreach ( $this->tracked_post_types as $post_type ) {
-			// action monitor doesn't count
-			if ( $post_type === 'action_monitor' ) {
-				continue;
-			}
+		if ( ! empty( $this->tracked_post_types ) ) {
 
-			$post_type_post_count = count_user_posts( $user_id, $post_type, true );
-			if ( $post_type_post_count > 0 ) {
-				// this user has public posts so they are public too
-				$user_is_public = true;
-				break;
+			foreach ( $this->tracked_post_types as $post_type ) {
+				// action monitor doesn't count
+				if ( $post_type === 'action_monitor' ) {
+					continue;
+				}
+
+				$post_type_post_count = count_user_posts( $user_id, $post_type, true );
+				if ( $post_type_post_count > 0 ) {
+					// this user has public posts so they are public too
+					$user_is_public = true;
+					break;
+				}
 			}
 		}
 
