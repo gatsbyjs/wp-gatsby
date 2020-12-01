@@ -461,12 +461,12 @@ class Preview {
 		}
 
 		$is_preview  = is_preview();
-		$preview_url = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
+		$preview_url = self::get_gatsby_preview_instance_url();
 
 		if ( $is_preview && $preview_url ) {
-			return plugin_dir_path( __FILE__ ) . 'includes/preview-template.php';
+			return trailingslashit( dirname( __FILE__ ) ) . 'includes/preview-template.php';
 		} elseif ( $is_preview && ! $preview_url ) {
-			return plugin_dir_path( __FILE__ ) . 'includes/no-preview-url-set.php';
+			return trailingslashit( dirname( __FILE__ ) ) . 'includes/no-preview-url-set.php';
 		}
 
 		return $template;
@@ -553,7 +553,10 @@ class Preview {
 		}
 
 		$is_new_post_draft =
-			$post->post_status === 'draft' &&
+			(
+				$post->post_status === 'auto-draft'
+				|| $post->post_status === 'draft'
+			) &&
 			$post->post_date_gmt === '0000-00-00 00:00:00';
 
 		$is_revision = $post->post_type === 'revision';
