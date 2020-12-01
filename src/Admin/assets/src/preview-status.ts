@@ -163,13 +163,20 @@ function onPreviewReadyUpdateUI(response: PreviewStatusResponseJson): void {
 	// so we can remove the loader
 	previewIframe.addEventListener("load", onIframeLoadedHideLoaderUI)
 
+	console.log(`Loading Gatsby Preview in an iframe...`)
 	// point the iframe at the frontend preview url for this preview
 	previewIframe.src =
 		initialState.previewFrontendUrl + gatsbyPreviewStatus.pageNode.path
+
+	const event = new Event("wp-gatsby-preview-ready")
+	document.dispatchEvent(event)
 }
 
 function onIframeLoadedHideLoaderUI(): void {
 	const loader: HTMLElement = document.getElementById("loader")
+	console.log(`Loaded Gatsby Preview!`)
+
+	console.log(loader)
 
 	// this delay prevents a flash between
 	// the iframe painting and the loader dissapearing
