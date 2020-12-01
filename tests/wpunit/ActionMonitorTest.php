@@ -21,18 +21,22 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	public function tearDown(): void {
 		$this->delete_posts();
 
-		WPGraphQL::clear_schema();
-
 		// Then...
 		parent::tearDown();
 	}
 
 	public function clear_action_monitor() {
 		global $wpdb;
-		$wpdb->query( $wpdb->prepare(
-			"DELETE FROM {$wpdb->prefix}posts WHERE post_type = 'action_monitor'",
-			array( 1 )
-		) );
+		$sql = wp_strip_all_tags(
+			'DELETE posts, pm, pt
+			FROM ' . $wpdb->prefix . 'posts AS posts
+			LEFT JOIN ' . $wpdb->prefix . 'term_relationships AS pt ON pt.object_id = posts.ID
+			LEFT JOIN ' . $wpdb->prefix . 'postmeta AS pm ON pm.post_id = posts.ID
+			WHERE posts.post_type = \'%1$s\'', true
+		);
+
+		$query = $wpdb->prepare( $sql, 'action_monitor' );
+		$wpdb->query( $query );
 
 		add_filter( 'wpgatsby_action_monitor_get_updated_post_ids', function() {
 			return [];
@@ -293,12 +297,14 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testPublishPostFromDraftCreatesActionMonitorAction() {
 
-		$post_id = $this->factory()->post->create( [
+		$post_data = [
 			'post_status' => 'draft',
 			'post_type'   => 'post',
 			'post_author' => $this->admin,
 			'tags_input'  => [ $this->tag ],
-		] );
+		];
+
+		$post_id = $this->factory()->post->create( $post_data );
 
 		$this->clear_action_monitor();
 
@@ -307,28 +313,68 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
-		// Publish the post
-		wp_publish_post( $post_id );
+		do_action( 'pre_post_update', $post_id, $post_data );
 
-		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		// Publish the post
+		wp_update_post( [ 'ID' => $post_id, 'post_status' => 'publish' ] );
 
 		// Execute the query
-		$actual = $this->graphql( compact( 'query' ) );
+		$actions = $this->graphql( compact( 'query' ) );
 
 		/**
 		 * There should be 2 actions
 		 * - 1 for the created post
 		 * - 1 for the updated author
 		 */
-		$this->assertSame( 2, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+		$this->assertSame( 2, count( $actions['data']['actionMonitorActions']['nodes'] ) );
 
-		codecept_debug( $actual );
+		codecept_debug( $actions );
 
 		// Assert the action monitor has the actions for the page being created
-		$this->assertQuerySuccessful( $actual, [
+		$this->assertQuerySuccessful( $actions, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
 				'actionType'                 => 'CREATE',
+				'referencedNodeID'           => (string) $post_id,
+				'referencedNodeSingularName' => 'post'
+			] ),
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
+				'referencedNodeSingularName' => 'user'
+			] ),
+		] );
+
+	}
+
+	public function testChangePostToDraftCreatesActionMonitorAction() {
+
+		$post_id = $this->factory()->post->create([
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'post_title' => 'test',
+			'post_author' => $this->admin,
+		]);
+
+		$this->clear_action_monitor();
+
+		// Query for action monitor actions
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		// Changing a published post to draft (or any non-published status) should
+		// trigger a delete action for the post
+		wp_update_post([
+			'ID' => $post_id,
+			'post_status' => 'draft',
+		]);
+
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+
+		$this->assertQuerySuccessful( $actual, [
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'DELETE',
 				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'post'
 			] ),
@@ -351,7 +397,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testUpdatePostMetaOfUnublishedPostDoesNotCreatesActionMonitorAction() {
 
-		// Make sure action is not created when meta is udpated on unpublished post
+		// Make sure action is not created when meta is updated on unpublished post
 		$test_written = false;
 		$this->assertTrue( $test_written );
 
