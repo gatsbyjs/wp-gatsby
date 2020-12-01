@@ -1284,13 +1284,23 @@ class ActionMonitor {
 	 * Triggers the dispatch to the remote endpoint(s)
 	 */
 	public function trigger_dispatch() {
-		$webhook_field = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
+		$build_webhook_field = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
+		$preview_webhook_field = Settings::prefix_get_option( 'preview_api_webhook', 'wpgatsby_settings', false );
 
-		if ( $webhook_field && $this->should_dispatch ) {
+		$we_should_call_webhooks = 
+			( $build_webhook_field || $preview_webhook_field ) &&
+			$this->should_dispatch;
 
-			$webhooks = explode( ',', $webhook_field );
+		if ( $we_should_call_webhooks ) {
+			$webhooks = array_merge(
+				explode( ',', $build_webhook_field ),
+				explode( ',', $preview_webhook_field)
+			);
 
-			foreach ( $webhooks as $webhook ) {
+			$truthy_webhooks = array_filter( $webhooks );
+			$unique_webhooks = array_unique( $truthy_webhooks ); 
+
+			foreach ( $unique_webhooks as $webhook ) {
 				$args = apply_filters( 'gatsby_trigger_dispatch_args', [], $webhook );
 
 				wp_safe_remote_post( $webhook, $args );
