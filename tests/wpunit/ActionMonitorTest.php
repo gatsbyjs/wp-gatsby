@@ -489,6 +489,39 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	}
 
+	// If a post of a post type that doesn't show in GraphQL is created, an action monitor
+	// action should not be created
+	public function testCreatePostOfNonTrackedPostTypeDoesNotCreateActionMonitorAction() {
+
+		// Register a post type that does not show in GraphQL (will not be tracked)
+		register_post_type( 'not_in_graphql', [
+			'show_in_graphql' => false,
+		]);
+
+		// Assert that the action monitor queue is already empty
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		$post_id = $this->factory()->post->create([
+			'post_type' => 'not_in_graphql',
+			'post_title' => 'Test',
+			'post_status' => 'publish',
+		]);
+
+		$post = get_post( $post_id );
+
+		// Assert that a post was indeed created
+		$this->assertTrue( is_a( $post, 'WP_Post' ) );
+
+		// Assert that the action monitor queue is still empty after a post of a non-tracked post type
+		// is created
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+	}
+
 	// @todo
 	public function testNewPostTypesDetectedWithGraphqlSupportCreateActionMonitorAction() {
 		// we should store the post types that are registered
@@ -498,7 +531,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	}
 
 	// @todo
-	public function testPostTypeRemovedFromGraphQLCreateActionMonitorAction() {
+	public function testPostTypeRemovedFromGraphqlCreateActionMonitorAction() {
 		// we should store the post types that are registered
 		// and on init we should diff it and see if the
 		// new post types have been registered and
@@ -506,7 +539,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	}
 
 	// @todo
-	public function testPostTypeWithGraphQLSupportIsUpdatedCreateActionMonitorAction() {
+	public function testPostTypeWithGraphqlSupportIsUpdatedCreateActionMonitorAction() {
 		// when a post type registry is changed in some critical way
 		// create an update action
 	}

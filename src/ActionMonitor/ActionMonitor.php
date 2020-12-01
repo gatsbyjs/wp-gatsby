@@ -40,6 +40,10 @@ class ActionMonitor {
 	 */
 	public $post_object_before_update = null;
 
+	protected $tracked_post_types = [];
+
+	protected $tracked_taxonomies = [];
+
 	/**
 	 * Set up the Action monitor when the class is initialized
 	 */
@@ -47,6 +51,9 @@ class ActionMonitor {
 
 		// Determine if WPGraphQL is in debug mode
 		$this->wpgraphql_debug_mode = class_exists( 'WPGraphQL' ) ? \WPGraphQL::debug() : false;
+
+		// Initialize the types to track (public post types and taxonomies that show_in_graphql)
+		add_action( 'wp_loaded', [ $this, 'init_tracked_types' ] );
 
 		// Register post type and taxonomies to track CRUD events in WordPress
 		add_action( 'init', [ $this, 'init_post_type_and_taxonomies' ] );
@@ -61,6 +68,33 @@ class ActionMonitor {
 
 		$this->registerGraphQLFields();
 		$this->monitor_actions();
+
+	}
+
+	/**
+	 * Initialize the types to track activity for.
+	 *
+	 * Default is public post types and taxonomies that are set to show_in_graphql
+	 *
+	 * Can be filtered with "gatsby_action_monitor_tracked_post_types" and "gatsby_action_monitor_tracked_taxonomies"
+	 */
+	public function init_tracked_types() {
+
+		/**
+		 * Filters the post_types that Gatsby Tracks actions for
+		 *
+		 * @param array $post_types The names of the post types Gatsby Action Monitor tracks
+		 */
+		$tracked_post_types = apply_filters( 'gatsby_action_monitor_tracked_post_types', get_post_types([ 'show_in_graphql' => true, 'public' => true ]) );
+		$this->tracked_post_types = ! empty( $tracked_post_types ) && is_array( $tracked_post_types ) ? $tracked_post_types : [];
+
+		/**
+		 * Filters the taxonomies that Gatsby tracks actions for
+		 *
+		 * @param array $taxonomies The names of the taxonomies Gatsby Action Monitor tracks
+		 */
+		$tracked_taxonomies = apply_filters( 'gatsby_action_monitor_tracked_taxonomies', get_taxonomies([ 'show_in_graphql' => true, 'public' => true ]) );
+		$this->tracked_taxonomies = ! empty( $tracked_taxonomies ) && is_array( $tracked_taxonomies ) ? $tracked_taxonomies : [];
 
 	}
 
@@ -446,14 +480,18 @@ class ActionMonitor {
 		if ( $reassigned_user_id ) {
 			// get all their posts that are
 			// available in wpgraphql and update each of them
-			$post_types = get_post_types( [ 'show_in_graphql' => true ] );
 
-			foreach ( $post_types as $post_type ) {
+			foreach ( $this->tracked_post_types as $post_type ) {
 				$query = new \WP_Query( [
 					'post_type'      => $post_type,
 					'author'         => $user_id,
-					'posts_per_page' => - 1
-					// @todo this is a big no-no. Could break a large site. In Gatsby we should store potential 2 way connections and if there is a 2 way connection and a post is updated, check its child nodes for 2 way connections. For any 2 way connections check if this node is a child of that node. If it's not then refetch that node as well.
+					'no_found_rows'  => true,
+					'posts_per_page' => -1
+					// @todo this is a big no-no. Could break a large site.
+					// In Gatsby we should store potential 2 way connections and if there is a 2 way
+					// connection and a post is updated, check its child nodes for 2 way connections.
+					// For any 2 way connections check if this node is a child of that node.
+					// If it's not then refetch that node as well.
 				] );
 
 				if ( $query->have_posts() ) {
@@ -503,11 +541,9 @@ class ActionMonitor {
 			return;
 		}
 
-		$post_types = get_post_types( [ 'show_in_graphql' => true ] );
-
 		$user_is_public = false;
 
-		foreach ( $post_types as $post_type ) {
+		foreach ( $this->tracked_post_types as $post_type ) {
 			// action monitor doesn't count
 			if ( $post_type === 'action_monitor' ) {
 				continue;
@@ -620,7 +656,7 @@ class ActionMonitor {
 		}
 
 		// if the terms tax isn't shown in graphql, don't monitor it
-		if ( ! $taxonomy_object->show_in_graphql ) {
+		if ( ! in_array( $taxonomy_object->name, $this->tracked_taxonomies, true ) ) {
 			$is_private = true;
 		}
 
@@ -876,7 +912,7 @@ class ActionMonitor {
 			return false;
 		}
 
-		if ( $post->post_type === 'action_monitor' ) {
+		if ( ! in_array( $post->post_type, $this->tracked_post_types, true ) ) {
 			return false;
 		}
 
