@@ -34,16 +34,12 @@ start().catch((e) => {
 })
 
 async function start(): Promise<void> {
-	if (!initialState.webhookWasCalled) {
-		throw Error(`The Gatsby Preview webhook was not successfully called.`)
+	if (initialState.previewWebhookIsOnline) {
+		// if we webhook came back as online, fetch the status and update the ui
+		await fetchPreviewStatusAndUpdateUI()
+	} else {
+		// otherwise check to see if it actually is online
+		// then if it is, fetch the status and update the UI
+		await doubleCheckIfPreviewFrontendIsOnline()
 	}
-
-	// awaiting these to make them catcheable
-	await Promise.all([
-		// optimistically try to load the UI
-		initialState.previewWebhookIsOnline && fetchPreviewStatusAndUpdateUI(),
-		// Also check if the frontend has been online
-		// since the last backend check
-		doubleCheckIfPreviewFrontendIsOnline(),
-	])
 }

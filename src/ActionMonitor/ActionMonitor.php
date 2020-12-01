@@ -170,7 +170,6 @@ class ActionMonitor {
 			'show_admin_column'   => true,
 		] );
 
-
 	}
 
 	/**
@@ -1231,16 +1230,81 @@ class ActionMonitor {
 	}
 
 	/**
+	 * Register Action monitor post type
+	 */
+	function initPostType() {
+		/**
+		 * Post Type: Action Monitor.
+		 */
+
+		$labels = [
+			"name"          => __( "Action Monitor", "WPGatsby" ),
+			"singular_name" => __( "Action Monitor", "WPGatsby" ),
+		];
+
+		$WPGraphQL_debug_mode = ! ! (
+			defined( 'GRAPHQL_DEBUG' ) && GRAPHQL_DEBUG
+			|| (
+				class_exists( 'WPGraphQL' )
+				&& method_exists( 'WPGraphQL', 'debug' )
+				&& \WPGraphQL::debug()
+			)
+		);
+
+
+		$args = [
+			"label"                 => __( "Action Monitor", "WPGatsby" ),
+			"labels"                => $labels,
+			"description"           => "Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wordpress.",
+			"public"                => false,
+			"publicly_queryable"    => false,
+			"show_ui"               => $WPGraphQL_debug_mode,
+			"delete_with_user"      => false,
+			"show_in_rest"          => false,
+			"rest_base"             => "",
+			"rest_controller_class" => "WP_REST_Posts_Controller",
+			"has_archive"           => false,
+			"show_in_menu"          => $WPGraphQL_debug_mode,
+			"show_in_nav_menus"     => false,
+			"exclude_from_search"   => true,
+			"capability_type"       => "post",
+			"map_meta_cap"          => true,
+			"hierarchical"          => false,
+			"rewrite"               => [
+				"slug"       => "action_monitor",
+				"with_front" => true
+			],
+			"query_var"             => true,
+			"supports"              => [ "title" ],
+			"show_in_graphql"       => true,
+			"graphql_single_name"   => "ActionMonitorAction",
+			"graphql_plural_name"   => "ActionMonitorActions",
+		];
+
+		register_post_type( "action_monitor", $args );
+	}
+
+	/**
 	 * Triggers the dispatch to the remote endpoint(s)
 	 */
 	public function trigger_dispatch() {
-		$webhook_field = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
+		$build_webhook_field = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
+		$preview_webhook_field = Settings::prefix_get_option( 'preview_api_webhook', 'wpgatsby_settings', false );
 
-		if ( $webhook_field && $this->should_dispatch ) {
+		$we_should_call_webhooks = 
+			( $build_webhook_field || $preview_webhook_field ) &&
+			$this->should_dispatch;
 
-			$webhooks = explode( ',', $webhook_field );
+		if ( $we_should_call_webhooks ) {
+			$webhooks = array_merge(
+				explode( ',', $build_webhook_field ),
+				explode( ',', $preview_webhook_field)
+			);
 
-			foreach ( $webhooks as $webhook ) {
+			$truthy_webhooks = array_filter( $webhooks );
+			$unique_webhooks = array_unique( $truthy_webhooks ); 
+
+			foreach ( $unique_webhooks as $webhook ) {
 				$args = apply_filters( 'gatsby_trigger_dispatch_args', [], $webhook );
 
 				wp_safe_remote_post( $webhook, $args );
