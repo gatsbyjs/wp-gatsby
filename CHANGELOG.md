@@ -1,5 +1,9 @@
 # Change Log
 
+## Upcoming
+
+- The `NO_PAGE_CREATED_FOR_PREVIEWED_NODE` preview status was no longer making it through to the preview template because we were checking if the preview had deployed before checking if a page had been created in Gatsby for the preview. this release fixes that.
+
 ## 0.6.7
 
 - Gatsby Preview process errors were not coming through for new post drafts. They do now :)
