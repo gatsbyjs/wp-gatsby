@@ -212,7 +212,6 @@ class ActionMonitor {
 			'show_admin_column'   => true,
 		] );
 
-
 	}
 
 	/**
