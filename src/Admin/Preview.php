@@ -101,7 +101,6 @@ class Preview {
 			]
 		] );
 
-
 		register_graphql_mutation( 'wpGatsbyRemotePreviewStatus', [
 			'inputFields'         => [
 				'pagePath' => [
@@ -234,6 +233,9 @@ class Preview {
 				],
 				'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' => [
 					'value' => 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL'
+				],
+				'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED' => [
+					'value' => 'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED'
 				]
 			]
 		] );
@@ -323,20 +325,82 @@ class Preview {
 					'_wpgatsby_node_modified',
 					true
 				);
-				
-				$node_was_updated = 
-				strtotime( $gatsby_node_modified ) >= strtotime( $modified );
-				
+
 				$remote_status = get_post_meta(
 					$post_id,
 					'_wpgatsby_node_remote_preview_status',
 					true
 				);
+				
+				$node_modified_was_updated =
+					strtotime( $gatsby_node_modified ) >= strtotime( $modified );
+
+				if (
+					$node_modified_was_updated &&
+					$remote_status === 'NO_PAGE_CREATED_FOR_PREVIEWED_NODE'
+				) {
+					return [
+						'statusType' => null,
+						'statusContext' => null,
+						'remoteStatus' => $remote_status
+					];
+				}
+
+				$node_was_updated = false;
+
+				if ( $node_modified_was_updated && $found_preview_path_post_meta ) {
+					$gatbsy_preview_frontend_url =
+						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
+						
+					$modified_deployed_url = 
+						$gatbsy_preview_frontend_url .
+						"page-data/$found_preview_path_post_meta/page-data.json";
+						
+					// check if node page was deployed
+					$request = wp_remote_get( $modified_deployed_url );
+					$response = wp_remote_retrieve_body( $request );
+
+					$page_data = json_decode( $response );
+
+					$modified_response =
+						$page_data->result->pageContext->__wpGatsbyNodeModified
+						?? null;
+
+					$preview_was_deployed =
+						$modified_response &&
+						strtotime( $modified_response ) >= strtotime( $modified );
+					
+					if ( ! $preview_was_deployed ) {
+						// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED
+						return [
+							'statusType' =>
+							'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED',
+							'statusContext' => null,
+							'remoteStatus' => null
+						];
+					} else {
+						// if it is deployed, send back PREVIEW_READY below
+						$node_was_updated = true;
+					}
+				}
 
 				// if the node wasn't updated, then any status we have is stale
 				$remote_status_type = $remote_status && $node_was_updated 
 					? $remote_status
 					: null;
+
+				/**
+				 * We need the above check for wether the node was updated so we 
+				 * don't show stale statuses on existing nodes, but in the case that 
+				 * it's a brand new draft, $node_was_updated will always be false 
+				 * because at this point we're potentially getting an error on a 
+				 * node that was never created. So GATSBY_PREVIEW_PROCESS_ERROR is a 
+				 * special case where we always need to show the status regardless 
+				 * of wether the node was updated.
+				 */
+				if ( $remote_status === 'GATSBY_PREVIEW_PROCESS_ERROR' ) {
+					$remote_status_type = $remote_status;
+				}
 				
 				$status_type = 'PREVIEW_READY';
 
@@ -344,7 +408,7 @@ class Preview {
 					$status_type = 'REMOTE_NODE_NOT_YET_UPDATED';	
 				}
 
-				if ( !$found_preview_path_post_meta) {
+				if ( !$found_preview_path_post_meta ) {
 					$status_type = 'NO_PREVIEW_PATH_FOUND';
 				}
 
@@ -375,13 +439,35 @@ class Preview {
 				];
 			}
 		] );
+
+        register_graphql_field( 'WPGatsby', 'isPreviewFrontendOnline', [
+			'description' => __( 'Wether or not the Preview frontend URL is online.', 'wp-gatsby' ),
+			'type'        => 'Boolean',
+			'resolve'     => function( $root, $args, $context, $info ) {
+				if ( ! is_user_logged_in() ) {
+					return false;
+				}
+
+				$preview_url  = self::get_gatsby_preview_instance_url();
+
+				$request = wp_remote_get( $preview_url );
+
+				$request_was_successful = 
+					$this->was_request_successful( $request );
+
+				return $request_was_successful;
+			}
+		] );
 	}
 
 	public function setup_preview_template( $template ) {
 		global $post;
-		$post_type = get_post_type_object( $post->post_type );
 
-		if ( !$post_type->show_in_graphql ?? true ) {
+		$post_type = $post->post_type ?? null;
+
+		$post_type_object = get_post_type_object( $post->post_type ) ?? null;
+
+		if ( $post_type && !$post_type_object->show_in_graphql ?? true ) {
 			return plugin_dir_path( __FILE__ ) . 'includes/post-type-not-shown-in-graphql.php';
 		}
 
@@ -504,6 +590,14 @@ class Preview {
 
 		$original_post = get_post( $post->post_parent );
 
+		$this_is_a_publish_not_a_preview = 
+			$original_post && $original_post->post_modified === $post->post_modified;
+
+		if ( $this_is_a_publish_not_a_preview ) {
+			// we will handle this in ActionMonitor.php, not here
+			return;
+		}
+
 		$parent_post_id = $original_post->ID ?? $post_ID;
 
 		$post_type_object = $original_post
@@ -592,19 +686,10 @@ class Preview {
 			]
 		);
 
-		$is_wp_error = is_wp_error( $response );
-
-		$status_code = !$is_wp_error ? $response['response']['code'] ?? null : null;
-
 		// this is used to optimistically load the preview iframe
 		// we also check if the frontend is responding to requests from the 
 		// preview template JS
-		$webhook_success = 
-			!$is_wp_error &&
-			(
-				$status_code === 200 ||
-				$status_code === 204
-			);
+		$webhook_success = $this->was_request_successful( $response );
 
 		update_option(
 			'_wp_gatsby_preview_webhook_is_online',
@@ -617,5 +702,25 @@ class Preview {
 				'WPGatsby couldn\'t reach the Preview webhook set in plugin options.'
 			);	
 		}
+	}
+
+	function was_request_successful( $response ) {
+		$is_wp_error = is_wp_error( $response );
+
+		$status_code = !$is_wp_error ? $response['response']['code'] ?? null : null;
+		$response_message_was_ok = !$is_wp_error ? $response['response']['message'] === 'OK' ?? null : null;
+
+		// this is used to optimistically load the preview iframe
+		// we also check if the frontend is responding to requests from the 
+		// preview template JS
+		$success = 
+			!$is_wp_error &&
+			(
+				$status_code === 200 ||
+				$status_code === 204 ||
+				$response_message_was_ok
+			);
+
+		return $success;
 	}
 }
