@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.7.0
+
+### Breaking Changes
+
+- Previously we were storing a brand new post internally for every content-related action that happened in your site. As of this release we only make a single action post for each post you take actions against and update it each time instead of creating a new one.
+
 ## 0.6.8
 
 - The `NO_PAGE_CREATED_FOR_PREVIEWED_NODE` preview status was no longer making it through to the preview template because we were checking if the preview had deployed before checking if a page had been created in Gatsby for the preview. this release fixes that.
