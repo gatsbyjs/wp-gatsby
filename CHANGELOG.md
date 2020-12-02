@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.7.1
+
+- The last version added some internal taxonomies to the GraphQL schema unintentionally. This release removes them.
 ## 0.7.0
 
 ### Breaking Changes
