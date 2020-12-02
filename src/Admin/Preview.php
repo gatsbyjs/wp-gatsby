@@ -325,13 +325,30 @@ class Preview {
 					'_wpgatsby_node_modified',
 					true
 				);
+
+				$remote_status = get_post_meta(
+					$post_id,
+					'_wpgatsby_node_remote_preview_status',
+					true
+				);
 				
-				$node_page_was_created = 
-				strtotime( $gatsby_node_modified ) >= strtotime( $modified );
+				$node_modified_was_updated =
+					strtotime( $gatsby_node_modified ) >= strtotime( $modified );
+
+				if (
+					$node_modified_was_updated &&
+					$remote_status === 'NO_PAGE_CREATED_FOR_PREVIEWED_NODE'
+				) {
+					return [
+						'statusType' => null,
+						'statusContext' => null,
+						'remoteStatus' => $remote_status
+					];
+				}
 
 				$node_was_updated = false;
 
-				if ( $node_page_was_created && $found_preview_path_post_meta ) {
+				if ( $node_modified_was_updated && $found_preview_path_post_meta ) {
 					$gatbsy_preview_frontend_url =
 						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
 						
@@ -366,12 +383,6 @@ class Preview {
 						$node_was_updated = true;
 					}
 				}
-				
-				$remote_status = get_post_meta(
-					$post_id,
-					'_wpgatsby_node_remote_preview_status',
-					true
-				);
 
 				// if the node wasn't updated, then any status we have is stale
 				$remote_status_type = $remote_status && $node_was_updated 

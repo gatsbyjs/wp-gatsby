@@ -1211,7 +1211,10 @@ class ActionMonitor {
 
 						if ( $sinceTimestamp ) {
 							$args['date_query'] = [
-								'after' => date( 'c', $sinceTimestamp / 1000 )
+								[
+									'after' => date( 'c', $sinceTimestamp / 1000 ),
+									'column' => 'post_modified'
+								]
 							];
 						}
 
@@ -1227,61 +1230,6 @@ class ActionMonitor {
 	 */
 	function registerGraphQLFields() {
 		$this->registerPostGraphQLFields();
-	}
-
-	/**
-	 * Register Action monitor post type
-	 */
-	function initPostType() {
-		/**
-		 * Post Type: Action Monitor.
-		 */
-
-		$labels = [
-			"name"          => __( "Action Monitor", "WPGatsby" ),
-			"singular_name" => __( "Action Monitor", "WPGatsby" ),
-		];
-
-		$WPGraphQL_debug_mode = ! ! (
-			defined( 'GRAPHQL_DEBUG' ) && GRAPHQL_DEBUG
-			|| (
-				class_exists( 'WPGraphQL' )
-				&& method_exists( 'WPGraphQL', 'debug' )
-				&& \WPGraphQL::debug()
-			)
-		);
-
-
-		$args = [
-			"label"                 => __( "Action Monitor", "WPGatsby" ),
-			"labels"                => $labels,
-			"description"           => "Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wordpress.",
-			"public"                => false,
-			"publicly_queryable"    => false,
-			"show_ui"               => $WPGraphQL_debug_mode,
-			"delete_with_user"      => false,
-			"show_in_rest"          => false,
-			"rest_base"             => "",
-			"rest_controller_class" => "WP_REST_Posts_Controller",
-			"has_archive"           => false,
-			"show_in_menu"          => $WPGraphQL_debug_mode,
-			"show_in_nav_menus"     => false,
-			"exclude_from_search"   => true,
-			"capability_type"       => "post",
-			"map_meta_cap"          => true,
-			"hierarchical"          => false,
-			"rewrite"               => [
-				"slug"       => "action_monitor",
-				"with_front" => true
-			],
-			"query_var"             => true,
-			"supports"              => [ "title" ],
-			"show_in_graphql"       => true,
-			"graphql_single_name"   => "ActionMonitorAction",
-			"graphql_plural_name"   => "ActionMonitorActions",
-		];
-
-		register_post_type( "action_monitor", $args );
 	}
 
 	/**
