@@ -1,6 +1,6 @@
 # Change Log
 
-## Upcoming
+## 0.6.8
 
 - The `NO_PAGE_CREATED_FOR_PREVIEWED_NODE` preview status was no longer making it through to the preview template because we were checking if the preview had deployed before checking if a page had been created in Gatsby for the preview. this release fixes that.
 - The preview-template.php check for wether or not the preview frontend is online could occasionally come back with a false negative. It is now more resilient and will recheck for 10 seconds before showing an error.
