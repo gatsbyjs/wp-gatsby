@@ -1212,7 +1212,10 @@ class ActionMonitor {
 
 						if ( $sinceTimestamp ) {
 							$args['date_query'] = [
-								'after' => date( 'c', $sinceTimestamp / 1000 )
+								[
+									'after' => date( 'c', $sinceTimestamp / 1000 ),
+									'column' => 'post_modified'
+								]
 							];
 						}
 
