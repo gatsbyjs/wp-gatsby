@@ -109,6 +109,14 @@ export async function fetchPreviewStatusAndUpdateUI({
 		}
 	}
 
+	if (statusType) {
+		console.log(statusType)
+	}
+
+	if (remoteStatus) {
+		console.log(remoteStatus)
+	}
+
 	if (statusType === `PREVIEW_READY`) {
 		clearTimeout(timeoutWarning)
 
@@ -134,11 +142,6 @@ export async function fetchPreviewStatusAndUpdateUI({
 
 	await new Promise((resolve) =>
 		setTimeout(() => {
-			console.log({
-				previewStatusCheck: { response, refetchCount, refetchDelay },
-			})
-			console.log(`Preview not yet updated, retrying...`)
-
 			resolve()
 		}, refetchDelay),
 	)
