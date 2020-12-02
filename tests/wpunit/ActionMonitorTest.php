@@ -2,60 +2,66 @@
 
 class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
-    public $admin;
-    public $tag;
+	public $admin;
+	public $tag;
 
-    public function setUp():void {
-        // Before...
-        parent::setUp();
+	public function setUp(): void {
+		// Before...
+		parent::setUp();
 
-        WPGraphQL::clear_schema();
-        // Your set up methods here.
+		WPGraphQL::clear_schema();
+		// Your set up methods here.
 
-		$this->admin = $this->factory()->user->create([ 'role' => 'administrator' ]);
-		$this->tag = $this->factory()->tag->create();
+		$this->admin = $this->factory()->user->create( [ 'role' => 'administrator' ] );
+		$this->tag   = $this->factory()->tag->create();
 
 		$this->clear_action_monitor();
-    }
+	}
 
-    public function tearDown():void {
-	     $this->delete_posts();
+	public function tearDown(): void {
+		$this->delete_posts();
 
-        // Then...
-        parent::tearDown();
-    }
+		// Then...
+		parent::tearDown();
+	}
 
-    public function clear_action_monitor() {
-	    global $wpdb;
-	    $wpdb->query( $wpdb->prepare(
-		    "DELETE FROM {$wpdb->prefix}posts WHERE post_type = 'action_monitor'",
-		    array( 1 )
-	    ) );
+	public function clear_action_monitor() {
+		global $wpdb;
+		$sql = wp_strip_all_tags(
+			'DELETE posts, pm, pt
+			FROM ' . $wpdb->prefix . 'posts AS posts
+			LEFT JOIN ' . $wpdb->prefix . 'term_relationships AS pt ON pt.object_id = posts.ID
+			LEFT JOIN ' . $wpdb->prefix . 'postmeta AS pm ON pm.post_id = posts.ID
+			WHERE posts.post_type = \'%1$s\'', true
+		);
 
-	    add_filter( 'wpgatsby_action_monitor_get_updated_post_ids', function() {
-		    return [];
-	    });
+		$query = $wpdb->prepare( $sql, 'action_monitor' );
+		$wpdb->query( $query );
 
-    }
+		add_filter( 'wpgatsby_action_monitor_get_updated_post_ids', function() {
+			return [];
+		} );
 
-    public function delete_posts() {
+	}
 
-	    global $wpdb;
-	    $wpdb->query( $wpdb->prepare(
-		    "DELETE FROM {$wpdb->prefix}posts WHERE ID <> %d",
-		    array( 1 )
-	    ) );
+	public function delete_posts() {
 
-    }
+		global $wpdb;
+		$wpdb->query( $wpdb->prepare(
+			"DELETE FROM {$wpdb->prefix}posts WHERE ID <> %d",
+			array( 1 )
+		) );
 
-    // Tests
-    public function test_it_works() {
-        $post = static::factory()->post->create_and_get();
-        $this->assertInstanceOf(\WP_Post::class, $post);
-    }
+	}
 
-    public function actionMonitorQuery() {
-    	return '
+	// Tests
+	public function test_it_works() {
+		$post = static::factory()->post->create_and_get();
+		$this->assertInstanceOf( \WP_Post::class, $post );
+	}
+
+	public function actionMonitorQuery() {
+		return '
     	{
 		  actionMonitorActions {
 		    nodes {
@@ -66,72 +72,74 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		  }
 		}
     	';
-    }
+	}
 
-    public function testActionMonitorQueryIsValid() {
+	public function testActionMonitorQueryIsValid() {
 
-    	$query = $this->actionMonitorQuery();
-    	$actual = $this->graphql( [ 'query' => $query ] );
-    	$this->assertIsValidQueryResponse( $actual );
-    }
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( [ 'query' => $query ] );
+		$this->assertIsValidQueryResponse( $actual );
+	}
 
-    public function testCreatePostCreatesActionMonitorAction() {
-
-	    // Create a post
-    	$post_id = $this->factory()->post->create([
-		    'post_type' => 'post',
-		    'post_status' => 'publish',
-		    'post_title' => 'Title',
-		    'post_author' => $this->admin,
-		    'tags_input' => [ $this->tag ]
-	    ]);
-
-	    codecept_debug( $this->tag );
-
-	    // Query for action monitor actions
-	    $query = $this->actionMonitorQuery();
-
-	    // Execute the query
-	    $actual = $this->graphql( compact( 'query' ) );
-
-	    $this->assertIsValidQueryResponse( $actual );
-
-	    // Creating a post assigned to an author should trigger 3 actions:
-	    // - 1 for the post
-	    // - 1 for the author
-	    $this->assertSame( 2, count( $actual['data']['actionMonitorActions']['nodes'] ) );
-
-	    // Assert the action monitor has the actions for the post being created
-	    $this->assertQuerySuccessful( $actual, [
-		    $this->expectedNode( 'actionMonitorActions.nodes', [
-		    	'actionType' => 'CREATE',
-			    'referencedNodeID' => (string) $post_id,
-			    'referencedNodeSingularName' => 'post',
-		    ] ),
-		    $this->expectedNode( 'actionMonitorActions.nodes', [
-		    	'actionType' => 'UPDATE',
-			    'referencedNodeID' => (string) $this->admin,
-			    'referencedNodeSingularName' => 'user'
-		    ] ),
-	    ] );
-
-    }
-
-	public function testCreatePageCreatesActionMonitorAction() {
+	public function testCreatePostCreatesActionMonitorAction() {
 
 		// Create a post
-		$post_id = $this->factory()->post->create([
-			'post_type' => 'page',
+		$post_id = $this->factory()->post->create( [
+			'post_type'   => 'post',
 			'post_status' => 'publish',
-			'post_title' => 'Title',
+			'post_title'  => 'Title',
 			'post_author' => $this->admin,
-		]);
+			'tags_input'  => [ $this->tag ]
+		] );
+
+		codecept_debug( $this->tag );
 
 		// Query for action monitor actions
 		$query = $this->actionMonitorQuery();
 
 		// Execute the query
 		$actual = $this->graphql( compact( 'query' ) );
+
+		$this->assertIsValidQueryResponse( $actual );
+
+		// Creating a post assigned to an author should trigger 2 actions:
+		// - 1 for the post
+		// - 1 for the author
+		$this->assertSame( 2, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		// Assert the action monitor has the actions for the post being created
+		$this->assertQuerySuccessful( $actual, [
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'CREATE',
+				'referencedNodeID'           => (string) $post_id,
+				'referencedNodeSingularName' => 'post',
+			] ),
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
+				'referencedNodeSingularName' => 'user'
+			] ),
+		] );
+
+	}
+
+	public function testCreatePageCreatesActionMonitorAction() {
+
+		// Create a post
+		$post_id = $this->factory()->post->create( [
+			'post_type'   => 'page',
+			'post_status' => 'publish',
+			'post_title'  => 'Title',
+			'post_author' => $this->admin,
+		] );
+
+		// Query for action monitor actions
+		$query = $this->actionMonitorQuery();
+
+		// Execute the query
+		$actual = $this->graphql( compact( 'query' ) );
+
+		codecept_debug( $actual );
 
 		// Creating a post assigned to an author should trigger 2 actions:
 		// - 1 for the post
@@ -141,13 +149,13 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the page being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'CREATE',
-				'referencedNodeID' => (string) $post_id,
+				'actionType'                 => 'CREATE',
+				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'page'
 			] ),
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $this->admin,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
 				'referencedNodeSingularName' => 'user'
 			] ),
 		] );
@@ -157,25 +165,25 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	public function testDeletePostCreatesActionMonitorAction() {
 
 		// Create a post
-		$post_id = $this->factory()->post->create([
-			'post_type' => 'post',
+		$post_id = $this->factory()->post->create( [
+			'post_type'   => 'post',
 			'post_status' => 'publish',
-			'post_title' => 'Title',
+			'post_title'  => 'Title',
 			'post_author' => $this->admin
-		]);
+		] );
 
-		$post_two = $this->factory()->post->create([
-			'post_type' => 'post',
+		$post_two = $this->factory()->post->create( [
+			'post_type'   => 'post',
 			'post_status' => 'publish',
-			'post_title' => 'Title',
+			'post_title'  => 'Title',
 			'post_author' => $this->admin
-		]);
+		] );
 
 		// Clear the action monitor to remove the mock post creation
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -199,15 +207,15 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the page being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'DELETE',
-				'referencedNodeID' => (string) $post_id,
+				'actionType'                 => 'DELETE',
+				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'post'
-			]),
+			] ),
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $this->admin,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
 				'referencedNodeSingularName' => 'user'
-			]),
+			] ),
 		] );
 
 		wp_delete_post( $post_two, true );
@@ -230,15 +238,15 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the page being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'DELETE',
-				'referencedNodeID' => (string) $post_id,
+				'actionType'                 => 'DELETE',
+				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'post'
-			]),
+			] ),
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'DELETE',
-				'referencedNodeID' => (string) $this->admin,
+				'actionType'                 => 'DELETE',
+				'referencedNodeID'           => (string) $this->admin,
 				'referencedNodeSingularName' => 'user'
-			]),
+			] ),
 		] );
 
 	}
@@ -246,17 +254,17 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	public function testTrashPostCreatesActionMonitorAction() {
 
 		// Create a post
-		$post_id = $this->factory()->post->create([
-			'post_type' => 'post',
+		$post_id = $this->factory()->post->create( [
+			'post_type'   => 'post',
 			'post_status' => 'publish',
-			'post_title' => 'Title',
-		]);
+			'post_title'  => 'Title',
+		] );
 
 		// Clear the action monitor to remove the mock post creation
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -279,60 +287,102 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'DELETE',
-				'referencedNodeID' => (string) $post_id,
+				'actionType'                 => 'DELETE',
+				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'post'
-			]),
+			] ),
 		] );
 
 	}
 
 	public function testPublishPostFromDraftCreatesActionMonitorAction() {
 
-    	$post_id = $this->factory()->post->create([
+		$post_data = [
 			'post_status' => 'draft',
-		    'post_type' => 'post',
-		    'post_author' => $this->admin,
-		    'tags_input' => [ $this->tag ],
-	    ]);
+			'post_type'   => 'post',
+			'post_author' => $this->admin,
+			'tags_input'  => [ $this->tag ],
+		];
+
+		$post_id = $this->factory()->post->create( $post_data );
 
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
-		// Publish the post
-		wp_publish_post( $post_id );
+		do_action( 'pre_post_update', $post_id, $post_data );
 
-		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		// Publish the post
+		wp_update_post( [ 'ID' => $post_id, 'post_status' => 'publish' ] );
 
 		// Execute the query
-		$actual = $this->graphql( compact( 'query' ) );
+		$actions = $this->graphql( compact( 'query' ) );
 
 		/**
 		 * There should be 2 actions
 		 * - 1 for the created post
 		 * - 1 for the updated author
 		 */
-		$this->assertSame( 2, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+		$this->assertSame( 2, count( $actions['data']['actionMonitorActions']['nodes'] ) );
 
-		codecept_debug( $actual );
+		codecept_debug( $actions );
 
 		// Assert the action monitor has the actions for the page being created
+		$this->assertQuerySuccessful( $actions, [
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'CREATE',
+				'referencedNodeID'           => (string) $post_id,
+				'referencedNodeSingularName' => 'post'
+			] ),
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
+				'referencedNodeSingularName' => 'user'
+			] ),
+		] );
+
+	}
+
+	public function testChangePostToDraftCreatesActionMonitorAction() {
+
+		$post_id = $this->factory()->post->create([
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'post_title' => 'test',
+			'post_author' => $this->admin,
+		]);
+
+		$this->clear_action_monitor();
+
+		// Query for action monitor actions
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		// Changing a published post to draft (or any non-published status) should
+		// trigger a delete action for the post
+		wp_update_post([
+			'ID' => $post_id,
+			'post_status' => 'draft',
+		]);
+
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'CREATE',
-				'referencedNodeID' => (string) $post_id,
+				'actionType'                 => 'DELETE',
+				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'post'
-			]),
+			] ),
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $this->admin,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
 				'referencedNodeSingularName' => 'user'
-			]),
+			] ),
 		] );
 
 	}
@@ -347,12 +397,11 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testUpdatePostMetaOfUnublishedPostDoesNotCreatesActionMonitorAction() {
 
-    	// Make sure action is not created when meta is udpated on unpublished post
+		// Make sure action is not created when meta is updated on unpublished post
 		$test_written = false;
 		$this->assertTrue( $test_written );
 
 	}
-
 
 
 	public function testDeletePostMetaOfUnublishedPostDoesNotCreatesActionMonitorAction() {
@@ -365,17 +414,17 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testUpdatePostMetaOfPublishedPostCreatesActionMonitorAction() {
 
-		$post_id = $this->factory()->post->create([
+		$post_id = $this->factory()->post->create( [
 			'post_status' => 'publish',
-			'post_type' => 'post',
+			'post_type'   => 'post',
 			'post_author' => $this->admin,
-			'tags_input' => [ $this->tag ],
-		]);
+			'tags_input'  => [ $this->tag ],
+		] );
 
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -392,10 +441,10 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the page being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $post_id,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'post'
-			]),
+			] ),
 		] );
 
 
@@ -403,19 +452,19 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testDeletePostMetaCreatesActionMonitorAction() {
 
-		$post_id = $this->factory()->post->create([
+		$post_id = $this->factory()->post->create( [
 			'post_status' => 'draft',
-			'post_type' => 'post',
+			'post_type'   => 'post',
 			'post_author' => $this->admin,
-			'tags_input' => [ $this->tag ],
-		]);
+			'tags_input'  => [ $this->tag ],
+		] );
 
 		update_post_meta( $post_id, 'test_meta', 'test_value' );
 
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -432,17 +481,17 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the page being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $post_id,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'post'
-			]),
+			] ),
 		] );
 
 	}
 
 	// @todo
 	public function testNewPostTypesDetectedWithGraphqlSupportCreateActionMonitorAction() {
-    	// we should store the post types that are registered
+		// we should store the post types that are registered
 		// and on init we should diff it and see if the
 		// new post types have been registered and
 		// create an action for that
@@ -466,22 +515,22 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	// @todo: review the ones below this with Tyler
 	public function testCreatePostOfACustomPostTypeCreatesActionMonitorAction() {
 
-    	// register a post type
-    	register_post_type( 'wp_gatsby_test', [
-    		'public' => true,
-		    'show_in_graphql' => true,
-		    'graphql_single_name' => 'wpGatsbyTest',
-		    'graphql_plural_name' => 'wpGatsbyTests',
-	    ] );
+		// register a post type
+		register_post_type( 'wp_gatsby_test', [
+			'public'              => true,
+			'show_in_graphql'     => true,
+			'graphql_single_name' => 'wpGatsbyTest',
+			'graphql_plural_name' => 'wpGatsbyTests',
+		] );
 
 		// Create a post
-		$post_id = $this->factory()->post->create([
-			'post_type' => 'wp_gatsby_test',
+		$post_id = $this->factory()->post->create( [
+			'post_type'   => 'wp_gatsby_test',
 			'post_status' => 'publish',
-			'post_title' => 'Title',
+			'post_title'  => 'Title',
 			'post_author' => $this->admin,
-			'tags_input' => [ $this->tag ]
-		]);
+			'tags_input'  => [ $this->tag ]
+		] );
 
 		codecept_debug( $this->tag );
 
@@ -501,13 +550,13 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'CREATE',
-				'referencedNodeID' => (string) $post_id,
+				'actionType'                 => 'CREATE',
+				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'wpGatsbyTest',
 			] ),
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $this->admin,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
 				'referencedNodeSingularName' => 'user',
 			] ),
 		] );
@@ -518,18 +567,18 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 		// register a post type to NOT show in GraphQL
 		register_post_type( 'wp_gatsby_no', [
-			'public' => true,
+			'public'          => true,
 			'show_in_graphql' => false,
 		] );
 
 		// Create a post
-		$this->factory()->post->create([
-			'post_type' => 'wp_gatsby_no',
+		$this->factory()->post->create( [
+			'post_type'   => 'wp_gatsby_no',
 			'post_status' => 'publish',
-			'post_title' => 'Title',
+			'post_title'  => 'Title',
 			'post_author' => $this->admin,
-			'tags_input' => [ $this->tag ]
-		]);
+			'tags_input'  => [ $this->tag ]
+		] );
 
 		codecept_debug( $this->tag );
 
@@ -566,8 +615,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'CREATE',
-				'referencedNodeID' => (string) $category_id,
+				'actionType'                 => 'CREATE',
+				'referencedNodeID'           => (string) $category_id,
 				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
@@ -582,7 +631,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -604,8 +653,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $category_id,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $category_id,
 				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
@@ -620,7 +669,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -641,8 +690,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'DELETE',
-				'referencedNodeID' => (string) $category_id,
+				'actionType'                 => 'DELETE',
+				'referencedNodeID'           => (string) $category_id,
 				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
@@ -657,7 +706,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -678,8 +727,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $category_id,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $category_id,
 				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
@@ -696,7 +745,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -717,8 +766,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the post being created
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $category_id,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $category_id,
 				'referencedNodeSingularName' => 'category'
 			] ),
 		] );
@@ -750,7 +799,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -772,17 +821,17 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	public function testDeleteUserWithPublishedPostsCreatesActionMonitorAction() {
 
 		$user_id = $this->factory()->user->create();
-		$this->factory()->post->create([
-			'post_type' => 'post',
+		$this->factory()->post->create( [
+			'post_type'   => 'post',
 			'post_status' => 'publish',
 			'post_author' => $user_id,
-			'post_title' => 'test'
-		]);
+			'post_title'  => 'test'
+		] );
 
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -805,8 +854,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the user being deleted
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'DELETE',
-				'referencedNodeID' => (string) $user_id,
+				'actionType'                 => 'DELETE',
+				'referencedNodeID'           => (string) $user_id,
 				'referencedNodeSingularName' => 'user'
 			] ),
 			// @todo: BULK_UPDATE ACTION FOR POSTS THAT THE USER WAS THE AUTHOR OF
@@ -817,22 +866,22 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	public function testUpdateUserWithPublishedPostsCreatesActionMonitorAction() {
 
 		$user_id = $this->factory()->user->create();
-		$this->factory()->post->create([
-			'post_type' => 'post',
+		$this->factory()->post->create( [
+			'post_type'   => 'post',
 			'post_status' => 'publish',
 			'post_author' => $user_id,
-			'post_title' => 'test'
-		]);
+			'post_title'  => 'test'
+		] );
 
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
 		wp_update_user( [
-			'ID' => $user_id,
+			'ID'           => $user_id,
 			'display_name' => 'updated_display_name'
 		] );
 
@@ -853,8 +902,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the user being updated
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $user_id,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $user_id,
 				'referencedNodeSingularName' => 'user'
 			] ),
 		] );
@@ -864,19 +913,19 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	public function testUpdateUserMetaForPublishedAuthorCreatesActionMonitorAction() {
 
 		$user_id = $this->factory()->user->create();
-		$this->factory()->post->create([
-			'post_type' => 'post',
+		$this->factory()->post->create( [
+			'post_type'   => 'post',
 			'post_status' => 'publish',
 			'post_author' => $user_id,
-			'post_title' => 'test'
-		]);
+			'post_title'  => 'test'
+		] );
 
 		update_user_meta( $user_id, 'test_key', 'test_value' );
 
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -899,8 +948,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the user being deleted
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $user_id,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $user_id,
 				'referencedNodeSingularName' => 'user'
 			] ),
 		] );
@@ -910,19 +959,19 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	public function testDeleteUserMetaForPublishedAuthorCreatesActionMonitorAction() {
 
 		$user_id = $this->factory()->user->create();
-		$this->factory()->post->create([
-			'post_type' => 'post',
+		$this->factory()->post->create( [
+			'post_type'   => 'post',
 			'post_status' => 'publish',
 			'post_author' => $user_id,
-			'post_title' => 'test'
-		]);
+			'post_title'  => 'test'
+		] );
 
 		update_user_meta( $user_id, 'test_key', 'test_value' );
 
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions
-		$query = $this->actionMonitorQuery();
+		$query  = $this->actionMonitorQuery();
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -945,8 +994,8 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		// Assert the action monitor has the actions for the user being deleted
 		$this->assertQuerySuccessful( $actual, [
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType' => 'UPDATE',
-				'referencedNodeID' => (string) $user_id,
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $user_id,
 				'referencedNodeSingularName' => 'user'
 			] ),
 		] );
@@ -955,7 +1004,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testCreateHierarchicalTermWithParentCreatesActionMonitorAction() {
 
-    	// @todo
+		// @todo
 		// If a hierarchical term is created with a parent term,
 		// We need a CREATE action for the term and an UPDATE action for the parent
 
