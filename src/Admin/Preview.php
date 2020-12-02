@@ -439,6 +439,25 @@ class Preview {
 				];
 			}
 		] );
+
+        register_graphql_field( 'WPGatsby', 'isPreviewFrontendOnline', [
+			'description' => __( 'Wether or not the Preview frontend URL is online.', 'wp-gatsby' ),
+			'type'        => 'Boolean',
+			'resolve'     => function( $root, $args, $context, $info ) {
+				if ( ! is_user_logged_in() ) {
+					return false;
+				}
+
+				$preview_url  = self::get_gatsby_preview_instance_url();
+
+				$request = wp_remote_get( $preview_url );
+
+				$request_was_successful = 
+					$this->was_request_successful( $request );
+
+				return $request_was_successful;
+			}
+		] );
 	}
 
 	public function setup_preview_template( $template ) {
@@ -453,12 +472,12 @@ class Preview {
 		}
 
 		$is_preview  = is_preview();
-		$preview_url = \WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
+		$preview_url = self::get_gatsby_preview_instance_url();
 
 		if ( $is_preview && $preview_url ) {
-			return plugin_dir_path( __FILE__ ) . 'includes/preview-template.php';
+			return trailingslashit( dirname( __FILE__ ) ) . 'includes/preview-template.php';
 		} elseif ( $is_preview && ! $preview_url ) {
-			return plugin_dir_path( __FILE__ ) . 'includes/no-preview-url-set.php';
+			return trailingslashit( dirname( __FILE__ ) ) . 'includes/no-preview-url-set.php';
 		}
 
 		return $template;
@@ -545,7 +564,10 @@ class Preview {
 		}
 
 		$is_new_post_draft =
-			$post->post_status === 'draft' &&
+			(
+				$post->post_status === 'auto-draft'
+				|| $post->post_status === 'draft'
+			) &&
 			$post->post_date_gmt === '0000-00-00 00:00:00';
 
 		$is_revision = $post->post_type === 'revision';
@@ -664,19 +686,10 @@ class Preview {
 			]
 		);
 
-		$is_wp_error = is_wp_error( $response );
-
-		$status_code = !$is_wp_error ? $response['response']['code'] ?? null : null;
-
 		// this is used to optimistically load the preview iframe
 		// we also check if the frontend is responding to requests from the 
 		// preview template JS
-		$webhook_success = 
-			!$is_wp_error &&
-			(
-				$status_code === 200 ||
-				$status_code === 204
-			);
+		$webhook_success = $this->was_request_successful( $response );
 
 		update_option(
 			'_wp_gatsby_preview_webhook_is_online',
@@ -689,5 +702,25 @@ class Preview {
 				'WPGatsby couldn\'t reach the Preview webhook set in plugin options.'
 			);	
 		}
+	}
+
+	function was_request_successful( $response ) {
+		$is_wp_error = is_wp_error( $response );
+
+		$status_code = !$is_wp_error ? $response['response']['code'] ?? null : null;
+		$response_message_was_ok = !$is_wp_error ? $response['response']['message'] === 'OK' ?? null : null;
+
+		// this is used to optimistically load the preview iframe
+		// we also check if the frontend is responding to requests from the 
+		// preview template JS
+		$success = 
+			!$is_wp_error &&
+			(
+				$status_code === 200 ||
+				$status_code === 204 ||
+				$response_message_was_ok
+			);
+
+		return $success;
 	}
 }
