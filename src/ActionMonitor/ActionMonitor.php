@@ -428,7 +428,10 @@ class ActionMonitor {
 	}
 
 	function modifyMeta( $meta_id, $object_id, $meta_key ) {
-		if ( $meta_key === '_edit_lock' ) {
+		// if this is private meta, don't save any actions
+		// in WP the standard way to indicate that is to prefix
+		// the key with an underscore
+		if ( $meta_key[0] === '_' ) {
 			return;
 		}
 

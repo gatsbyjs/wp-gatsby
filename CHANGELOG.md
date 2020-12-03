@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.7.2
+
+- Version 0.7.0 introduced a change which resulted in Previews for some WP instances being overwritten by published posts on each preview.
+
 ## 0.7.1
 
 - The last version added some internal taxonomies to the GraphQL schema unintentionally. This release removes them.
