@@ -1,5 +1,24 @@
 # Change Log
 
+## 0.7.2
+
+- Version 0.7.0 introduced a change which resulted in Previews for some WP instances being overwritten by published posts on each preview.
+
+## 0.7.1
+
+- The last version added some internal taxonomies to the GraphQL schema unintentionally. This release removes them.
+## 0.7.0
+
+### Breaking Changes
+
+- Previously we were storing a brand new post internally for every content-related action that happened in your site. As of this release we only make a single action post for each post you take actions against and update it each time instead of creating a new one.
+
+## 0.6.8
+
+- The `NO_PAGE_CREATED_FOR_PREVIEWED_NODE` preview status was no longer making it through to the preview template because we were checking if the preview had deployed before checking if a page had been created in Gatsby for the preview. this release fixes that.
+- The preview-template.php check for wether or not the preview frontend is online could occasionally come back with a false negative. It is now more resilient and will recheck for 10 seconds before showing an error.
+- The above check used to throw harmless CORS errors in the console, this check is now done server-side so that CORS isn't an issue.
+
 ## 0.6.7
 
 - Gatsby Preview process errors were not coming through for new post drafts. They do now :)

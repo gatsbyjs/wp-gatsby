@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Gatsby
  * Description: Optimize your WordPress site to be a source for Gatsby site(s).
- * Version: 0.6.7
+ * Version: 0.7.2
  * Author: GatsbyJS, Jason Bahl, Tyler Barnes
  * Author URI: https://gatsbyjs.org
  * Text Domain: wp-gatsby
@@ -16,6 +16,15 @@
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
+}
+
+/**
+ * If the codeception remote coverage file exists, require it.
+ *
+ * This file should only exist locally or when CI bootstraps the environment for testing
+ */
+if ( file_exists( __DIR__ . '/c3.php' ) ) {
+	require_once __DIR__ . '/c3.php';
 }
 
 require __DIR__ . "/lib/wp-settings-api.php";
@@ -89,7 +98,7 @@ final class WPGatsby {
 	private function setup_constants() {
 		// Plugin version.
 		if ( ! defined( 'WPGATSBY_VERSION' ) ) {
-			define( 'WPGATSBY_VERSION', '0.6.7' );
+			define( 'WPGATSBY_VERSION', '0.7.2' );
 		}
 
 		// Plugin Folder Path.
@@ -230,3 +239,4 @@ if ( ! function_exists( 'gatsby_init' ) ) {
 add_action( 'plugins_loaded', function() {
 	gatsby_init();
 } );
+

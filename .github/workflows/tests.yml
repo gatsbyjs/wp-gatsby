@@ -1,0 +1,79 @@
+name: Automated-Testing
+
+on:
+  schedule:
+    - cron:  '0 4 * * 5'
+  push:
+    branches:
+      - develop
+      - master
+  pull_request:
+    branches:
+      - develop
+      - master
+    paths:
+      - '**.php'
+      - '!docs/**'
+
+jobs:
+  continuous_integration:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.1', '7.2', '7.3']
+        wordpress: ['5.3', '5.0']
+        include:
+          - php: '7.1'
+            use_xdebug: 1
+          - php: '7.1'
+            wordpress: '5.0'
+            coverage: 1
+          - php: '7.3'
+            wordpress: '5.0'
+            debug: 1
+          - php: '7.1'
+          - lowest: 1
+          - php: '7.2'
+          - lowest: 1
+
+      fail-fast: false
+    name: WordPress ${{ matrix.wordpress }} on PHP ${{ matrix.php }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install PHP
+        if: matrix.coverage == 1
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json, mbstring
+
+      - name: Get Composer Cache Directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-dev
+
+      - name: Build "testing" Docker Image
+        env:
+          PHP_VERSION: ${{ matrix.php }}
+          WP_VERSION: ${{ matrix.wordpress }}
+          USE_XDEBUG: ${{ matrix.use_xdebug }}
+        run: composer build-test
+
+      - name: Run Tests w/ Docker.
+        env:
+          COVERAGE: ${{ matrix.coverage }}
+          DEBUG: ${{ matrix.debug }}
+          SKIP_TESTS_CLEANUP: ${{ matrix.coverage }}
+          LOWEST: ${{ matrix.lowest }}
+        run: composer run-test
