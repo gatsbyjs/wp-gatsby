@@ -9,12 +9,27 @@ class Settings {
 	function __construct() {
 		$this->settings_api = new \WPGraphQL_Settings_API;
 
+		$this->set_default_jwt_key();
+
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
 		add_action( 'admin_menu', [ $this, 'register_settings_page' ] );
 
 		// Filter the GraphQL Settings for introspection to force enable Introspection when WPGatsby is active
 		add_filter( 'graphql_setting_field_config', [ $this, 'filter_graphql_introspection_setting_field' ], 10, 3 );
 		add_filter( 'graphql_get_setting_section_field_value', [ $this, 'filter_graphql_introspection_setting_value' ], 10, 5 );
+	}
+
+	/**
+	 * If the settings haven't been saved yet, save the JWT once to prevent it from re-generating.
+	 */
+	public function set_default_jwt_key() {
+		$default_secret = Preview::get_setting( 'preview_jwt_secret' );
+
+		if ( empty( $default_secret ) ) {
+			$options = get_option( 'wpgatsby_settings', [] );
+			$options['preview_jwt_secret'] = self::generate_secret();
+			update_option( 'wpgatsby_settings', $options );
+		}
 	}
 
 	/**
@@ -31,7 +46,7 @@ class Settings {
 		if ( 'graphql_general_settings' === $section && 'public_introspection_enabled' === $field_name ) {
 			$field_config['value']    = 'on';
 			$field_config['disabled'] = true;
-			$field_config['desc']     = $field_config['desc'] . ' (<strong>' . __( 'Force enabled by WPGatsby. Gatsby requires WPGraphQL introspection to communicate with WordPress.', 'wp-graphql' ) . '</strong>)';
+			$field_config['desc']     = $field_config['desc'] . ' (<strong>' . __( 'Force enabled by WPGatsby. Gatsby requires WPGraphQL introspection to communicate with WordPress.', 'WPGatsby' ) . '</strong>)';
 		}
 
 		return $field_config;

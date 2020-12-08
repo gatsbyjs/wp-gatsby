@@ -239,4 +239,3 @@ if ( ! function_exists( 'gatsby_init' ) ) {
 add_action( 'plugins_loaded', function() {
 	gatsby_init();
 } );
-
