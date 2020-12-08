@@ -1,5 +1,9 @@
 # Change Log
 
+## Upcoming
+
+- Small internal changes to Previews to facilitate e2e tests.
+
 ## 0.7.2
 
 - Version 0.7.0 introduced a change which resulted in Previews for some WP instances being overwritten by published posts on each preview.
