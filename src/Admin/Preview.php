@@ -146,7 +146,7 @@ class Preview {
 
 				$post = get_post( $parent_id );
 
-				$post_type_object = $post 
+				$post_type_object = $post
 					? get_post_type_object( $post->post_type )
 					: null;
 
@@ -154,7 +154,7 @@ class Preview {
 					? current_user_can(
 						$post_type_object->cap->edit_posts,
 						$parent_id
-					) 
+					)
 					: null;
 
 				if ( !$post || !$user_can_edit_this_post ) {
@@ -184,7 +184,7 @@ class Preview {
 						$modified
 					);
 				}
-				
+
 				if ( $remote_status ) {
 					update_post_meta(
 						$parent_id,
@@ -192,7 +192,7 @@ class Preview {
 						$remote_status
 					);
 				}
-				
+
 				if ( $preview_context ) {
 					update_post_meta(
 						$parent_id,
@@ -206,7 +206,7 @@ class Preview {
 				];
 			}
 		] );
-		
+
 		register_graphql_object_type( 'WPGatsbyPageNode', [
 			'description' => __( 'A previewed Gatsby page node.' ),
 			'fields'      => [
@@ -279,7 +279,7 @@ class Preview {
 				// make sure post_id is a valid post
 				$post = get_post( $post_id );
 
-				$post_type_object = $post 
+				$post_type_object = $post
 					? get_post_type_object( $post->post_type )
 					: null;
 
@@ -287,7 +287,7 @@ class Preview {
 					? current_user_can(
 						$post_type_object->cap->edit_posts,
 						$post_id
-					) 
+					)
 					: null;
 
 				if ( !$post || !$user_can_edit_this_post ) {
@@ -305,9 +305,9 @@ class Preview {
 				if ( !$post ) {
 					return [
 						'statusType' => 'NO_NODE_FOUND',
-					];	
+					];
 				}
-				
+
 				$found_preview_path_post_meta = get_post_meta(
 					$post_id,
 					'_wpgatsby_page_path',
@@ -331,7 +331,7 @@ class Preview {
 					'_wpgatsby_node_remote_preview_status',
 					true
 				);
-				
+
 				$node_modified_was_updated =
 					strtotime( $gatsby_node_modified ) >= strtotime( $modified );
 
@@ -351,11 +351,11 @@ class Preview {
 				if ( $node_modified_was_updated && $found_preview_path_post_meta ) {
 					$gatbsy_preview_frontend_url =
 						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
-						
-					$modified_deployed_url = 
+
+					$modified_deployed_url =
 						$gatbsy_preview_frontend_url .
 						"page-data/$found_preview_path_post_meta/page-data.json";
-						
+
 					// check if node page was deployed
 					$request = wp_remote_get( $modified_deployed_url );
 					$response = wp_remote_retrieve_body( $request );
@@ -369,7 +369,7 @@ class Preview {
 					$preview_was_deployed =
 						$modified_response &&
 						strtotime( $modified_response ) >= strtotime( $modified );
-					
+
 					if ( ! $preview_was_deployed ) {
 						// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED
 						return [
@@ -385,27 +385,27 @@ class Preview {
 				}
 
 				// if the node wasn't updated, then any status we have is stale
-				$remote_status_type = $remote_status && $node_was_updated 
+				$remote_status_type = $remote_status && $node_was_updated
 					? $remote_status
 					: null;
 
 				/**
-				 * We need the above check for wether the node was updated so we 
-				 * don't show stale statuses on existing nodes, but in the case that 
-				 * it's a brand new draft, $node_was_updated will always be false 
-				 * because at this point we're potentially getting an error on a 
-				 * node that was never created. So GATSBY_PREVIEW_PROCESS_ERROR is a 
-				 * special case where we always need to show the status regardless 
+				 * We need the above check for wether the node was updated so we
+				 * don't show stale statuses on existing nodes, but in the case that
+				 * it's a brand new draft, $node_was_updated will always be false
+				 * because at this point we're potentially getting an error on a
+				 * node that was never created. So GATSBY_PREVIEW_PROCESS_ERROR is a
+				 * special case where we always need to show the status regardless
 				 * of wether the node was updated.
 				 */
 				if ( $remote_status === 'GATSBY_PREVIEW_PROCESS_ERROR' ) {
 					$remote_status_type = $remote_status;
 				}
-				
+
 				$status_type = 'PREVIEW_READY';
 
 				if ( !$node_was_updated ) {
-					$status_type = 'REMOTE_NODE_NOT_YET_UPDATED';	
+					$status_type = 'REMOTE_NODE_NOT_YET_UPDATED';
 				}
 
 				if ( !$found_preview_path_post_meta ) {
@@ -422,8 +422,8 @@ class Preview {
 					$status_context = null;
 				}
 
-				$normalized_preview_page_path = 
-					$found_preview_path_post_meta !== "" 
+				$normalized_preview_page_path =
+					$found_preview_path_post_meta !== ""
 						? $found_preview_path_post_meta
 						: null;
 
@@ -452,7 +452,7 @@ class Preview {
 
 				$request = wp_remote_get( $preview_url );
 
-				$request_was_successful = 
+				$request_was_successful =
 					$this->was_request_successful( $request );
 
 				return $request_was_successful;
@@ -495,11 +495,12 @@ class Preview {
 
 	/**
 	 * Get a WPGatsby setting by setting key
+	 *
+	 * @param string $key The name of the setting to get the value for
 	 */
-	static function get_setting( $key ) {
+	static function get_setting( string $key ) {
 		$wpgatsby_settings = get_option( 'wpgatsby_settings' );
-
-		return $wpgatsby_settings[ $key ] ?? null;
+		return isset( $wpgatsby_settings[ $key ] ) ? $wpgatsby_settings[ $key ] : null;
 	}
 
 	/**
@@ -543,7 +544,7 @@ class Preview {
 	 * Send a Preview to Gatsby
 	 */
 	public function post_to_preview_instance( $post_ID, $post ) {
-		$revisions_are_disabled = 
+		$revisions_are_disabled =
 			!wp_revisions_enabled( $post );
 
 		if (
@@ -590,7 +591,7 @@ class Preview {
 
 		$original_post = get_post( $post->post_parent );
 
-		$this_is_a_publish_not_a_preview = 
+		$this_is_a_publish_not_a_preview =
 			$original_post && $original_post->post_modified === $post->post_modified;
 
 		if ( $this_is_a_publish_not_a_preview ) {
@@ -617,7 +618,7 @@ class Preview {
 		$last_sent_modified_time_unix = strtotime( $last_sent_modified_time );
 		$this_sent_modified_time_unix = strtotime( $post->post_modified );
 
-		$difference_between_last_modified_and_this_modified = 
+		$difference_between_last_modified_and_this_modified =
 			$this_sent_modified_time_unix - $last_sent_modified_time_unix;
 
 		if (
@@ -650,7 +651,7 @@ class Preview {
 
 		$referenced_node_single_name
 			= $post_type_object->graphql_single_name ?? null;
-			
+
 		$referenced_node_single_name_normalized = lcfirst(
 			$referenced_node_single_name
 		);
@@ -687,7 +688,7 @@ class Preview {
 		);
 
 		// this is used to optimistically load the preview iframe
-		// we also check if the frontend is responding to requests from the 
+		// we also check if the frontend is responding to requests from the
 		// preview template JS
 		$webhook_success = $this->was_request_successful( $response );
 
@@ -695,12 +696,12 @@ class Preview {
 			'_wp_gatsby_preview_webhook_is_online',
 			$webhook_success, // boolean
 			true
-		); 
+		);
 
 		if ( !$webhook_success ) {
 			error_log(
 				'WPGatsby couldn\'t reach the Preview webhook set in plugin options.'
-			);	
+			);
 		}
 	}
 
@@ -711,9 +712,9 @@ class Preview {
 		$response_message_was_ok = !$is_wp_error ? $response['response']['message'] === 'OK' ?? null : null;
 
 		// this is used to optimistically load the preview iframe
-		// we also check if the frontend is responding to requests from the 
+		// we also check if the frontend is responding to requests from the
 		// preview template JS
-		$success = 
+		$success =
 			!$is_wp_error &&
 			(
 				$status_code === 200 ||

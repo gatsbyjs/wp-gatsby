@@ -7,10 +7,10 @@ class Settings {
 	private $settings_api;
 
 	function __construct() {
+
 		$this->settings_api = new \WPGraphQL_Settings_API;
 
-		$this->set_default_jwt_key();
-
+		add_action( 'init', [ $this, 'set_default_jwt_key' ] );
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
 		add_action( 'admin_menu', [ $this, 'register_settings_page' ] );
 
@@ -23,11 +23,24 @@ class Settings {
 	 * If the settings haven't been saved yet, save the JWT once to prevent it from re-generating.
 	 */
 	public function set_default_jwt_key() {
+
+		// Get the JWT Secret
 		$default_secret = Preview::get_setting( 'preview_jwt_secret' );
 
 		if ( empty( $default_secret ) ) {
+
+			// Get the WPGatsby Settings from the options
 			$options = get_option( 'wpgatsby_settings', [] );
+
+			// If settings haven't been saved before, instantiate them as a new array
+			if ( empty( $options ) || ! is_array( $options ) ) {
+				$options = [];
+			}
+
+			// Se the preview secret
 			$options['preview_jwt_secret'] = self::generate_secret();
+
+			// Save the settings to prevent the JWT Secret from generating again
 			update_option( 'wpgatsby_settings', $options );
 		}
 	}
