@@ -4,7 +4,6 @@ namespace WPGatsby\ActionMonitor;
 
 use WP_Post;
 use WPGatsby\Admin\Settings;
-use GraphQLRelay\Relay;
 
 /**
  * This class registers and controls a post type which can be used to
@@ -303,6 +302,7 @@ class ActionMonitor {
 	function init_action_monitors() {
 
 		$class_names = [
+			'AcfMonitor',
 			'MediaMonitor',
 			'NavMenuMonitor',
 			'PostMonitor',
