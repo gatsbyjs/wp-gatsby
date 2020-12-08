@@ -349,8 +349,12 @@ class Preview {
 				$node_was_updated = false;
 
 				if ( $node_modified_was_updated && $found_preview_path_post_meta ) {
+					$server_side = true;
+					
 					$gatbsy_preview_frontend_url =
-						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url();
+						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url(
+							$server_side
+						);
 						
 					$modified_deployed_url = 
 						$gatbsy_preview_frontend_url .
@@ -505,8 +509,25 @@ class Preview {
 	/**
 	 * Get the normalized/validated frontend url of the Gatsby Preview
 	 */
-	static function get_gatsby_preview_instance_url() {
+	static function get_gatsby_preview_instance_url( $server_side = false ) {
 		$preview_url = self::get_setting( 'preview_instance_url' );
+
+		$preview_url_exploded = explode( ',', $preview_url );
+
+		// this allows using a different url as the frontend url
+		// on the server side and in the preview browser
+		// for our tests we need to use http://host.docker.internal:8000 for the PHP
+		// side checks for wether or not the page-data.json has deployed
+		// but we need to run the preview-template.php code with the frontend url as
+		// http://localhost:8000
+		// So this allows passing
+		// "http://host.docker.internal:8000,http://localhost:8000"
+		// as the server preview frontend and template preview frontend
+		if ( count( $preview_url_exploded ) > 1 ) {
+			$preview_url = $server_side
+				? $preview_url_exploded[0]
+				: $preview_url_exploded[1];
+		}
 
 		if ( ! $preview_url || ! filter_var( $preview_url, FILTER_VALIDATE_URL ) ) {
 			return false;
