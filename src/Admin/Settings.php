@@ -137,10 +137,8 @@ class Settings {
 	public static function sanitize_url_field( $input ) {
 		$urls = explode( ',', $input );
 		if ( count( $urls ) > 1 ) {
-			// if false is not in this array
-			// then we return true
-			// because our filter_var validation
-			// came back true for every url
+			
+			// validate all urls
 			$validated_urls = array_map(
 				function( $url ) {
 					return filter_var( $url, FILTER_VALIDATE_URL );
@@ -148,6 +146,7 @@ class Settings {
 				$urls
 			);
 
+			// then put em back together
 			return implode( ',', $validated_urls );
 		}
 
