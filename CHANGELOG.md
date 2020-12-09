@@ -1,6 +1,6 @@
 # Change Log
 
-## Upcoming
+## 0.7.3
 
 - Small internal changes to Previews to facilitate e2e tests.
 
