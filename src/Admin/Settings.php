@@ -135,6 +135,21 @@ class Settings {
 	}
 
 	public static function sanitize_url_field( $input ) {
+		$urls = explode( ',', $input );
+		if ( count( $urls ) > 1 ) {
+			
+			// validate all urls
+			$validated_urls = array_map(
+				function( $url ) {
+					return filter_var( $url, FILTER_VALIDATE_URL );
+				},
+				$urls
+			);
+
+			// then put em back together
+			return implode( ',', $validated_urls );
+		}
+
 		return filter_var( $input, FILTER_VALIDATE_URL );
 	}
 
