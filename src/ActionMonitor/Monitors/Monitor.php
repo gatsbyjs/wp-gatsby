@@ -212,6 +212,8 @@ abstract class Monitor {
 			? 'PREVIEW' 
 			: 'CONTENT';
 
+		$is_preview = $stream_type === 'PREVIEW';
+
 		// Check to see if an action already exists for this node type/database id
 		$existing = new \WP_Query( [
 			'post_type'      => 'action_monitor',
@@ -289,15 +291,22 @@ abstract class Monitor {
 				graphql_format_field_name( $args['graphql_plural_name'] )
 			);
 
-			\wp_update_post( [
-				'ID'          => $action_monitor_post_id,
-				'post_status' => 'publish'
-			] );
+			// preview actions should remain private
+			if ( !$is_preview ) {
+				\wp_update_post( [
+					'ID'          => $action_monitor_post_id,
+					'post_status' => 'publish'
+				] );
+			}
 
 		}
 
-		// we've saved at least 1 action, so we should update
-		$this->action_monitor->schedule_dispatch();
+		if ( !$is_preview ) {
+			// we've saved at least 1 action, so we should update
+			// but only if this isn't a preview
+			// previews will dispatch on their own
+			$this->action_monitor->schedule_dispatch();
+		}
 
 		// Delete old actions
 		$this->action_monitor->garbage_collect_actions();
