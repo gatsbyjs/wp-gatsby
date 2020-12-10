@@ -170,7 +170,7 @@ class NavMenuMonitor extends Monitor {
 
 		$this->log_action( [
 			'action_type'         => 'DELETE',
-			'title'               => 'Menu ' . $deleted_term->name,
+			'title'               => 'Menu: ' . $deleted_term->name,
 			// menus don't have post status. This is for Gatsby
 			'status'              => 'trash',
 			'node_id'             => (int) $deleted_term->term_id,
@@ -198,7 +198,7 @@ class NavMenuMonitor extends Monitor {
 		// Log action for the updated menu
 		$this->log_action( [
 			'action_type'         => 'UPDATE',
-			'title'               => 'Menu ' . $menu->name,
+			'title'               => 'Menu: ' . $menu->name,
 			// menus don't have post status. This is for Gatsby
 			'status'              => 'publish',
 			'node_id'             => (int) $menu->term_id,
@@ -238,7 +238,7 @@ class NavMenuMonitor extends Monitor {
 		// Log action for the updated menu
 		$this->log_action( [
 			'action_type'         => 'UPDATE',
-			'title'               => 'Menu ' . $menu->name,
+			'title'               => 'Menu: ' . $menu->name,
 			// menus don't have post status. This is for Gatsby
 			'status'              => 'publish',
 			'node_id'             => (int) $menu->term_id,

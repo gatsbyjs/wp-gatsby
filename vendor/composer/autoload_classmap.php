@@ -50,6 +50,7 @@ return array(
     'SecurityLib\\Strength' => $vendorDir . '/ircmaxell/security-lib/lib/SecurityLib/Strength.php',
     'SecurityLib\\Util' => $vendorDir . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
     'WPGatsby\\ActionMonitor\\ActionMonitor' => $baseDir . '/src/ActionMonitor/ActionMonitor.php',
+    'WPGatsby\\ActionMonitor\\Monitors\\AcfMonitor' => $baseDir . '/src/ActionMonitor/Monitors/AcfMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\MediaMonitor' => $baseDir . '/src/ActionMonitor/Monitors/MediaMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\Monitor' => $baseDir . '/src/ActionMonitor/Monitors/Monitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\NavMenuMonitor' => $baseDir . '/src/ActionMonitor/Monitors/NavMenuMonitor.php',

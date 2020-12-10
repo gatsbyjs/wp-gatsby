@@ -12,11 +12,33 @@ class PostMonitor extends Monitor {
 	 */
 	public function init() {
 
+		add_action( 'post_updated', [ $this, 'callback_post_updated' ], 10, 3 );
 		add_action( 'transition_post_status', [ $this, 'callback_transition_post_status' ], 10, 3 );
 		add_action( 'deleted_post', [ $this, 'callback_deleted_post' ], 10, 1 );
 		add_action( 'updated_post_meta', [ $this, 'callback_updated_post_meta' ], 10, 4 );
 		add_action( 'added_post_meta', [ $this, 'callback_updated_post_meta' ], 10, 4 );
 		add_action( 'deleted_post_meta', [ $this, 'callback_deleted_post_meta' ], 10, 4 );
+
+	}
+
+	/**
+	 * Log change to authors
+	 * @param int     $post_id      Post ID.
+	 * @param WP_Post $post_after   Post object following the update.
+	 * @param WP_Post $post_before  Post object before the update.
+	 */
+	public function callback_post_updated( int $post_id, WP_Post $post_after, WP_Post $post_before ) {
+
+		// If the author of the post has changed, we need to log an update for the old author and the new author
+		if ( isset( $post_after->post_author ) && (int) $post_after->post_author !== (int) $post_before->post_author ) {
+
+			/**
+			 * Log user update action
+			 */
+			$this->log_user_update( $post_after );
+			$this->log_user_update( $post_before );
+
+		}
 
 	}
 
@@ -27,7 +49,7 @@ class PostMonitor extends Monitor {
 	 *
 	 * @param mixed    $new_status  New status.
 	 * @param mixed    $old_status  Old status.
-	 * @param WP_Post $post Post object.
+	 * @param WP_Post  $post Post object.
 	 */
 	public function callback_transition_post_status( $new_status, $old_status, WP_Post $post ) {
 
@@ -80,22 +102,25 @@ class PostMonitor extends Monitor {
 
 		// If a published post is saved, it's an update.
 		} else if ( 'publish' === $new_status && 'publish' === $old_status ) {
-
 			$action_type = 'UPDATE';
-
 		}
 
+		// We don't need to log a user update if the post is simply being updated.
+		// The exception would be when the post author is changed, but that's
+		// handled in a different action
 		if ( 'UPDATE' !== $action_type ) {
 			$this->log_user_update( $post );
 		}
 
+		$post_type_object = get_post_type_object( $post->post_type );
+
 		$action = [
 			'action_type' => $action_type,
-			'title' => $action_type . ' ' . $post->post_title,
+			'title' => $post_type_object->label . ': ' . $post->post_title,
 			'node_id' => $post->ID,
 			'relay_id' => Relay::toGlobalId( 'post', $post->ID ),
-			'graphql_single_name' => get_post_type_object( $post->post_type )->graphql_single_name,
-			'graphql_plural_name' => get_post_type_object( $post->post_type )->graphql_plural_name,
+			'graphql_single_name' => $post_type_object->graphql_single_name,
+			'graphql_plural_name' => $post_type_object->graphql_plural_name,
 			'status' => $new_status,
 		];
 
@@ -130,13 +155,15 @@ class PostMonitor extends Monitor {
 			return;
 		}
 
+		$post_type_object = get_post_type_object( $post->post_type );
+
 		$action = [
 			'action_type' => 'DELETE',
-			'title' => 'DELETE' . ' ' . $post->post_title,
+			'title' => $post_type_object->label . ': ' . $post->post_title,
 			'node_id' => $post->ID,
 			'relay_id' => Relay::toGlobalId( 'post', $post->ID ),
-			'graphql_single_name' => get_post_type_object( $post->post_type )->graphql_single_name,
-			'graphql_plural_name' => get_post_type_object( $post->post_type )->graphql_plural_name,
+			'graphql_single_name' => $post_type_object->graphql_single_name,
+			'graphql_plural_name' => $post_type_object->graphql_plural_name,
 			'status' => 'trash',
 		];
 
@@ -186,13 +213,15 @@ class PostMonitor extends Monitor {
 			return;
 		}
 
+		$post_type_object = get_post_type_object( $post->post_type );
+
 		$action = [
 			'action_type' => 'UPDATE',
-			'title' => 'UPDATE' . ' ' . $post->post_title,
+			'title' => $post_type_object->label . ': ' . $post->post_title,
 			'node_id' => $post->ID,
 			'relay_id' => Relay::toGlobalId( 'post', $post->ID ),
-			'graphql_single_name' => get_post_type_object( $post->post_type )->graphql_single_name,
-			'graphql_plural_name' => get_post_type_object( $post->post_type )->graphql_plural_name,
+			'graphql_single_name' => $post_type_object->graphql_single_name,
+			'graphql_plural_name' => $post_type_object->graphql_plural_name,
 			'status' => $post->post_status,
 		];
 
@@ -228,13 +257,15 @@ class PostMonitor extends Monitor {
 			return;
 		}
 
+		$post_type_object = get_post_type_object( $post->post_type );
+
 		$action = [
 			'action_type' => 'UPDATE',
-			'title' => 'UPDATE' . ' ' . $post->post_title,
+			'title' => $post_type_object->label . ': ' . $post->post_title,
 			'node_id' => $post->ID,
 			'relay_id' => Relay::toGlobalId( 'post', $post->ID ),
-			'graphql_single_name' => get_post_type_object( $post->post_type )->graphql_single_name,
-			'graphql_plural_name' => get_post_type_object( $post->post_type )->graphql_plural_name,
+			'graphql_single_name' => $post_type_object->graphql_single_name,
+			'graphql_plural_name' => $post_type_object->graphql_plural_name,
 			'status' => $post->post_status,
 		];
 
@@ -247,7 +278,7 @@ class PostMonitor extends Monitor {
 	 * Log a user update when a post is created or deleted, telling Gatsby to
 	 * invalidate user caches
 	 *
-	 * @param WP_Post $post The post object being updated
+	 * @param WP_Post $post The post data of the Post being updated
 	 *
 	 * @todo:
 	 *      This should be able to be removed at some point as Gatsby
@@ -260,11 +291,11 @@ class PostMonitor extends Monitor {
 	 */
 	public function log_user_update( WP_Post $post ) {
 
-		if ( empty( $post->post_author ) || ! absint( $post->post_author ) ) {
+		if ( empty( $post->post_author ) || ! absint( $post->post_author  ) ) {
 			return;
 		}
 
-		if ( ! $user = get_user_by( 'id', absint( $post->post_author ) ) ) {
+		if ( ! $user = get_user_by( 'id', absint( $post->post_author  ) ) ) {
 			return;
 		}
 
@@ -284,7 +315,7 @@ class PostMonitor extends Monitor {
 
 		$this->log_action( [
 			'action_type'         => $action_type,
-			'title'               => $title,
+			'title'               => 'User: ' . $title,
 			'node_id'             => $user->ID,
 			'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
 			'graphql_single_name' => 'user',

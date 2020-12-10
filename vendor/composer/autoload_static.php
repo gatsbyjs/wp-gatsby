@@ -98,6 +98,7 @@ class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
         'SecurityLib\\Strength' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Strength.php',
         'SecurityLib\\Util' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
         'WPGatsby\\ActionMonitor\\ActionMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/ActionMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\AcfMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/AcfMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\MediaMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/MediaMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\Monitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/Monitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\NavMenuMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/NavMenuMonitor.php',

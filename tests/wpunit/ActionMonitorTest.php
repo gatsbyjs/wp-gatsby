@@ -451,6 +451,81 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	}
 
+	public function testChangeAuthorsOnPublishedPostCreatesActionMonitorActions() {
+
+		$user_two = $this->factory()->user->create([
+			'role' => 'editor'
+		]);
+
+		$post_one_for_admin = $this->factory()->post->create([
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'post_title' => 'test',
+			'post_author' => $this->admin,
+		]);
+
+		$post_two_for_admin = $this->factory()->post->create([
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'post_title' => 'test',
+			'post_author' => $this->admin,
+		]);
+
+		$post_one_for_user_two = $this->factory()->post->create([
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'post_title' => 'test',
+			'post_author' => $user_two,
+		]);
+
+		$post_two_for_user_two = $this->factory()->post->create([
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'post_title' => 'test',
+			'post_author' => $user_two,
+		]);
+
+		$this->clear_action_monitor();
+
+		// Query for action monitor actions
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		wp_update_post([
+			'ID' => $post_one_for_admin,
+			'post_author' => $user_two
+		]);
+
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+
+		// Changing the author of a post should create 3 actions
+		// - for the post
+		// - 1 for the new author
+		// - 1 for the previous author
+		$this->assertSame( 3, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		$this->assertQuerySuccessful( $actual, [
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $post_one_for_admin,
+				'referencedNodeSingularName' => 'post'
+			] ),
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
+				'referencedNodeSingularName' => 'user'
+			] ),
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $user_two,
+				'referencedNodeSingularName' => 'user'
+			] ),
+		] );
+
+	}
+
 	public function testChangeOnlyPostFromAuthorToDraftCreatesActionMonitorActions() {
 
 		$post_id = $this->factory()->post->create([

@@ -65,7 +65,7 @@ class TermMonitor extends Monitor {
 
 		$this->log_action( [
 			'action_type'         => 'CREATE',
-			'title'               => 'CREATE' . ' ' . $term->name,
+			'title'               => $tax_object->label . ': ' . $term->name,
 			'node_id'             => $term->term_id,
 			'relay_id'            => Relay::toGlobalId( 'term', $term->ID ),
 			'graphql_single_name' => $tax_object->graphql_single_name,
@@ -123,7 +123,7 @@ class TermMonitor extends Monitor {
 
 		$this->log_action( [
 			'action_type'         => 'DELETE',
-			'title'               => 'DELETE' . ' ' . $deleted_term->name,
+			'title'               => $tax_object->label . ': ' . $deleted_term->name,
 			'node_id'             => $deleted_term->term_id,
 			'relay_id'            => Relay::toGlobalId( 'term', $deleted_term->ID ),
 			'graphql_single_name' => $tax_object->graphql_single_name,
@@ -156,7 +156,7 @@ class TermMonitor extends Monitor {
 
 		$this->log_action( [
 			'action_type'         => 'UPDATE',
-			'title'               => 'UPDATE' . ' ' . $term->name,
+			'title'               => $tax_object->label . ': ' . $term->name,
 			'node_id'             => $term->term_id,
 			'relay_id'            => Relay::toGlobalId( 'term', $term->ID ),
 			'graphql_single_name' => $tax_object->graphql_single_name,
@@ -183,7 +183,7 @@ class TermMonitor extends Monitor {
 				if ( is_a( $parent, 'WP_Term' ) ) {
 					$this->log_action( [
 						'action_type'         => 'UPDATE',
-						'title'               => 'UPDATE' . ' ' . $parent->name . ' Parent',
+						'title'               => $tax_object->label . ': ' . $parent->name . ' Parent',
 						'node_id'             => $parent->term_id,
 						'relay_id'            => Relay::toGlobalId( 'term', $parent->term_id ),
 						'graphql_single_name' => $tax_object->graphql_single_name,
@@ -211,7 +211,7 @@ class TermMonitor extends Monitor {
 
 						$this->log_action( [
 							'action_type'         => 'UPDATE',
-							'title'               => 'UPDATE' . ' ' . $child_term->name . ' Parent',
+							'title'               => $tax_object->label . ': ' . $child_term->name . ' Parent',
 							'node_id'             => $child_term->term_id,
 							'relay_id'            => Relay::toGlobalId( 'term', $child_term->term_id ),
 							'graphql_single_name' => $tax_object->graphql_single_name,
