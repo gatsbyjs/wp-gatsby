@@ -273,19 +273,6 @@ class ActionMonitor {
 	}
 
 	/**
-	 * Insert new action
-	 *
-	 * $args = [$action_type, $title, $status, $node_id, $relay_id, $graphql_single_name,
-	 * $graphql_plural_name]
-	 *
-	 * @param array $args Array of arguments to configure the action to be inserted
-	 *
-	 */
-	public function insertNewAction( array $args ) {
-		$this->log_action( $args );
-	}
-
-	/**
 	 * Given the name of an Action Monitor, this returns it
 	 *
 	 * @param string $name The name of the Action Monitor to get

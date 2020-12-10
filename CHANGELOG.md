@@ -1,5 +1,26 @@
 # Change Log
 
+## Upcoming
+
+- BREAKING: This is a breaking change release that changes a lot of internals for the Gatsby Action Monitor.
+- Refactors Action Monitor to have separate classes for tracking activity for Acf, Media, Menus, Posts, Post Types, Settings, Taxonomies, Terms, and Users.
+- TESTS! Lots of tests for the Action Monitors. 
+- JWT Secret is now set once when WPGatsby is first loaded, instead of every time the settings page is visited.
+
+Closes the following issues:
+
+- [#70](https://github.com/gatsbyjs/wp-gatsby/issues/70): When field groups are saved using ACF Field Group GUI, a "Diff Schema" action is triggered
+- [#58](https://github.com/gatsbyjs/wp-gatsby/issues/58): A "Refetch All" action is available and is used when Permalinks are changed
+- [#57](https://github.com/gatsbyjs/wp-gatsby/issues/57): Term meta is now properly tracked when changed
+- [#56](https://github.com/gatsbyjs/wp-gatsby/issues/56): Custom post types (all post types that are public and show_in_graphql) are now tracked when they are moved from publish to trash and vis-versa
+- [#41](https://github.com/gatsbyjs/wp-gatsby/issues/41): Codeception tests are now in place
+- [#38](https://github.com/gatsbyjs/wp-gatsby/issues/38): Many core WordPress options have been added to an allow-list and trigger a general NON_NODE_ROOT_FIELDS action. A few specific actions trigger specific actions for specific nodes. For example, changing the home_page triggers an update for the new page and the old page being changed as the URI is now different.
+- [#26](https://github.com/gatsbyjs/wp-gatsby/issues/26): Posts that transition from future->publish now trigger an action (ensuring WordPress cron is triggered for WordPress sites using Gatsby front-ends might need more thought still though. . .)
+- [#17](https://github.com/gatsbyjs/wp-gatsby/issues/17): Meta is now tracked for Posts, Terms and Users (comments are not currently tracked at the moment)
+- [#15](https://github.com/gatsbyjs/wp-gatsby/issues/15): Saving permalinks triggers a REFETCH_ALL Action
+- [#7](https://github.com/gatsbyjs/wp-gatsby/issues/7): Gatsby JWT Secret is now generated once and saved immediately and not generated again
+- [#6](https://github.com/gatsbyjs/wp-gatsby/issues/6): Gatsby now tracks only post_types (and taxonomies) that are set to be both public and show_in_graphql and there are filters to override as needed.
+
 ## 0.6.8
 
 - The `NO_PAGE_CREATED_FOR_PREVIEWED_NODE` preview status was no longer making it through to the preview template because we were checking if the preview had deployed before checking if a page had been created in Gatsby for the preview. this release fixes that.
