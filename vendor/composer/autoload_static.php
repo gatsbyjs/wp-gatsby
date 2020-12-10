@@ -6,6 +6,10 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
 {
+    public static $files = array (
+        '6413a0507de9f277a61292c211ec9a9e' => __DIR__ . '/../..' . '/tests/_data/config.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
         'W' => 
         array (
@@ -98,16 +102,17 @@ class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
         'SecurityLib\\Strength' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Strength.php',
         'SecurityLib\\Util' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
         'WPGatsby\\ActionMonitor\\ActionMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/ActionMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\AcfMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/AcfMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\MediaMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/MediaMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\Monitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/Monitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\NavMenuMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/NavMenuMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\PostMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/PostMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\PostTypeMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/PostTypeMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\PreviewMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/Preview.php',
         'WPGatsby\\ActionMonitor\\Monitors\\SettingsMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/SettingsMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\TaxonomyMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/TaxonomyMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\TermMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/TermMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\UserMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/UserMonitor.php',
-        'WPGatsby\\Admin\\Preview' => __DIR__ . '/../..' . '/src/Admin/Preview.php',
         'WPGatsby\\Admin\\Settings' => __DIR__ . '/../..' . '/src/Admin/Settings.php',
         'WPGatsby\\GraphQL\\Auth' => __DIR__ . '/../..' . '/src/GraphQL/Auth.php',
         'WPGatsby\\GraphQL\\ParseAuthToken' => __DIR__ . '/../..' . '/src/GraphQL/ParseAuthToken.php',

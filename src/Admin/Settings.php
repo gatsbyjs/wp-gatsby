@@ -23,13 +23,47 @@ class Settings {
 	 * If the settings haven't been saved yet, save the JWT once to prevent it from re-generating.
 	 */
 	public function set_default_jwt_key() {
-		$default_secret = Preview::get_setting( 'preview_jwt_secret' );
+		$default_secret = self::get_setting( 'preview_jwt_secret' );
 
 		if ( empty( $default_secret ) ) {
 			$options = get_option( 'wpgatsby_settings', [] );
 			$options['preview_jwt_secret'] = self::generate_secret();
 			update_option( 'wpgatsby_settings', $options );
 		}
+	}
+
+	/**
+	 * Get the normalized/validated frontend url of the Gatsby Preview
+	 */
+	static function get_gatsby_preview_instance_url( $server_side = false ) {
+		$preview_url = self::get_setting( 'preview_instance_url' );
+
+		$preview_url_exploded = explode( ',', $preview_url );
+
+		// this allows using a different url as the frontend url
+		// on the server side and in the preview browser
+		// for our tests we need to use http://host.docker.internal:8000 for the PHP
+		// side checks for wether or not the page-data.json has deployed
+		// but we need to run the preview-template.php code with the frontend url as
+		// http://localhost:8000
+		// So this allows passing
+		// "http://host.docker.internal:8000,http://localhost:8000"
+		// as the server preview frontend and template preview frontend
+		if ( count( $preview_url_exploded ) > 1 ) {
+			$preview_url = $server_side
+				? $preview_url_exploded[0]
+				: $preview_url_exploded[1];
+		}
+
+		if ( ! $preview_url || ! filter_var( $preview_url, FILTER_VALIDATE_URL ) ) {
+			return false;
+		}
+
+		if ( substr( $preview_url, - 1 ) !== '/' ) {
+			$preview_url = "$preview_url/";
+		}
+
+		return $preview_url;
 	}
 
 	/**
@@ -140,7 +174,7 @@ class Settings {
 	}
 
 	private static function get_default_secret() {
-		$default_secret = \WPGatsby\Admin\Preview::get_setting( 'preview_jwt_secret' );
+		$default_secret = self::get_setting( 'preview_jwt_secret' );
 
 		if ( ! $default_secret ) {
 			$default_secret = self::generate_secret();

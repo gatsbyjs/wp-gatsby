@@ -1,8 +1,9 @@
 <?php
 
+use WPGatsby\Admin\Settings;
 use WPGatsby\Admin\Preview;
 
-$preview_url = Preview::get_gatsby_preview_instance_url();
+$preview_url = Settings::get_gatsby_preview_instance_url();
 ?>
 
 <html lang="en">

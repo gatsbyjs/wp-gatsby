@@ -208,6 +208,19 @@ class ActionMonitor {
 			'show_admin_column'   => true,
 		] );
 
+		register_taxonomy( 'gatsby_action_stream_type', 'action_monitor', [
+			'label'               => __( 'Stream Type', 'WPGatsby' ),
+			'public'              => false,
+			'show_ui'             => $this->wpgraphql_debug_mode,
+			'show_in_graphql'     => false,
+			'graphql_single_name' => 'ActionMonitorStreamType',
+			'graphql_plural_name' => 'ActionMonitorStreamTypes',
+			'hierarchical'        => false,
+			'show_in_nav_menus'   => false,
+			'show_tagcloud'       => false,
+			'show_admin_column'   => true,
+		] );
+
 	}
 
 	/**
@@ -311,6 +324,7 @@ class ActionMonitor {
 			'TaxonomyMonitor',
 			'TermMonitor',
 			'UserMonitor',
+			'PreviewMonitor',
 		];
 
 		$action_monitors = [];

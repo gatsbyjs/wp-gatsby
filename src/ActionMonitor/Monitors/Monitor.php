@@ -208,6 +208,10 @@ abstract class Monitor {
 			}
 		}
 
+		$stream_type = ( $args['stream_type'] ?? null ) === 'PREVIEW' 
+			? 'PREVIEW' 
+			: 'CONTENT';
+
 		// Check to see if an action already exists for this node type/database id
 		$existing = new \WP_Query( [
 			'post_type'      => 'action_monitor',
@@ -227,6 +231,11 @@ abstract class Monitor {
 					'field'    => 'name',
 					'terms'    => $node_type,
 				],
+				[
+					'taxonomy' => 'gatsby_action_stream_type',
+					'field'    => 'name',
+					'terms'    => $stream_type,
+				]
 			],
 		] );
 
@@ -260,6 +269,7 @@ abstract class Monitor {
 
 		wp_set_object_terms( $action_monitor_post_id, sanitize_text_field( $args['relay_id'] ), 'gatsby_action_ref_node_id' );
 		wp_set_object_terms( $action_monitor_post_id, $args['action_type'], 'gatsby_action_type' );
+		wp_set_object_terms( $action_monitor_post_id, $stream_type, 'gatsby_action_stream_type' );
 
 
 		if ( $action_monitor_post_id !== 0 ) {
