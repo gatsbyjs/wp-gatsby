@@ -293,7 +293,7 @@ class PreviewMonitor extends Monitor {
 					$server_side = true;
 					
 					$gatbsy_preview_frontend_url =
-						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url(
+						\WPGatsby\Admin\Settings::get_gatsby_preview_instance_url(
 							$server_side
 						);
 						
