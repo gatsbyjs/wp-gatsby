@@ -37,7 +37,7 @@ $preview_url = Preview::get_gatsby_preview_instance_url();
 	<p id="preview-loader-warning" style="display: none;"></p>
 </div>
 
-<iframe id='preview' frameborder="0"></iframe>
+<iframe id='preview' name="preview" frameborder="0"></iframe>
 
 <div class="content error" style="display: none;">
 	<h1>The Preview couldn't be loaded</h1>
