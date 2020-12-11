@@ -39,7 +39,7 @@ class TaxonomyMonitor extends Monitor {
 	public function check_taxonomies() {
 
 		$this->current_taxonomies = array_keys( $this->action_monitor->get_tracked_taxonomies() );
-		$this->prev_taxonomies = get_option( $this->option_name, [] );
+		$this->prev_taxonomies    = get_option( $this->option_name, [] );
 
 		if ( empty( $this->prev_taxonomies ) ) {
 			update_option( $this->option_name, $this->current_taxonomies );
@@ -64,15 +64,19 @@ class TaxonomyMonitor extends Monitor {
 
 		// if there are
 		if ( ! empty( $added ) ) {
-			$this->trigger_schema_diff([
-				'title' => __( 'Taxonomy added', 'WPGatsby' ),
-			]);
+			$this->trigger_schema_diff(
+				[
+					'title' => __( 'Taxonomy added', 'WPGatsby' ),
+				]
+			);
 		}
 
-		if ( ! empty( $removed ) )  {
-			$this->trigger_schema_diff([
-				'title' => __( 'Taxonomy removed', 'WPGatsby' ),
-			]);
+		if ( ! empty( $removed ) ) {
+			$this->trigger_schema_diff(
+				[
+					'title' => __( 'Taxonomy removed', 'WPGatsby' ),
+				]
+			);
 		}
 	}
 

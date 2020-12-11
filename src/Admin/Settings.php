@@ -4,6 +4,7 @@ namespace WPGatsby\Admin;
 
 class Settings {
 
+
 	private $settings_api;
 
 	function __construct() {
@@ -95,10 +96,16 @@ class Settings {
 	}
 
 	function admin_menu() {
-		add_options_page( 'Settings API', 'Settings API', 'delete_posts', 'settings_api_test', [
-			$this,
-			'plugin_page'
-		] );
+		add_options_page(
+			'Settings API',
+			'Settings API',
+			'delete_posts',
+			'settings_api_test',
+			[
+				$this,
+				'plugin_page',
+			]
+		);
 	}
 
 
@@ -106,28 +113,37 @@ class Settings {
 		$sections = [
 			[
 				'id'    => 'wpgatsby_settings',
-				'title' => __( 'Settings', 'wpgatsby_settings' )
-			]
+				'title' => __( 'Settings', 'wpgatsby_settings' ),
+			],
 		];
 
 		return $sections;
 	}
 
 	public function register_settings_page() {
-		add_options_page( 'Gatsby', 'GatsbyJS', 'manage_options', 'gatsbyjs', [
-			$this,
-			'plugin_page'
-		] );
+		add_options_page(
+			'Gatsby',
+			'GatsbyJS',
+			'manage_options',
+			'gatsbyjs',
+			[
+				$this,
+				'plugin_page',
+			]
+		);
 	}
 
 
 	function plugin_page() {
 		echo '<div class="wrap">';
 		echo '<div class="notice-info notice">
-			<p>'
-		     . '<a target="_blank" href="'
-		     . esc_url( 'https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md' )
-		     . '">Learn how to configure WPGatsby here.</a></p>
+			<p>
+				<a target="_blank" href="'
+					. esc_url( 'https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md' ) . '">
+					Learn how to configure WPGatsby here 
+					.
+				</a>
+			</p>
 		</div>';
 		$this->settings_api->show_navigation();
 		$this->settings_api->show_forms();
@@ -165,10 +181,10 @@ class Settings {
 	public static function sanitize_url_field( $input ) {
 		$urls = explode( ',', $input );
 		if ( count( $urls ) > 1 ) {
-			
+
 			// validate all urls
 			$validated_urls = array_map(
-				function( $url ) {
+				function ( $url ) {
 					return filter_var( $url, FILTER_VALIDATE_URL );
 				},
 				$urls
@@ -201,15 +217,15 @@ class Settings {
 					'desc'              => __( 'Enter your Gatsby Builds Webhook URL. Must begin with http:// or https://.', 'wpgatsby_settings' ),
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
-					'sanitize_callback' => function( $input ) {
+					'sanitize_callback' => function ( $input ) {
 						return $this->sanitize_url_field( $input );
-					}
+					},
 				],
 				[
 					'name'  => 'enable_gatsby_preview',
 					'label' => __( 'Enable Gatsby Preview?', 'wpgatsby_settings' ),
 					'desc'  => __( 'Yes', 'wpgatsby_settings' ),
-					'type'  => 'checkbox'
+					'type'  => 'checkbox',
 				],
 				[
 					'name'              => 'preview_instance_url',
@@ -217,9 +233,9 @@ class Settings {
 					'desc'              => __( 'Enter your Gatsby Preview instance URL. Must begin with http:// or https://.', 'wpgatsby_settings' ),
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
-					'sanitize_callback' => function( $input ) {
+					'sanitize_callback' => function ( $input ) {
 						return $this->sanitize_url_field( $input );
-					}
+					},
 				],
 				[
 					'name'              => 'preview_api_webhook',
@@ -227,9 +243,9 @@ class Settings {
 					'desc'              => __( 'Enter your Gatsby Preview Webhook URL. Must begin with http:// or https://.', 'wpgatsby_settings' ),
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
-					'sanitize_callback' => function( $input ) {
+					'sanitize_callback' => function ( $input ) {
 						return $this->sanitize_url_field( $input );
-					}
+					},
 				],
 				[
 					'name'              => 'preview_jwt_secret',
@@ -246,7 +262,7 @@ class Settings {
 					'type'    => 'checkbox',
 					'default' => 'on',
 				],
-			]
+			],
 		];
 
 		return $settings_fields;

@@ -79,7 +79,7 @@ abstract class Monitor {
 			'relay_id'            => 'update_non_node_root_field',
 			'graphql_single_name' => 'update_non_node_root_field',
 			'graphql_plural_name' => 'update_non_node_root_field',
-			'status'              => 'update_non_node_root_field'
+			'status'              => 'update_non_node_root_field',
 		];
 
 		$this->log_action( array_merge( $default, $args ) );
@@ -100,7 +100,7 @@ abstract class Monitor {
 			'relay_id'            => 'refetch_all',
 			'graphql_single_name' => 'refetch_all',
 			'graphql_plural_name' => 'refetch_all',
-			'status'              => 'refetch_all'
+			'status'              => 'refetch_all',
 		];
 
 		$this->log_action( array_merge( $default, $args ) );
@@ -155,15 +155,15 @@ abstract class Monitor {
 	 */
 	public function trigger_schema_diff( $args = [] ) {
 
-		$default = [
-			'title' => __( 'Diff schemas', 'WPGatsby' ),
-			'node_id' => "none",
-			'relay_id' => "none",
+		$default             = [
+			'title'               => __( 'Diff schemas', 'WPGatsby' ),
+			'node_id'             => 'none',
+			'relay_id'            => 'none',
 			'graphql_single_name' => 'none',
 			'graphql_plural_name' => 'none',
-			'status' => "none",
+			'status'              => 'none',
 		];
-		$args = array_merge( $default, $args );
+		$args                = array_merge( $default, $args );
 		$args['action_type'] = 'DIFF_SCHEMAS';
 		$this->log_action( $args );
 	}
@@ -201,7 +201,7 @@ abstract class Monitor {
 		$node_type = 'unknown';
 		if ( isset( $args['graphql_single_name'] ) ) {
 			$node_type = $args['graphql_single_name'];
-		} else if ( isset( $args['relay_id'] ) ) {
+		} elseif ( isset( $args['relay_id'] ) ) {
 			$id_parts = Relay::fromGlobalId( $args['relay_id'] );
 			if ( ! isset( $id_parts['type'] ) ) {
 				$node_type = $id_parts['type'];
@@ -209,36 +209,40 @@ abstract class Monitor {
 		}
 
 		// Check to see if an action already exists for this node type/database id
-		$existing = new \WP_Query( [
-			'post_type'      => 'action_monitor',
-			'post_status'    => 'any',
-			'posts_per_page' => 1,
-			'no_found_rows'  => true,
-			'fields'         => 'ids',
-			'tax_query'      => [
-				'relation' => 'AND',
-				[
-					'taxonomy' => 'gatsby_action_ref_node_dbid',
-					'field'    => 'name',
-					'terms'    => sanitize_text_field( $args['node_id'] ),
+		$existing = new \WP_Query(
+			[
+				'post_type'      => 'action_monitor',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+				'tax_query'      => [
+					'relation' => 'AND',
+					[
+						'taxonomy' => 'gatsby_action_ref_node_dbid',
+						'field'    => 'name',
+						'terms'    => sanitize_text_field( $args['node_id'] ),
+					],
+					[
+						'taxonomy' => 'gatsby_action_ref_node_type',
+						'field'    => 'name',
+						'terms'    => $node_type,
+					],
 				],
-				[
-					'taxonomy' => 'gatsby_action_ref_node_type',
-					'field'    => 'name',
-					'terms'    => $node_type,
-				],
-			],
-		] );
+			]
+		);
 
 		// If there's already an action logged for this node, update the record
 		if ( isset( $existing->posts ) && ! empty( $existing->posts ) ) {
 
 			$existing_id            = $existing->posts[0];
-			$action_monitor_post_id = wp_update_post( [
-				'ID'           => absint( $existing_id ),
-				'post_title'   => $args['title'],
-				'post_content' => wp_json_encode( $args )
-			] );
+			$action_monitor_post_id = wp_update_post(
+				[
+					'ID'           => absint( $existing_id ),
+					'post_title'   => $args['title'],
+					'post_content' => wp_json_encode( $args ),
+				]
+			);
 
 		} else {
 
@@ -261,7 +265,6 @@ abstract class Monitor {
 		wp_set_object_terms( $action_monitor_post_id, sanitize_text_field( $args['relay_id'] ), 'gatsby_action_ref_node_id' );
 		wp_set_object_terms( $action_monitor_post_id, $args['action_type'], 'gatsby_action_type' );
 
-
 		if ( $action_monitor_post_id !== 0 ) {
 			\update_post_meta(
 				$action_monitor_post_id,
@@ -279,10 +282,12 @@ abstract class Monitor {
 				graphql_format_field_name( $args['graphql_plural_name'] )
 			);
 
-			\wp_update_post( [
-				'ID'          => $action_monitor_post_id,
-				'post_status' => 'publish'
-			] );
+			\wp_update_post(
+				[
+					'ID'          => $action_monitor_post_id,
+					'post_status' => 'publish',
+				]
+			);
 
 		}
 

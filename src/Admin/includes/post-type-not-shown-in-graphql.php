@@ -7,28 +7,28 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Preview error</title>
 	<style>
-		<?php Preview::printFileContents( "assets/dist/styles.css" ); ?>
+		<?php Preview::printFileContents( 'assets/dist/styles.css' ); ?>
 	</style>
 </head>
 
 <body>
 <div class="content">
-    <h1>Post type not configured properly</h1>
+	<h1>Post type not configured properly</h1>
 
 	<p>
-        The post type <b>"<?php echo $post->post_type; ?>"</b> is not set up properly for Gatsby Preview. 
-        <br />
-        Post types must have <b>"show_in_graphql"</b> set to work with Preview.
-        <br />
-        <br />
-        
-        Visit the
-        <a
-            href="https://docs.wpgraphql.com/getting-started/custom-post-types/" target="_blank"
-            rel="noopener, nofollow. noreferrer, noopener, external">
-                WPGraphQL Docs
-        </a>
-        to learn how to configure this post type.
+		The post type <b>"<?php echo $post->post_type; ?>"</b> is not set up properly for Gatsby Preview. 
+		<br />
+		Post types must have <b>"show_in_graphql"</b> set to work with Preview.
+		<br />
+		<br />
+		
+		Visit the
+		<a
+			href="https://docs.wpgraphql.com/getting-started/custom-post-types/" target="_blank"
+			rel="noopener, nofollow. noreferrer, noopener, external">
+				WPGraphQL Docs
+		</a>
+		to learn how to configure this post type.
 	</pre>
 </div>
 </body>

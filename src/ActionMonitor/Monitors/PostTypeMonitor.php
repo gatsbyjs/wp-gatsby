@@ -39,7 +39,7 @@ class PostTypeMonitor extends Monitor {
 	public function check_post_types() {
 
 		$this->current_post_types = array_keys( $this->action_monitor->get_tracked_post_types() );
-		$this->prev_post_types = get_option( $this->option_name, [] );
+		$this->prev_post_types    = get_option( $this->option_name, [] );
 
 		if ( empty( $this->prev_post_types ) ) {
 			update_option( $this->option_name, $this->current_post_types );
@@ -64,15 +64,19 @@ class PostTypeMonitor extends Monitor {
 
 		// if there are
 		if ( ! empty( $added ) ) {
-			$this->trigger_schema_diff([
-				'title' => __( 'Post Type added', 'WPGatsby' ),
-			]);
+			$this->trigger_schema_diff(
+				[
+					'title' => __( 'Post Type added', 'WPGatsby' ),
+				]
+			);
 		}
 
-		if ( ! empty( $removed ) )  {
-			$this->trigger_schema_diff([
-				'title' => __( 'Post type removed', 'WPGatsby' ),
-			]);
+		if ( ! empty( $removed ) ) {
+			$this->trigger_schema_diff(
+				[
+					'title' => __( 'Post type removed', 'WPGatsby' ),
+				]
+			);
 		}
 	}
 

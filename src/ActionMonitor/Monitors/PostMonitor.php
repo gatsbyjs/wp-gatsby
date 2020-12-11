@@ -23,6 +23,7 @@ class PostMonitor extends Monitor {
 
 	/**
 	 * Log change to authors
+	 *
 	 * @param int     $post_id      Post ID.
 	 * @param WP_Post $post_after   Post object following the update.
 	 * @param WP_Post $post_before  Post object before the update.
@@ -93,15 +94,14 @@ class PostMonitor extends Monitor {
 
 			$action_type = 'DELETE';
 
-
-		// If a post that was not published becomes published, set the action_type to create
-		// to let Gatsby know it should fetch and cache the post
-		} else if ( 'publish' === $new_status && 'publish' !== $old_status ) {
+			// If a post that was not published becomes published, set the action_type to create
+			// to let Gatsby know it should fetch and cache the post
+		} elseif ( 'publish' === $new_status && 'publish' !== $old_status ) {
 
 			$action_type = 'CREATE';
 
-		// If a published post is saved, it's an update.
-		} else if ( 'publish' === $new_status && 'publish' === $old_status ) {
+			// If a published post is saved, it's an update.
+		} elseif ( 'publish' === $new_status && 'publish' === $old_status ) {
 			$action_type = 'UPDATE';
 		}
 
@@ -115,13 +115,13 @@ class PostMonitor extends Monitor {
 		$post_type_object = get_post_type_object( $post->post_type );
 
 		$action = [
-			'action_type' => $action_type,
-			'title' => $post_type_object->label . ': ' . $post->post_title,
-			'node_id' => $post->ID,
-			'relay_id' => Relay::toGlobalId( 'post', $post->ID ),
+			'action_type'         => $action_type,
+			'title'               => $post->post_title,
+			'node_id'             => $post->ID,
+			'relay_id'            => Relay::toGlobalId( 'post', $post->ID ),
 			'graphql_single_name' => $post_type_object->graphql_single_name,
 			'graphql_plural_name' => $post_type_object->graphql_plural_name,
-			'status' => $new_status,
+			'status'              => $new_status,
 		];
 
 		/**
@@ -158,13 +158,13 @@ class PostMonitor extends Monitor {
 		$post_type_object = get_post_type_object( $post->post_type );
 
 		$action = [
-			'action_type' => 'DELETE',
-			'title' => $post_type_object->label . ': ' . $post->post_title,
-			'node_id' => $post->ID,
-			'relay_id' => Relay::toGlobalId( 'post', $post->ID ),
+			'action_type'         => 'DELETE',
+			'title'               => $post->post_title,
+			'node_id'             => $post->ID,
+			'relay_id'            => Relay::toGlobalId( 'post', $post->ID ),
 			'graphql_single_name' => $post_type_object->graphql_single_name,
 			'graphql_plural_name' => $post_type_object->graphql_plural_name,
-			'status' => 'trash',
+			'status'              => 'trash',
 		];
 
 		// Log the action
@@ -196,7 +196,9 @@ class PostMonitor extends Monitor {
 	 */
 	public function callback_updated_post_meta( int $meta_id, int $object_id, string $meta_key, $meta_value ) {
 
-		if ( empty( $post = get_post( $object_id ) ) || ! is_a( $post, 'WP_Post' ) ) {
+		$post = get_post( $object_id );
+
+		if ( empty( $post ) || ! is_a( $post, 'WP_Post' ) ) {
 			return;
 		}
 
@@ -216,13 +218,13 @@ class PostMonitor extends Monitor {
 		$post_type_object = get_post_type_object( $post->post_type );
 
 		$action = [
-			'action_type' => 'UPDATE',
-			'title' => $post_type_object->label . ': ' . $post->post_title,
-			'node_id' => $post->ID,
-			'relay_id' => Relay::toGlobalId( 'post', $post->ID ),
+			'action_type'         => 'UPDATE',
+			'title'               => $post->post_title,
+			'node_id'             => $post->ID,
+			'relay_id'            => Relay::toGlobalId( 'post', $post->ID ),
 			'graphql_single_name' => $post_type_object->graphql_single_name,
 			'graphql_plural_name' => $post_type_object->graphql_plural_name,
-			'status' => $post->post_status,
+			'status'              => $post->post_status,
 		];
 
 		// Log the action
@@ -240,7 +242,9 @@ class PostMonitor extends Monitor {
 	 */
 	public function callback_deleted_post_meta( array $meta_ids, int $object_id, string $meta_key, $meta_value ) {
 
-		if ( empty( $post = get_post( $object_id ) ) || ! is_a( $post, 'WP_Post' ) ) {
+		$post = get_post( $object_id );
+
+		if ( empty( $post ) || ! is_a( $post, 'WP_Post' ) ) {
 			return;
 		}
 
@@ -260,13 +264,13 @@ class PostMonitor extends Monitor {
 		$post_type_object = get_post_type_object( $post->post_type );
 
 		$action = [
-			'action_type' => 'UPDATE',
-			'title' => $post_type_object->label . ': ' . $post->post_title,
-			'node_id' => $post->ID,
-			'relay_id' => Relay::toGlobalId( 'post', $post->ID ),
+			'action_type'         => 'UPDATE',
+			'title'               => $post->post_title,
+			'node_id'             => $post->ID,
+			'relay_id'            => Relay::toGlobalId( 'post', $post->ID ),
 			'graphql_single_name' => $post_type_object->graphql_single_name,
 			'graphql_plural_name' => $post_type_object->graphql_plural_name,
-			'status' => $post->post_status,
+			'status'              => $post->post_status,
 		];
 
 		// Log the action
@@ -287,15 +291,16 @@ class PostMonitor extends Monitor {
 	 *      be able to handle the relationship between the new post and the author. When a post is
 	 *      deleted, Gatsby should remove the post node and any queries (such as author archive pages)
 	 *      that include references to the deleted post node should automatically be updated by Gatsby.
-	 *
 	 */
 	public function log_user_update( WP_Post $post ) {
 
-		if ( empty( $post->post_author ) || ! absint( $post->post_author  ) ) {
+		if ( empty( $post->post_author ) || ! absint( $post->post_author ) ) {
 			return;
 		}
 
-		if ( ! $user = get_user_by( 'id', absint( $post->post_author  ) ) ) {
+		$user = get_user_by( 'id', absint( $post->post_author ) );
+
+		if ( ! $user || 0 === $user->ID ) {
 			return;
 		}
 
@@ -307,21 +312,23 @@ class PostMonitor extends Monitor {
 
 		if ( ! $user_monitor->is_published_author( $user->ID ) ) {
 			$action_type = 'DELETE';
-			$title = __( sprintf( 'Author "%s" has no more published posts', $user->display_name ), 'WPGatsby' );
+			$status = 'trash';
 		} else {
 			$action_type = 'UPDATE';
-			$title = __( sprintf( 'A published post by author "%s" was updated', $user->display_name ), 'WPGatsby' );
+			$status = 'publish';
 		}
 
-		$this->log_action( [
-			'action_type'         => $action_type,
-			'title'               => 'User: ' . $title,
-			'node_id'             => $user->ID,
-			'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
-			'graphql_single_name' => 'user',
-			'graphql_plural_name' => 'users',
-			'status'              => 'none',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => $action_type,
+				'title'               => $user->display_name,
+				'node_id'             => $user->ID,
+				'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
+				'graphql_single_name' => 'user',
+				'graphql_plural_name' => 'users',
+				'status'              => $status,
+			]
+		);
 	}
 
 }

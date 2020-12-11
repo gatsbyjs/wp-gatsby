@@ -63,7 +63,7 @@ class NavMenuMonitor extends Monitor {
 	 */
 	public function is_menu_public( int $menu_id ) {
 
-		$locations = get_theme_mod( 'nav_menu_locations' );
+		$locations         = get_theme_mod( 'nav_menu_locations' );
 		$assigned_menu_ids = ! empty( $locations ) ? array_values( $locations ) : [];
 
 		if ( empty( $assigned_menu_ids ) ) {
@@ -91,16 +91,18 @@ class NavMenuMonitor extends Monitor {
 
 		$menu = get_term_by( 'id', absint( $menu_id ), 'nav_menu' );
 
-		$this->log_action( [
-			'action_type'         => 'UPDATE',
-			'title'               => 'Menu: ' . $menu->name,
-			// menus don't have post status. This is for Gatsby
-			'status'              => 'publish',
-			'node_id'             => (int) $menu->term_id,
-			'relay_id'            => Relay::toGlobalId( 'term', (int) $menu->term_id ),
-			'graphql_single_name' => 'menu',
-			'graphql_plural_name' => 'menus',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'UPDATE',
+				'title'               => $menu->name,
+				// menus don't have post status. This is for Gatsby
+				'status'              => 'publish',
+				'node_id'             => (int) $menu->term_id,
+				'relay_id'            => Relay::toGlobalId( 'term', (int) $menu->term_id ),
+				'graphql_single_name' => 'menu',
+				'graphql_plural_name' => 'menus',
+			]
+		);
 
 	}
 
@@ -124,18 +126,19 @@ class NavMenuMonitor extends Monitor {
 			foreach ( $added as $location => $added_menu_id ) {
 
 				if ( ! empty( $menu = get_term_by( 'id', (int) $added_menu_id, 'nav_menu' ) ) && $menu instanceof WP_Term ) {
-					$this->log_action( [
-						'action_type'         => 'CREATE',
-						'title'               => 'Menu: ' . $menu->name,
-						// menus don't have post status. This is for Gatsby
-						'status'              => 'publish',
-						'node_id'             => (int) $added_menu_id,
-						'relay_id'            => Relay::toGlobalId( 'term', (int) $added_menu_id ),
-						'graphql_single_name' => 'menu',
-						'graphql_plural_name' => 'menus',
-					] );
+					$this->log_action(
+						[
+							'action_type'         => 'CREATE',
+							'title'               => $menu->name,
+							// menus don't have post status. This is for Gatsby
+							'status'              => 'publish',
+							'node_id'             => (int) $added_menu_id,
+							'relay_id'            => Relay::toGlobalId( 'term', (int) $added_menu_id ),
+							'graphql_single_name' => 'menu',
+							'graphql_plural_name' => 'menus',
+						]
+					);
 				}
-
 			}
 		}
 
@@ -144,16 +147,18 @@ class NavMenuMonitor extends Monitor {
 		if ( ! empty( $removed ) ) {
 			foreach ( $removed as $location => $removed_menu_id ) {
 
-				$this->log_action( [
-					'action_type'         => 'DELETE',
-					'title'               => "Menu: #${$removed_menu_id}",
-					// menus don't have post status. This is for Gatsby
-					'status'              => 'trash',
-					'node_id'             => (int) $removed_menu_id,
-					'relay_id'            => Relay::toGlobalId( 'term', $removed_menu_id ),
-					'graphql_single_name' => 'menu',
-					'graphql_plural_name' => 'menus',
-				] );
+				$this->log_action(
+					[
+						'action_type'         => 'DELETE',
+						'title'               => $removed_menu_id,
+						// menus don't have post status. This is for Gatsby
+						'status'              => 'trash',
+						'node_id'             => (int) $removed_menu_id,
+						'relay_id'            => Relay::toGlobalId( 'term', $removed_menu_id ),
+						'graphql_single_name' => 'menu',
+						'graphql_plural_name' => 'menus',
+					]
+				);
 			}
 		}
 
@@ -168,16 +173,18 @@ class NavMenuMonitor extends Monitor {
 	 */
 	public function callback_delete_menu( $term, int $tt_id, $deleted_term ) {
 
-		$this->log_action( [
-			'action_type'         => 'DELETE',
-			'title'               => 'Menu: ' . $deleted_term->name,
-			// menus don't have post status. This is for Gatsby
-			'status'              => 'trash',
-			'node_id'             => (int) $deleted_term->term_id,
-			'relay_id'            => Relay::toGlobalId( 'term', $deleted_term->term_id ),
-			'graphql_single_name' => 'menu',
-			'graphql_plural_name' => 'menus',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'DELETE',
+				'title'               => $deleted_term->name,
+				// menus don't have post status. This is for Gatsby
+				'status'              => 'trash',
+				'node_id'             => (int) $deleted_term->term_id,
+				'relay_id'            => Relay::toGlobalId( 'term', $deleted_term->term_id ),
+				'graphql_single_name' => 'menu',
+				'graphql_plural_name' => 'menus',
+			]
+		);
 
 	}
 
@@ -192,32 +199,36 @@ class NavMenuMonitor extends Monitor {
 			return;
 		}
 
-		$menu = get_term_by( 'id', $menu_id, 'nav_menu' );
+		$menu      = get_term_by( 'id', $menu_id, 'nav_menu' );
 		$menu_item = get_post( $menu_item_db_id );
 
 		// Log action for the updated menu
-		$this->log_action( [
-			'action_type'         => 'UPDATE',
-			'title'               => 'Menu: ' . $menu->name,
-			// menus don't have post status. This is for Gatsby
-			'status'              => 'publish',
-			'node_id'             => (int) $menu->term_id,
-			'relay_id'            => Relay::toGlobalId( 'term', (int) $menu->term_id ),
-			'graphql_single_name' => 'menu',
-			'graphql_plural_name' => 'menus',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'UPDATE',
+				'title'               => $menu->name,
+				// menus don't have post status. This is for Gatsby
+				'status'              => 'publish',
+				'node_id'             => (int) $menu->term_id,
+				'relay_id'            => Relay::toGlobalId( 'term', (int) $menu->term_id ),
+				'graphql_single_name' => 'menu',
+				'graphql_plural_name' => 'menus',
+			]
+		);
 
 		// Log action for the added menu item
-		$this->log_action( [
-			'action_type'         => 'CREATE',
-			'title'               => 'Menu Item: ' . $menu_item->post_title,
-			// menus don't have post status. This is for Gatsby
-			'status'              => 'publish',
-			'node_id'             => (int) $menu_item->ID,
-			'relay_id'            => Relay::toGlobalId( 'post', (int) $menu_item->term_id ),
-			'graphql_single_name' => 'menuItem',
-			'graphql_plural_name' => 'menuItems',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'CREATE',
+				'title'               => $menu_item->post_title,
+				// menus don't have post status. This is for Gatsby
+				'status'              => 'publish',
+				'node_id'             => (int) $menu_item->ID,
+				'relay_id'            => Relay::toGlobalId( 'post', (int) $menu_item->term_id ),
+				'graphql_single_name' => 'menuItem',
+				'graphql_plural_name' => 'menuItems',
+			]
+		);
 
 	}
 
@@ -232,32 +243,36 @@ class NavMenuMonitor extends Monitor {
 			return;
 		}
 
-		$menu = get_term_by( 'id', $menu_id, 'nav_menu' );
+		$menu      = get_term_by( 'id', $menu_id, 'nav_menu' );
 		$menu_item = get_post( $menu_item_db_id );
 
 		// Log action for the updated menu
-		$this->log_action( [
-			'action_type'         => 'UPDATE',
-			'title'               => 'Menu: ' . $menu->name,
-			// menus don't have post status. This is for Gatsby
-			'status'              => 'publish',
-			'node_id'             => (int) $menu->term_id,
-			'relay_id'            => Relay::toGlobalId( 'term', (int) $menu->term_id ),
-			'graphql_single_name' => 'menu',
-			'graphql_plural_name' => 'menus',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'UPDATE',
+				'title'               => $menu->name,
+				// menus don't have post status. This is for Gatsby
+				'status'              => 'publish',
+				'node_id'             => (int) $menu->term_id,
+				'relay_id'            => Relay::toGlobalId( 'term', (int) $menu->term_id ),
+				'graphql_single_name' => 'menu',
+				'graphql_plural_name' => 'menus',
+			]
+		);
 
 		// Log action for the added menu item
-		$this->log_action( [
-			'action_type'         => 'UPDATE',
-			'title'               => 'Menu Item: ' . $menu_item->post_title,
-			// menus don't have post status. This is for Gatsby
-			'status'              => 'publish',
-			'node_id'             => (int) $menu_item->ID,
-			'relay_id'            => Relay::toGlobalId( 'post', (int) $menu_item->term_id ),
-			'graphql_single_name' => 'menuItem',
-			'graphql_plural_name' => 'menuItems',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'UPDATE',
+				'title'               => $menu_item->post_title,
+				// menus don't have post status. This is for Gatsby
+				'status'              => 'publish',
+				'node_id'             => (int) $menu_item->ID,
+				'relay_id'            => Relay::toGlobalId( 'post', (int) $menu_item->term_id ),
+				'graphql_single_name' => 'menuItem',
+				'graphql_plural_name' => 'menuItems',
+			]
+		);
 
 	}
 

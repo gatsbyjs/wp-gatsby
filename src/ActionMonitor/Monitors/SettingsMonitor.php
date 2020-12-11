@@ -46,40 +46,43 @@ class SettingsMonitor extends Monitor {
 		}
 
 		// Options that are allowed to be tracked by default
-		$tracked_option_names = apply_filters( 'gatsby_action_monitor_tracked_option_names', [
-			'siteurl',
-			'home',
-			'blogname',
-			'blogdescription',
-			'start_of_week',
-			'default_category',
-			'default_comment_status',
-			'posts_per_page',
-			'date_format',
-			'time_format',
-			'blog_charset',
-			'active_plugins',
-			'category_base',
-			'gmt_offset',
-			'template',
-			'stylesheet',
-			'comment_registration',
-			'default_role',
-			'show_on_front',
-			'tag_base',
-			'show_avatars',
-			'avatar_rating',
-			'upload_url_path',
-			'comments_per_page',
-			'default_comments_page',
-			'comment_order',
-			'sticky_posts',
-			'timezone_string',
-			'default_post_format',
-			'site_icon',
-			'wp_user_roles',
-			'current_theme',
-		] );
+		$tracked_option_names = apply_filters(
+			'gatsby_action_monitor_tracked_option_names',
+			[
+				'siteurl',
+				'home',
+				'blogname',
+				'blogdescription',
+				'start_of_week',
+				'default_category',
+				'default_comment_status',
+				'posts_per_page',
+				'date_format',
+				'time_format',
+				'blog_charset',
+				'active_plugins',
+				'category_base',
+				'gmt_offset',
+				'template',
+				'stylesheet',
+				'comment_registration',
+				'default_role',
+				'show_on_front',
+				'tag_base',
+				'show_avatars',
+				'avatar_rating',
+				'upload_url_path',
+				'comments_per_page',
+				'default_comments_page',
+				'comment_order',
+				'sticky_posts',
+				'timezone_string',
+				'default_post_format',
+				'site_icon',
+				'wp_user_roles',
+				'current_theme',
+			]
+		);
 
 		if ( in_array( $option_name, $tracked_option_names, true ) ) {
 			return true;
@@ -107,9 +110,11 @@ class SettingsMonitor extends Monitor {
 			return;
 		}
 
-		$this->trigger_non_node_root_field_update([
-			'title' => __( 'Update Setting: ', 'WPGatsby' ) . ' ' . $option_name,
-		]);
+		$this->trigger_non_node_root_field_update(
+			[
+				'title' => __( 'Update Setting: ', 'WPGatsby' ) . ' ' . $option_name,
+			]
+		);
 	}
 
 	/**
@@ -125,9 +130,11 @@ class SettingsMonitor extends Monitor {
 			return;
 		}
 
-		$this->trigger_refetch_all([
-			'title' => __( 'Permalink structure updated', 'WPGatsby' ),
-		]);
+		$this->trigger_refetch_all(
+			[
+				'title' => __( 'Permalink structure updated', 'WPGatsby' ),
+			]
+		);
 
 	}
 
@@ -149,28 +156,32 @@ class SettingsMonitor extends Monitor {
 
 		if ( $old_page instanceof \WP_Post ) {
 
-			$this->log_action( [
-				'action_type'         => 'UPDATE',
-				'title'               => 'Remove page on front: ' . ' ' . $old_page->post_title,
-				'node_id'             => $old_page->ID,
-				'relay_id'            => Relay::toGlobalId( 'post', $old_page->ID ),
-				'graphql_single_name' => get_post_type_object( $old_page->post_type )->graphql_single_name,
-				'graphql_plural_name' => get_post_type_object( $old_page->post_type )->graphql_plural_name,
-				'status'              => $old_page->post_status,
-			] );
+			$this->log_action(
+				[
+					'action_type'         => 'UPDATE',
+					'title'               => $old_page->post_title,
+					'node_id'             => $old_page->ID,
+					'relay_id'            => Relay::toGlobalId( 'post', $old_page->ID ),
+					'graphql_single_name' => get_post_type_object( $old_page->post_type )->graphql_single_name,
+					'graphql_plural_name' => get_post_type_object( $old_page->post_type )->graphql_plural_name,
+					'status'              => $old_page->post_status,
+				]
+			);
 		}
 
 		if ( $new_page instanceof \WP_Post ) {
 
-			$this->log_action( [
-				'action_type'         => 'UPDATE',
-				'title'               => 'Set page on front: ' . ' ' . $new_page->post_title,
-				'node_id'             => $new_page->ID,
-				'relay_id'            => Relay::toGlobalId( 'post', $new_page->ID ),
-				'graphql_single_name' => get_post_type_object( $new_page->post_type )->graphql_single_name,
-				'graphql_plural_name' => get_post_type_object( $new_page->post_type )->graphql_plural_name,
-				'status'              => $new_page->post_status,
-			] );
+			$this->log_action(
+				[
+					'action_type'         => 'UPDATE',
+					'title'               => $new_page->post_title,
+					'node_id'             => $new_page->ID,
+					'relay_id'            => Relay::toGlobalId( 'post', $new_page->ID ),
+					'graphql_single_name' => get_post_type_object( $new_page->post_type )->graphql_single_name,
+					'graphql_plural_name' => get_post_type_object( $new_page->post_type )->graphql_plural_name,
+					'status'              => $new_page->post_status,
+				]
+			);
 
 		}
 	}
@@ -193,50 +204,58 @@ class SettingsMonitor extends Monitor {
 
 		if ( $old_page instanceof \WP_Post ) {
 
-			$this->log_action( [
-				'action_type'         => 'UPDATE',
-				'title'               => 'Remove page on front: ' . ' ' . $old_page->post_title,
-				'node_id'             => $old_page->ID,
-				'relay_id'            => Relay::toGlobalId( 'post', $old_page->ID ),
-				'graphql_single_name' => get_post_type_object( $old_page->post_type )->graphql_single_name,
-				'graphql_plural_name' => get_post_type_object( $old_page->post_type )->graphql_plural_name,
-				'status'              => $old_page->post_status,
-			] );
+			$this->log_action(
+				[
+					'action_type'         => 'UPDATE',
+					'title'               => $old_page->post_title,
+					'node_id'             => $old_page->ID,
+					'relay_id'            => Relay::toGlobalId( 'post', $old_page->ID ),
+					'graphql_single_name' => get_post_type_object( $old_page->post_type )->graphql_single_name,
+					'graphql_plural_name' => get_post_type_object( $old_page->post_type )->graphql_plural_name,
+					'status'              => $old_page->post_status,
+				]
+			);
 		} else {
-			$this->log_action( [
-				'action_type'         => 'UPDATE',
-				'title'               => 'Change page on front away from posts',
-				'node_id'             => 'post',
-				'relay_id'            => Relay::toGlobalId( 'post_type', 'post' ),
-				'graphql_single_name' => 'contentType',
-				'graphql_plural_name' => 'contentTypes',
-				'status'              => 'publish',
-			] );
+			$this->log_action(
+				[
+					'action_type'         => 'UPDATE',
+					'title'               => 'Change page on front away from posts',
+					'node_id'             => 'post',
+					'relay_id'            => Relay::toGlobalId( 'post_type', 'post' ),
+					'graphql_single_name' => 'contentType',
+					'graphql_plural_name' => 'contentTypes',
+					'status'              => 'publish',
+				]
+			);
 		}
 
 		if ( $new_page instanceof \WP_Post ) {
 
-			$this->log_action( [
-				'action_type'         => 'UPDATE',
-				'title'               => 'Set page on front: ' . ' ' . $new_page->post_title,
-				'node_id'             => $new_page->ID,
-				'relay_id'            => Relay::toGlobalId( 'post', $new_page->ID ),
-				'graphql_single_name' => get_post_type_object( $new_page->post_type )->graphql_single_name,
-				'graphql_plural_name' => get_post_type_object( $new_page->post_type )->graphql_plural_name,
-				'status'              => $new_page->post_status,
-			] );
+			$this->log_action(
+				[
+					'action_type'         => 'UPDATE',
+					'title'               => $new_page->post_title,
+					'node_id'             => $new_page->ID,
+					'relay_id'            => Relay::toGlobalId( 'post', $new_page->ID ),
+					'graphql_single_name' => get_post_type_object( $new_page->post_type )->graphql_single_name,
+					'graphql_plural_name' => get_post_type_object( $new_page->post_type )->graphql_plural_name,
+					'status'              => $new_page->post_status,
+				]
+			);
 
 		} else {
 
-			$this->log_action( [
-				'action_type'         => 'UPDATE',
-				'title'               => 'Set page on front to posts',
-				'node_id'             => 'post',
-				'relay_id'            => Relay::toGlobalId( 'post_type', 'post' ),
-				'graphql_single_name' => 'contentType',
-				'graphql_plural_name' => 'contentTypes',
-				'status'              => 'publish',
-			] );
+			$this->log_action(
+				[
+					'action_type'         => 'UPDATE',
+					'title'               => 'Set page on front to posts',
+					'node_id'             => 'post',
+					'relay_id'            => Relay::toGlobalId( 'post_type', 'post' ),
+					'graphql_single_name' => 'contentType',
+					'graphql_plural_name' => 'contentTypes',
+					'status'              => 'publish',
+				]
+			);
 
 		}
 	}

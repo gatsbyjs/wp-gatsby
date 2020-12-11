@@ -103,15 +103,17 @@ class UserMonitor extends Monitor {
 			return;
 		}
 
-		$this->log_action( [
-			'action_type'         => 'UPDATE',
-			'title'               => __( 'UPDATE', 'WPGatsby' ) . ' ' . $user->display_name,
-			'node_id'             => $user->ID,
-			'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
-			'graphql_single_name' => 'user',
-			'graphql_plural_name' => 'users',
-			'status'              => 'trash',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'UPDATE',
+				'title'               => $user->display_name,
+				'node_id'             => $user->ID,
+				'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
+				'graphql_single_name' => 'user',
+				'graphql_plural_name' => 'users',
+				'status'              => 'publish',
+			]
+		);
 
 	}
 
@@ -155,15 +157,17 @@ class UserMonitor extends Monitor {
 			return;
 		}
 
-		$this->log_action( [
-			'action_type'         => 'DELETE',
-			'title'               => 'DELETE' . ' ' . $before_delete['user']->display_name,
-			'node_id'             => $before_delete['user']->ID,
-			'relay_id'            => Relay::toGlobalId( 'user', $before_delete['user']->ID ),
-			'graphql_single_name' => 'user',
-			'graphql_plural_name' => 'users',
-			'status'              => 'trash',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'DELETE',
+				'title'               => $before_delete['user']->display_name,
+				'node_id'             => $before_delete['user']->ID,
+				'relay_id'            => Relay::toGlobalId( 'user', $before_delete['user']->ID ),
+				'graphql_single_name' => 'user',
+				'graphql_plural_name' => 'users',
+				'status'              => 'trash',
+			]
+		);
 
 	}
 
@@ -191,12 +195,12 @@ class UserMonitor extends Monitor {
 
 		$action = [
 			'action_type'         => 'UPDATE',
-			'title'               => 'UPDATE' . ' ' . $user->display_name,
+			'title'               => $user->display_name,
 			'node_id'             => $user->ID,
 			'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
 			'graphql_single_name' => 'user',
 			'graphql_plural_name' => 'users',
-			'status'              => "publish",
+			'status'              => 'publish',
 		];
 
 		// Log the action
@@ -228,12 +232,12 @@ class UserMonitor extends Monitor {
 
 		$action = [
 			'action_type'         => 'UPDATE',
-			'title'               => 'UPDATE' . ' ' . $user->display_name,
+			'title'               => $user->display_name,
 			'node_id'             => $user->ID,
 			'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
 			'graphql_single_name' => 'user',
 			'graphql_plural_name' => 'users',
-			'status'              => "publish",
+			'status'              => 'publish',
 		];
 
 		// Log the action

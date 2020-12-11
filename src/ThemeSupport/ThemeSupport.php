@@ -12,24 +12,24 @@ class ThemeSupport {
 	 *
 	 */
 	function __construct() {
-        add_action( 'init', [ $this, 'registerGatsbyMenuLocations' ] );
-    }
-    
-    function registerGatsbyMenuLocations() {
-        $enable_gatsby_locations = 'on' === Settings::get_setting('enable_gatsby_locations');
+		add_action( 'init', [ $this, 'registerGatsbyMenuLocations' ] );
+	}
 
-        if ( !$enable_gatsby_locations ) {
-            return;
-        }
+	function registerGatsbyMenuLocations() {
+		$enable_gatsby_locations = 'on' === Settings::get_setting( 'enable_gatsby_locations' );
 
-        $gatsby_locations = apply_filters(
-            'gatsby_locations',
-            [
-                'gatsby-header-menu' => __( 'Header Menu [Added by WPGatsby]', 'WPGatsby' ),
-                'gatsby-footer-menu' => __( 'Footer Menu [Added by WPGatsby]', 'WPGatsby' ),
-            ]
-        );
+		if ( ! $enable_gatsby_locations ) {
+			return;
+		}
 
-        register_nav_menus( $gatsby_locations );
-    }
+		$gatsby_locations = apply_filters(
+			'gatsby_locations',
+			[
+				'gatsby-header-menu' => __( 'Header Menu [Added by WPGatsby]', 'WPGatsby' ),
+				'gatsby-footer-menu' => __( 'Footer Menu [Added by WPGatsby]', 'WPGatsby' ),
+			]
+		);
+
+		register_nav_menus( $gatsby_locations );
+	}
 }

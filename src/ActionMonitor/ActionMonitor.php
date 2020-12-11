@@ -63,14 +63,18 @@ class ActionMonitor {
 		// Register post type and taxonomies to track CRUD events in WordPress
 		add_action( 'init', [ $this, 'init_post_type_and_taxonomies' ] );
 		add_filter( 'manage_action_monitor_posts_columns', [ $this, 'add_modified_column' ], 10 );
-		add_action( 'manage_action_monitor_posts_custom_column', [
-			$this,
-			'render_modified_column'
-		], 10, 2 );
+		add_action(
+			'manage_action_monitor_posts_custom_column',
+			[
+				$this,
+				'render_modified_column',
+			],
+			10,
+			2
+		);
 
 		// Trigger webhook dispatch
 		add_action( 'shutdown', [ $this, 'trigger_dispatch' ] );
-
 
 	}
 
@@ -80,10 +84,15 @@ class ActionMonitor {
 	 * @return array|mixed|void
 	 */
 	public function get_tracked_post_types() {
-		$tracked_post_types = apply_filters( 'gatsby_action_monitor_tracked_post_types', get_post_types( [
-			'show_in_graphql' => true,
-			'public'          => true
-		] ) );
+		$tracked_post_types = apply_filters(
+			'gatsby_action_monitor_tracked_post_types',
+			get_post_types(
+				[
+					'show_in_graphql' => true,
+					'public'          => true,
+				]
+			)
+		);
 
 		return ! empty( $tracked_post_types ) && is_array( $tracked_post_types ) ? $tracked_post_types : [];
 	}
@@ -94,10 +103,15 @@ class ActionMonitor {
 	 * @return array|mixed|void
 	 */
 	public function get_tracked_taxonomies() {
-		$tracked_taxonomies = apply_filters( 'gatsby_action_monitor_tracked_taxonomies', get_taxonomies( [
-			'show_in_graphql' => true,
-			'public'          => true
-		] ) );
+		$tracked_taxonomies = apply_filters(
+			'gatsby_action_monitor_tracked_taxonomies',
+			get_taxonomies(
+				[
+					'show_in_graphql' => true,
+					'public'          => true,
+				]
+			)
+		);
 
 		return ! empty( $tracked_taxonomies ) && is_array( $tracked_taxonomies ) ? $tracked_taxonomies : [];
 	}
@@ -118,95 +132,114 @@ class ActionMonitor {
 		 * Post Type: Action Monitor.
 		 */
 		$post_type_labels = [
-			"name"          => __( "Action Monitor", "WPGatsby" ),
-			"singular_name" => __( "Action Monitor", "WPGatsby" ),
+			'name'          => __( 'Action Monitor', 'WPGatsby' ),
+			'singular_name' => __( 'Action Monitor', 'WPGatsby' ),
 		];
 
 		// Registers the post_type that logs actions for Gatsby
-		register_post_type( "action_monitor", [
-			"label"                 => __( "Action Monitor", "WPGatsby" ),
-			"labels"                => $post_type_labels,
-			"description"           => "Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wordpress.",
-			"public"                => false,
-			"publicly_queryable"    => false,
-			"show_ui"               => $this->wpgraphql_debug_mode,
-			"delete_with_user"      => false,
-			"show_in_rest"          => false,
-			"rest_base"             => "",
-			"rest_controller_class" => "WP_REST_Posts_Controller",
-			"has_archive"           => false,
-			"show_in_menu"          => $this->wpgraphql_debug_mode,
-			"show_in_nav_menus"     => false,
-			"exclude_from_search"   => true,
-			"capability_type"       => "post",
-			"map_meta_cap"          => true,
-			"hierarchical"          => false,
-			"rewrite"               => [
-				"slug"       => "action_monitor",
-				"with_front" => true
-			],
-			"query_var"             => true,
-			"supports"              => [ "title", "editor" ],
-			"show_in_graphql"       => true,
-			"graphql_single_name"   => "ActionMonitorAction",
-			"graphql_plural_name"   => "ActionMonitorActions",
-		] );
+		register_post_type(
+			'action_monitor',
+			[
+				'label'                 => __( 'Action Monitor', 'WPGatsby' ),
+				'labels'                => $post_type_labels,
+				'description'           => 'Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wordpress.',
+				'public'                => false,
+				'publicly_queryable'    => false,
+				'show_ui'               => $this->wpgraphql_debug_mode,
+				'delete_with_user'      => false,
+				'show_in_rest'          => false,
+				'rest_base'             => '',
+				'rest_controller_class' => 'WP_REST_Posts_Controller',
+				'has_archive'           => false,
+				'show_in_menu'          => $this->wpgraphql_debug_mode,
+				'show_in_nav_menus'     => false,
+				'exclude_from_search'   => true,
+				'capability_type'       => 'post',
+				'map_meta_cap'          => true,
+				'hierarchical'          => false,
+				'rewrite'               => [
+					'slug'       => 'action_monitor',
+					'with_front' => true,
+				],
+				'query_var'             => true,
+				'supports'              => [ 'title', 'editor' ],
+				'show_in_graphql'       => true,
+				'graphql_single_name'   => 'ActionMonitorAction',
+				'graphql_plural_name'   => 'ActionMonitorActions',
+			]
+		);
 
 		// Registers the taxonomy that connects the node type to the action_monitor post
-		register_taxonomy( 'gatsby_action_ref_node_type', 'action_monitor', [
-			'label'               => __( 'Referenced Node Type', 'WPGatsby' ),
-			'public'              => false,
-			'show_ui'             => $this->wpgraphql_debug_mode,
-			'show_in_graphql'     => false,
-			'graphql_single_name' => 'ReferencedNodeType',
-			'graphql_plural_name' => 'ReferencedNodeTypes',
-			'hierarchical'        => false,
-			'show_in_nav_menus'   => false,
-			'show_tagcloud'       => false,
-			'show_admin_column'   => true,
-		] );
+		register_taxonomy(
+			'gatsby_action_ref_node_type',
+			'action_monitor',
+			[
+				'label'               => __( 'Referenced Node Type', 'WPGatsby' ),
+				'public'              => false,
+				'show_ui'             => $this->wpgraphql_debug_mode,
+				'show_in_graphql'     => false,
+				'graphql_single_name' => 'ReferencedNodeType',
+				'graphql_plural_name' => 'ReferencedNodeTypes',
+				'hierarchical'        => false,
+				'show_in_nav_menus'   => false,
+				'show_tagcloud'       => false,
+				'show_admin_column'   => true,
+			]
+		);
 
 		// Registers the taxonomy that connects the node databaseId to the action_monitor post
-		register_taxonomy( 'gatsby_action_ref_node_dbid', 'action_monitor', [
-			'label'               => __( 'Referenced Node Database ID', 'WPGatsby' ),
-			'public'              => false,
-			'show_ui'             => $this->wpgraphql_debug_mode,
-			'show_in_graphql'     => false,
-			'graphql_single_name' => 'ReferencedNodeDatabaseId',
-			'graphql_plural_name' => 'ReferencedNodeDatabaseIds',
-			'hierarchical'        => false,
-			'show_in_nav_menus'   => false,
-			'show_tagcloud'       => false,
-			'show_admin_column'   => true,
-		] );
+		register_taxonomy(
+			'gatsby_action_ref_node_dbid',
+			'action_monitor',
+			[
+				'label'               => __( 'Referenced Node Database ID', 'WPGatsby' ),
+				'public'              => false,
+				'show_ui'             => $this->wpgraphql_debug_mode,
+				'show_in_graphql'     => false,
+				'graphql_single_name' => 'ReferencedNodeDatabaseId',
+				'graphql_plural_name' => 'ReferencedNodeDatabaseIds',
+				'hierarchical'        => false,
+				'show_in_nav_menus'   => false,
+				'show_tagcloud'       => false,
+				'show_admin_column'   => true,
+			]
+		);
 
 		// Registers the taxonomy that connects the node global ID to the action_monitor post
-		register_taxonomy( 'gatsby_action_ref_node_id', 'action_monitor', [
-			'label'               => __( 'Referenced Node Global ID', 'WPGatsby' ),
-			'public'              => false,
-			'show_ui'             => $this->wpgraphql_debug_mode,
-			'show_in_graphql'     => false,
-			'graphql_single_name' => 'ReferencedNodeId',
-			'graphql_plural_name' => 'ReferencedNodeIds',
-			'hierarchical'        => false,
-			'show_in_nav_menus'   => false,
-			'show_tagcloud'       => false,
-			'show_admin_column'   => true,
-		] );
+		register_taxonomy(
+			'gatsby_action_ref_node_id',
+			'action_monitor',
+			[
+				'label'               => __( 'Referenced Node Global ID', 'WPGatsby' ),
+				'public'              => false,
+				'show_ui'             => $this->wpgraphql_debug_mode,
+				'show_in_graphql'     => false,
+				'graphql_single_name' => 'ReferencedNodeId',
+				'graphql_plural_name' => 'ReferencedNodeIds',
+				'hierarchical'        => false,
+				'show_in_nav_menus'   => false,
+				'show_tagcloud'       => false,
+				'show_admin_column'   => true,
+			]
+		);
 
 		// Registers the taxonomy that connects the action type (CREATE, UPDATE, DELETE) to the action_monitor post
-		register_taxonomy( 'gatsby_action_type', 'action_monitor', [
-			'label'               => __( 'Action Type', 'WPGatsby' ),
-			'public'              => false,
-			'show_ui'             => $this->wpgraphql_debug_mode,
-			'show_in_graphql'     => false,
-			'graphql_single_name' => 'ActionMonitorActionType',
-			'graphql_plural_name' => 'ActionMonitorActionTypes',
-			'hierarchical'        => false,
-			'show_in_nav_menus'   => false,
-			'show_tagcloud'       => false,
-			'show_admin_column'   => true,
-		] );
+		register_taxonomy(
+			'gatsby_action_type',
+			'action_monitor',
+			[
+				'label'               => __( 'Action Type', 'WPGatsby' ),
+				'public'              => false,
+				'show_ui'             => $this->wpgraphql_debug_mode,
+				'show_in_graphql'     => false,
+				'graphql_single_name' => 'ActionMonitorActionType',
+				'graphql_plural_name' => 'ActionMonitorActionTypes',
+				'hierarchical'        => false,
+				'show_in_nav_menus'   => false,
+				'show_tagcloud'       => false,
+				'show_admin_column'   => true,
+			]
+		);
 
 	}
 
@@ -228,7 +261,6 @@ class ActionMonitor {
 	 *
 	 * @param string $column_name The name of the column
 	 * @param int    $post_id     The ID of the post in the table
-	 *
 	 */
 	public function render_modified_column( string $column_name, int $post_id ) {
 		if ( 'gatsby_last_modified' === $column_name ) {
@@ -264,10 +296,11 @@ class ActionMonitor {
 			LEFT JOIN ' . $wpdb->prefix . 'term_relationships AS pt ON pt.object_id = posts.ID
 			LEFT JOIN ' . $wpdb->prefix . 'postmeta AS pm ON pm.post_id = posts.ID
 			WHERE posts.post_type = \'%1$s\'
-			AND posts.post_modified < \'%2$s\'', true
+			AND posts.post_modified < \'%2$s\'',
+			true
 		);
 
-		$query = $wpdb->prepare( $sql, $post_type, date( "Y-m-d H:i:s", strtotime( '-7 days' ) ) );
+		$query = $wpdb->prepare( $sql, $post_type, date( 'Y-m-d H:i:s', strtotime( '-7 days' ) ) );
 
 		return $wpdb->query( $query );
 	}
@@ -349,7 +382,7 @@ class ActionMonitor {
 					}
 
 					return $action_type ? $action_type : null;
-				}
+				},
 			]
 		);
 
@@ -370,7 +403,7 @@ class ActionMonitor {
 					);
 
 					return $referenced_node_status ?? null;
-				}
+				},
 			]
 		);
 
@@ -397,7 +430,7 @@ class ActionMonitor {
 					}
 
 					return $referenced_node_id ?? null;
-				}
+				},
 			]
 		);
 
@@ -425,7 +458,7 @@ class ActionMonitor {
 					}
 
 					return $referenced_node_relay_id ?? null;
-				}
+				},
 			]
 		);
 
@@ -446,7 +479,7 @@ class ActionMonitor {
 					);
 
 					return $referenced_node_single_name ?? null;
-				}
+				},
 			]
 		);
 
@@ -467,7 +500,7 @@ class ActionMonitor {
 					);
 
 					return $referenced_node_plural_name ?? null;
-				}
+				},
 			]
 		);
 
@@ -476,7 +509,7 @@ class ActionMonitor {
 			'sinceTimestamp',
 			[
 				'type'        => 'Number',
-				'description' => 'List Actions performed since a timestamp.'
+				'description' => 'List Actions performed since a timestamp.',
 			]
 		);
 
@@ -489,8 +522,8 @@ class ActionMonitor {
 					$args['date_query'] = [
 						[
 							'after'  => date( 'c', $sinceTimestamp / 1000 ),
-							'column' => 'post_modified'
-						]
+							'column' => 'post_modified',
+						],
 					];
 				}
 
@@ -531,7 +564,6 @@ class ActionMonitor {
 
 				wp_safe_remote_post( $webhook, $args );
 			}
-
 		}
 	}
 }

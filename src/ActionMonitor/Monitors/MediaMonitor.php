@@ -40,16 +40,18 @@ class MediaMonitor extends  Monitor {
 			$attachment_id
 		);
 
-		$this->log_action( [
-			'action_type'         => 'CREATE',
-			'title'               => $attachment->post_title ?? "Attachment #$attachment_id",
-			// there is no concept of inheriting post status in Gatsby, so images will always be considered published.
-			'status'              => 'publish',
-			'node_id'             => $attachment_id,
-			'relay_id'            => $global_relay_id,
-			'graphql_single_name' => 'mediaItem',
-			'graphql_plural_name' => 'mediaItems',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'CREATE',
+				'title'               => $attachment->post_title ?? "Attachment #$attachment_id",
+				// there is no concept of inheriting post status in Gatsby, so images will always be considered published.
+				'status'              => 'publish',
+				'node_id'             => $attachment_id,
+				'relay_id'            => $global_relay_id,
+				'graphql_single_name' => 'mediaItem',
+				'graphql_plural_name' => 'mediaItems',
+			]
+		);
 
 	}
 
@@ -71,16 +73,18 @@ class MediaMonitor extends  Monitor {
 			$attachment_id
 		);
 
-		$this->log_action( [
-			'action_type'         => 'UPDATE',
-			'title'               => $attachment->post_title ?? "Attachment #$attachment_id",
-			// there is no concept of inheriting post status in Gatsby, so images will always be considered published.
-			'status'              => 'publish',
-			'node_id'             => $attachment_id,
-			'relay_id'            => $global_relay_id,
-			'graphql_single_name' => 'mediaItem',
-			'graphql_plural_name' => 'mediaItems',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'UPDATE',
+				'title'               => $attachment->post_title ?? "Attachment #$attachment_id",
+				// there is no concept of inheriting post status in Gatsby, so images will always be considered published.
+				'status'              => 'publish',
+				'node_id'             => $attachment_id,
+				'relay_id'            => $global_relay_id,
+				'graphql_single_name' => 'mediaItem',
+				'graphql_plural_name' => 'mediaItems',
+			]
+		);
 
 	}
 
@@ -102,16 +106,18 @@ class MediaMonitor extends  Monitor {
 			$attachment_id
 		);
 
-		$this->log_action( [
-			'action_type'         => 'DELETE',
-			'title'               => $attachment->post_title ?? "Attachment #$attachment_id",
-			// there is no concept of inheriting post status in Gatsby, so images will always be considered published.
-			'status'              => 'trash',
-			'node_id'             => $attachment_id,
-			'relay_id'            => $global_relay_id,
-			'graphql_single_name' => 'mediaItem',
-			'graphql_plural_name' => 'mediaItems',
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'DELETE',
+				'title'               => $attachment->post_title ?? "Attachment #$attachment_id",
+				// there is no concept of inheriting post status in Gatsby, so images will always be considered published.
+				'status'              => 'trash',
+				'node_id'             => $attachment_id,
+				'relay_id'            => $global_relay_id,
+				'graphql_single_name' => 'mediaItem',
+				'graphql_plural_name' => 'mediaItems',
+			]
+		);
 
 	}
 

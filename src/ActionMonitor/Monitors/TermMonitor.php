@@ -63,15 +63,17 @@ class TermMonitor extends Monitor {
 			return;
 		}
 
-		$this->log_action( [
-			'action_type'         => 'CREATE',
-			'title'               => $tax_object->label . ': ' . $term->name,
-			'node_id'             => $term->term_id,
-			'relay_id'            => Relay::toGlobalId( 'term', $term->ID ),
-			'graphql_single_name' => $tax_object->graphql_single_name,
-			'graphql_plural_name' => $tax_object->graphql_plural_name,
-			'status'              => "none",
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'CREATE',
+				'title'               => $term->name,
+				'node_id'             => $term->term_id,
+				'relay_id'            => Relay::toGlobalId( 'term', $term->ID ),
+				'graphql_single_name' => $tax_object->graphql_single_name,
+				'graphql_plural_name' => $tax_object->graphql_plural_name,
+				'status'              => 'publish',
+			]
+		);
 
 		if ( true === $tax_object->hierarchical ) {
 			$this->update_hierarchical_relatives( $term, $tax_object );
@@ -92,7 +94,7 @@ class TermMonitor extends Monitor {
 		}
 
 		$before_delete = [
-			'term' => $term
+			'term' => $term,
 		];
 
 		if ( true === get_taxonomy( $taxonomy )->hierarchical ) {
@@ -121,15 +123,17 @@ class TermMonitor extends Monitor {
 
 		$tax_object = get_taxonomy( $taxonomy );
 
-		$this->log_action( [
-			'action_type'         => 'DELETE',
-			'title'               => $tax_object->label . ': ' . $deleted_term->name,
-			'node_id'             => $deleted_term->term_id,
-			'relay_id'            => Relay::toGlobalId( 'term', $deleted_term->ID ),
-			'graphql_single_name' => $tax_object->graphql_single_name,
-			'graphql_plural_name' => $tax_object->graphql_plural_name,
-			'status'              => "none",
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'DELETE',
+				'title'               => $deleted_term->name,
+				'node_id'             => $deleted_term->term_id,
+				'relay_id'            => Relay::toGlobalId( 'term', $deleted_term->ID ),
+				'graphql_single_name' => $tax_object->graphql_single_name,
+				'graphql_plural_name' => $tax_object->graphql_plural_name,
+				'status'              => 'trash',
+			]
+		);
 
 		if ( true === $tax_object->hierarchical ) {
 			$this->update_hierarchical_relatives( $deleted_term, $tax_object );
@@ -154,15 +158,17 @@ class TermMonitor extends Monitor {
 
 		$term = get_term( $term_id, $taxonomy );
 
-		$this->log_action( [
-			'action_type'         => 'UPDATE',
-			'title'               => $tax_object->label . ': ' . $term->name,
-			'node_id'             => $term->term_id,
-			'relay_id'            => Relay::toGlobalId( 'term', $term->ID ),
-			'graphql_single_name' => $tax_object->graphql_single_name,
-			'graphql_plural_name' => $tax_object->graphql_plural_name,
-			'status'              => "none",
-		] );
+		$this->log_action(
+			[
+				'action_type'         => 'UPDATE',
+				'title'               => $term->name,
+				'node_id'             => $term->term_id,
+				'relay_id'            => Relay::toGlobalId( 'term', $term->ID ),
+				'graphql_single_name' => $tax_object->graphql_single_name,
+				'graphql_plural_name' => $tax_object->graphql_plural_name,
+				'status'              => 'publish',
+			]
+		);
 
 		if ( true === $tax_object->hierarchical ) {
 			$this->update_hierarchical_relatives( $term, $tax_object );
@@ -181,17 +187,18 @@ class TermMonitor extends Monitor {
 				$parent = get_term_by( 'id', absint( $term->parent ), $taxonomy );
 
 				if ( is_a( $parent, 'WP_Term' ) ) {
-					$this->log_action( [
-						'action_type'         => 'UPDATE',
-						'title'               => $tax_object->label . ': ' . $parent->name . ' Parent',
-						'node_id'             => $parent->term_id,
-						'relay_id'            => Relay::toGlobalId( 'term', $parent->term_id ),
-						'graphql_single_name' => $tax_object->graphql_single_name,
-						'graphql_plural_name' => $tax_object->graphql_plural_name,
-						'status'              => "none",
-					] );
+					$this->log_action(
+						[
+							'action_type'         => 'UPDATE',
+							'title'               => $parent->name . ' Parent',
+							'node_id'             => $parent->term_id,
+							'relay_id'            => Relay::toGlobalId( 'term', $parent->term_id ),
+							'graphql_single_name' => $tax_object->graphql_single_name,
+							'graphql_plural_name' => $tax_object->graphql_plural_name,
+							'status'              => 'publish',
+						]
+					);
 				}
-
 			}
 
 			if ( isset( $this->terms_before_delete[ $term->term_id ]['children'] ) ) {
@@ -209,20 +216,21 @@ class TermMonitor extends Monitor {
 
 					if ( ! empty( $child_term ) ) {
 
-						$this->log_action( [
-							'action_type'         => 'UPDATE',
-							'title'               => $tax_object->label . ': ' . $child_term->name . ' Parent',
-							'node_id'             => $child_term->term_id,
-							'relay_id'            => Relay::toGlobalId( 'term', $child_term->term_id ),
-							'graphql_single_name' => $tax_object->graphql_single_name,
-							'graphql_plural_name' => $tax_object->graphql_plural_name,
-							'status'              => "none",
-						] );
+						$this->log_action(
+							[
+								'action_type'         => 'UPDATE',
+								'title'               => $child_term->name . ' Parent',
+								'node_id'             => $child_term->term_id,
+								'relay_id'            => Relay::toGlobalId( 'term', $child_term->term_id ),
+								'graphql_single_name' => $tax_object->graphql_single_name,
+								'graphql_plural_name' => $tax_object->graphql_plural_name,
+								'status'              => 'publish',
+							]
+						);
 
 					}
 				}
 			}
-
 		}
 
 	}
@@ -251,13 +259,13 @@ class TermMonitor extends Monitor {
 		}
 
 		$action = [
-			'action_type' => 'UPDATE',
-			'title' => 'UPDATE' . ' ' . $term->name,
-			'node_id' => $term->term_id,
-			'relay_id' => Relay::toGlobalId( 'term', $term->ID ),
+			'action_type'         => 'UPDATE',
+			'title'               => $term->name,
+			'node_id'             => $term->term_id,
+			'relay_id'            => Relay::toGlobalId( 'term', $term->ID ),
 			'graphql_single_name' => get_taxonomy( $term->taxonomy )->graphql_single_name,
 			'graphql_plural_name' => get_taxonomy( $term->taxonomy )->graphql_plural_name,
-			'status' => "none",
+			'status'              => 'publish',
 		];
 
 		// Log the action
@@ -289,13 +297,13 @@ class TermMonitor extends Monitor {
 		}
 
 		$action = [
-			'action_type' => 'UPDATE',
-			'title' => 'UPDATE' . ' ' . $term->name,
-			'node_id' => $term->term_id,
-			'relay_id' => Relay::toGlobalId( 'term', $term->ID ),
+			'action_type'         => 'UPDATE',
+			'title'               => $term->name,
+			'node_id'             => $term->term_id,
+			'relay_id'            => Relay::toGlobalId( 'term', $term->ID ),
 			'graphql_single_name' => get_taxonomy( $term->taxonomy )->graphql_single_name,
 			'graphql_plural_name' => get_taxonomy( $term->taxonomy )->graphql_plural_name,
-			'status' => "none",
+			'status'              => 'publish',
 		];
 
 		// Log the action
