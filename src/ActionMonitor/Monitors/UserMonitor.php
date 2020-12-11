@@ -107,8 +107,8 @@ class UserMonitor extends Monitor {
 			[
 				'action_type'         => 'UPDATE',
 				'title'               => $user->display_name,
-				'node_id'             => $user->ID,
-				'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
+				'node_id'             => (int) $user->ID,
+				'relay_id'            => Relay::toGlobalId( 'user', (int) $user->ID ),
 				'graphql_single_name' => 'user',
 				'graphql_plural_name' => 'users',
 				'status'              => 'publish',
@@ -161,8 +161,8 @@ class UserMonitor extends Monitor {
 			[
 				'action_type'         => 'DELETE',
 				'title'               => $before_delete['user']->display_name,
-				'node_id'             => $before_delete['user']->ID,
-				'relay_id'            => Relay::toGlobalId( 'user', $before_delete['user']->ID ),
+				'node_id'             => (int) $before_delete['user']->ID,
+				'relay_id'            => Relay::toGlobalId( 'user', (int) $before_delete['user']->ID ),
 				'graphql_single_name' => 'user',
 				'graphql_plural_name' => 'users',
 				'status'              => 'trash',
@@ -196,8 +196,8 @@ class UserMonitor extends Monitor {
 		$action = [
 			'action_type'         => 'UPDATE',
 			'title'               => $user->display_name,
-			'node_id'             => $user->ID,
-			'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
+			'node_id'             => (int) $user->ID,
+			'relay_id'            => Relay::toGlobalId( 'user', (int) $user->ID ),
 			'graphql_single_name' => 'user',
 			'graphql_plural_name' => 'users',
 			'status'              => 'publish',
@@ -233,8 +233,8 @@ class UserMonitor extends Monitor {
 		$action = [
 			'action_type'         => 'UPDATE',
 			'title'               => $user->display_name,
-			'node_id'             => $user->ID,
-			'relay_id'            => Relay::toGlobalId( 'user', $user->ID ),
+			'node_id'             => (int) $user->ID,
+			'relay_id'            => Relay::toGlobalId( 'user', (int) $user->ID ),
 			'graphql_single_name' => 'user',
 			'graphql_plural_name' => 'users',
 			'status'              => 'publish',
