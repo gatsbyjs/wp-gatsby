@@ -224,7 +224,7 @@ class NavMenuMonitor extends Monitor {
 				// menus don't have post status. This is for Gatsby
 				'status'              => 'publish',
 				'node_id'             => (int) $menu_item->ID,
-				'relay_id'            => Relay::toGlobalId( 'post', (int) $menu_item->term_id ),
+				'relay_id'            => Relay::toGlobalId( 'post', (int) $menu_item->ID ),
 				'graphql_single_name' => 'menuItem',
 				'graphql_plural_name' => 'menuItems',
 			]
@@ -268,7 +268,7 @@ class NavMenuMonitor extends Monitor {
 				// menus don't have post status. This is for Gatsby
 				'status'              => 'publish',
 				'node_id'             => (int) $menu_item->ID,
-				'relay_id'            => Relay::toGlobalId( 'post', (int) $menu_item->term_id ),
+				'relay_id'            => Relay::toGlobalId( 'post', (int) $menu_item->ID ),
 				'graphql_single_name' => 'menuItem',
 				'graphql_plural_name' => 'menuItems',
 			]

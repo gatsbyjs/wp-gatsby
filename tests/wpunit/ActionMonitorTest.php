@@ -1283,7 +1283,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
-		wp_delete_user( $user_id );
+		wp_delete_user( (int) $user_id, (int) $this->admin );
 
 		// Query for action monitor actions
 		$query = $this->actionMonitorQuery();
@@ -1296,10 +1296,11 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$this->assertIsValidQueryResponse( $actual );
 
 		/**
-		 * Deleting a user with no published content should trigger 1 actions
+		 * Deleting a user with 2 published posts and re-assigning should create 4 actions
 		 * - 1 for the user being deleted
-		 * - 1 for the page being deleted
-		 * - 1 for the post being deleted
+		 * - 1 for the page being transferred to another author
+		 * - 1 for the post being transferred to another author
+		 * - 1 for the author that got reassigned to
 		 * (this will actually create 1 action for each post the author was author of)
 		 *
 		 * @todo: reduce this to a BULK_DELETE action. The source plugin will need to support this though.
@@ -1314,14 +1315,19 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 				'referencedNodeSingularName' => 'user'
 			] ),
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType'                 => 'DELETE',
+				'actionType'                 => 'UPDATE',
 				'referencedNodeID'           => (string) $post_id,
 				'referencedNodeSingularName' => 'post'
 			] ),
 			$this->expectedNode( 'actionMonitorActions.nodes', [
-				'actionType'                 => 'DELETE',
+				'actionType'                 => 'UPDATE',
 				'referencedNodeID'           => (string) $page_id,
 				'referencedNodeSingularName' => 'page'
+			] ),
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
+				'referencedNodeSingularName' => 'user'
 			] ),
 		] );
 
