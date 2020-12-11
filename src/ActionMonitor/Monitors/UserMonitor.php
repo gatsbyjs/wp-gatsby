@@ -124,11 +124,15 @@ class UserMonitor extends Monitor {
 	 * receives $user_id param but it's useless as the user record
 	 * was already removed from DB.
 	 *
-	 * @param int            $user_id     User ID that may be deleted
+	 * @param mixed|int|null $user_id     User ID that may be deleted
 	 * @param mixed|int|null $reassign_id User ID that posts should be reassigned to
 	 * @param \WP_User       $user        The User object that may be deleted
 	 */
-	public function callback_delete_user( int $user_id, ?int $reassign_id, \WP_User $user ) {
+	public function callback_delete_user( $user_id, $reassign_id, \WP_User $user ) {
+
+		if ( empty( $user_id ) ) {
+			return;
+		}
 
 		// Get the user the posts should be re-assigned to
 		$reassign_user = ! empty( $reassign_id ) ? get_user_by( 'id', $reassign_id ) : null;

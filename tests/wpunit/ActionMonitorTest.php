@@ -1260,7 +1260,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	public function testDeleteUserAndReassignPostsCreatesActionMonitorAction() {
 
 		$user_id = $this->factory()->user->create([
-
+			'role' => 'editor'
 		]);
 		$post_id = $this->factory()->post->create( [
 			'post_type'   => 'post',
@@ -1329,7 +1329,9 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testUpdateUserWithPublishedPostsCreatesActionMonitorAction() {
 
-		$user_id = $this->factory()->user->create();
+		$user_id = $this->factory()->user->create([
+			'role' => 'editor'
+		]);
 		$this->factory()->post->create( [
 			'post_type'   => 'post',
 			'post_status' => 'publish',
@@ -1376,7 +1378,9 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testUpdateUserMetaWithTrackedMetaKeyForPublishedAuthorCreatesActionMonitorAction() {
 
-		$user_id = $this->factory()->user->create();
+		$user_id = $this->factory()->user->create([
+			'role' => 'editor'
+		]);
 		$this->factory()->post->create( [
 			'post_type'   => 'post',
 			'post_status' => 'publish',
