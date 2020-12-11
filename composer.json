@@ -48,8 +48,7 @@
     "phpcompatibility/phpcompatibility-wp": "2.1.0",
     "squizlabs/php_codesniffer": "3.5.4",
     "codeception/module-rest": "^1.2",
-    "wp-graphql/wp-graphql-testcase": "^1.0",
-    "phpunit/phpunit": "9.4.1"
+    "wp-graphql/wp-graphql-testcase": "^1.0"
   },
   "scripts": {
     "install-test-env": "bash bin/install-test-env.sh",
