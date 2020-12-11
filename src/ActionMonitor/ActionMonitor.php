@@ -212,7 +212,7 @@ class ActionMonitor {
 			'label'               => __( 'Stream Type', 'WPGatsby' ),
 			'public'              => false,
 			'show_ui'             => $this->wpgraphql_debug_mode,
-			'show_in_graphql'     => false,
+			'show_in_graphql'     => true,
 			'graphql_single_name' => 'ActionMonitorStreamType',
 			'graphql_plural_name' => 'ActionMonitorStreamTypes',
 			'hierarchical'        => false,
@@ -398,6 +398,77 @@ class ActionMonitor {
 
 					return $referenced_node_status ?? null;
 				}
+			]
+		);
+
+		register_graphql_field(
+			'ActionMonitorAction',
+			'previewData',
+			[
+				'type'        => 'GatsbyPreviewData',
+				'description' => __(
+					'The preview data of the post that triggered this action.',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
+					$referenced_node_preview_data = get_post_meta(
+						$post->ID,
+						'_gatsby_preview_data',
+						true
+					);
+
+
+
+					return $referenced_node_preview_data 
+							&& $referenced_node_preview_data !== "" 
+								? json_decode( $referenced_node_preview_data )
+								: null;
+				}
+			]
+		);
+
+		register_graphql_object_type(
+			'GatsbyPreviewData',
+			[
+				'description' => __( 'Gatsby Preview webhook data.', 'WPGatsby' ),
+				'fields'      => [
+					'preview'              => [
+						'type' => 'Boolean'
+					],
+					'previewId'            => [
+						'type' => 'Int'
+					],
+					'id'                   => [
+						'type' => 'ID'
+					],
+					'singleName'           => [
+						'type' => 'String'
+					],
+					'isNewPostDraft'       => [
+						'type' => 'Boolean'
+					],
+					'isDraft'              => [
+						'type' => 'Boolean'
+					],
+					'isRevision'           => [
+						'type' => 'Boolean'
+					],
+					'remoteUrl'            => [
+						'type' => 'String'
+					],
+					'modified'             => [
+						'type' => 'String'
+					],
+					'parentId'             => [
+						'type' => 'Int'
+					],
+					'revisionsAreDisabled' => [
+						'type' => 'Boolean'
+					],
+					'token' => [
+						'type' => 'String'
+					]
+				]
 			]
 		);
 

@@ -274,7 +274,17 @@ abstract class Monitor {
 		wp_set_object_terms( $action_monitor_post_id, $stream_type, 'gatsby_action_stream_type' );
 
 
+
 		if ( $action_monitor_post_id !== 0 ) {
+
+			if ( isset( $args['preview_data'] ) ) {
+				\update_post_meta(
+					$action_monitor_post_id,
+					'_gatsby_preview_data',
+					$args['preview_data']
+				);
+			}
+			
 			\update_post_meta(
 				$action_monitor_post_id,
 				'referenced_node_status',
