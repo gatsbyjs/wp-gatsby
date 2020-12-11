@@ -21,7 +21,7 @@ class UserMonitor extends Monitor {
 	public function init() {
 
 		add_action( 'profile_update', [ $this, 'callback_profile_update' ], 10, 1 );
-		add_action( 'delete_user', [ $this, 'callback_delete_user' ], 10, 3 );
+		add_action( 'delete_user', [ $this, 'callback_delete_user' ], 10, 2 );
 		add_action( 'deleted_user', [ $this, 'callback_deleted_user' ], 10, 1 );
 		add_action( 'updated_user_meta', [ $this, 'callback_updated_user_meta' ], 10, 4 );
 		add_action( 'added_user_meta', [ $this, 'callback_updated_user_meta' ], 10, 4 );
@@ -126,9 +126,8 @@ class UserMonitor extends Monitor {
 	 *
 	 * @param mixed|int|null $user_id     User ID that may be deleted
 	 * @param mixed|int|null $reassign_id User ID that posts should be reassigned to
-	 * @param \WP_User       $user        The User object that may be deleted
 	 */
-	public function callback_delete_user( $user_id, $reassign_id, \WP_User $user ) {
+	public function callback_delete_user( $user_id, $reassign_id ) {
 
 		if ( empty( $user_id ) ) {
 			return;
@@ -138,7 +137,7 @@ class UserMonitor extends Monitor {
 		$reassign_user = ! empty( $reassign_id ) ? get_user_by( 'id', $reassign_id ) : null;
 
 		$this->users_before_delete[ $user_id ] = [
-			'user'     => $user,
+			'user'     => get_user_by( 'id', (int) $user_id ),
 			'reassign' => ! empty( $reassign_user ) && $reassign_user instanceof \WP_User ? $reassign_user : null,
 		];
 	}
