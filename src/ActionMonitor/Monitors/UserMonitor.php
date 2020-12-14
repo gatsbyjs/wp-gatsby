@@ -14,11 +14,41 @@ class UserMonitor extends Monitor {
 	protected $users_before_delete;
 
 	/**
+	 * IDs of posts to reassign
+	 * @var array
+	 */
+	protected $post_ids_to_reassign;
+
+	/**
 	 * Initialize UserMonitor Actions
 	 *
 	 * @return mixed|void
 	 */
-	public function init() {
+	public function init() {if ( ! empty( $post_ids ) && is_array( $post_ids ) )  {
+		foreach ( $post_ids as $post_id ) {
+
+			// If there's a post for the Post ID
+			if ( ! empty( $post = get_post( absint( $post_id ) ) ) ) {
+
+				// Get the post type object
+				$post_type_object = get_post_type_object( $post->post_type );
+
+				// Log an action for the post being re-assigned
+				$this->log_action( [
+					'action_type'         => 'UPDATE',
+					'title'               => $post->post_title,
+					'node_id'             => (int) $post_id,
+					'relay_id'            => Relay::toGlobalId( 'post', (int) $post_id ),
+					'graphql_single_name' => $post_type_object->graphql_single_name,
+					'graphql_plural_name' => $post_type_object->graphql_plural_name,
+					'status'              => 'publish',
+				] );
+
+			}
+		}
+	}
+
+		$this->post_ids_to_reassign = [];
 
 		add_action( 'profile_update', [ $this, 'callback_profile_update' ], 10, 1 );
 		add_action( 'delete_user', [ $this, 'callback_delete_user' ], 10, 2 );
@@ -135,10 +165,31 @@ class UserMonitor extends Monitor {
 			return;
 		}
 
+		if ( ! $this->is_published_author( $user_id ) ) {
+			return;
+		}
+
 		// Get the user the posts should be re-assigned to
 		$reassign_user = ! empty( $reassign_id ) ? get_user_by( 'id', $reassign_id ) : null;
 
-		$this->users_before_delete[ $user_id ] = [
+		if ( ! empty( $reassign_user ) ) {
+
+			// @todo: We should get rid of this as it can get expensive to log these actions.
+			// Gatsby Source WordPress should have support for bulk-actions so we can log a single action
+			// such as "DELETE_AUTHOR_AND_REASSIGN_POSTS" and pass the old author ID and new author ID and
+			// Gatsby could do it without an action per modified post.
+			global $wpdb;
+			$post_types = $this->action_monitor->get_tracked_post_types();
+			$post_types = implode( "', '", $post_types );
+			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_author = %d AND post_type IN ('$post_types')", $user_id ) );
+
+			if ( ! empty( $post_ids ) && is_array( $post_ids ) ) {
+				$this->post_ids_to_reassign = array_merge( $this->post_ids_to_reassign, $post_ids );
+			}
+
+		}
+
+		$this->users_before_delete[ (int) $user_id ] = [
 			'user'     => get_user_by( 'id', (int) $user_id ),
 			'reassign' => ! empty( $reassign_user ) && $reassign_user instanceof \WP_User ? $reassign_user : null,
 		];
@@ -151,16 +202,16 @@ class UserMonitor extends Monitor {
 	 */
 	public function callback_deleted_user( int $user_id ) {
 
-		$before_delete = isset( $this->users_before_delete[ $user_id ] ) ?? null;
+		$before_delete = isset( $this->users_before_delete[ (int) $user_id ] ) ? $this->users_before_delete[ (int) $user_id ] : null;
 
-		if ( ! isset( $before_delete['user'] ) || ! $before_delete['user'] instanceof \WP_User ) {
+		if ( empty( $before_delete ) || ! isset( $before_delete['user']->data->display_name ) ) {
 			return;
 		}
 
 		$this->log_action(
 			[
 				'action_type'         => 'DELETE',
-				'title'               => $before_delete['user']->display_name,
+				'title'               => $before_delete['user']->data->display_name,
 				'node_id'             => (int) $before_delete['user']->ID,
 				'relay_id'            => Relay::toGlobalId( 'user', (int) $before_delete['user']->ID ),
 				'graphql_single_name' => 'user',
@@ -168,6 +219,45 @@ class UserMonitor extends Monitor {
 				'status'              => 'trash',
 			]
 		);
+
+		if ( isset ( $before_delete['reassign']->display_name ) ) {
+			$this->log_action(
+				[
+					'action_type'         => 'UPDATE',
+					'title'               => $before_delete['reassign']->display_name,
+					'node_id'             => (int) $before_delete['reassign']->ID,
+					'relay_id'            => Relay::toGlobalId( 'user', (int) $before_delete['reassign']->ID ),
+					'graphql_single_name' => 'user',
+					'graphql_plural_name' => 'users',
+					'status'              => 'publish',
+				]
+			);
+
+			if ( ! empty( $this->post_ids_to_reassign ) && is_array( $this->post_ids_to_reassign ) )  {
+				foreach ( $this->post_ids_to_reassign as $post_id ) {
+
+					// If there's a post for the Post ID
+					if ( ! empty( $post = get_post( absint( $post_id ) ) ) ) {
+
+						// Get the post type object
+						$post_type_object = get_post_type_object( $post->post_type );
+
+						// Log an action for the post being re-assigned
+						$this->log_action( [
+							'action_type'         => 'UPDATE',
+							'title'               => $post->post_title,
+							'node_id'             => (int) $post_id,
+							'relay_id'            => Relay::toGlobalId( 'post', (int) $post_id ),
+							'graphql_single_name' => $post_type_object->graphql_single_name,
+							'graphql_plural_name' => $post_type_object->graphql_plural_name,
+							'status'              => 'publish',
+						] );
+
+					}
+				}
+			}
+
+		}
 
 	}
 

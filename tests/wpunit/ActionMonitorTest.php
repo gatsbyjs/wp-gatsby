@@ -1165,7 +1165,9 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	public function testDeleteUserWithoutPublishedPostsDoesNotCreateActionMonitorAction() {
 
-		$user_id = $this->factory()->user->create();
+		$user_id = $this->factory()->user->create([
+			'role' => 'editor'
+		]);
 
 		$this->clear_action_monitor();
 
@@ -1305,7 +1307,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		 *
 		 * @todo: reduce this to a BULK_DELETE action. The source plugin will need to support this though.
 		 */
-		$this->assertSame( 3, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+		$this->assertSame( 4, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
 		// Assert the action monitor has the actions for the user being deleted
 		$this->assertQuerySuccessful( $actual, [
@@ -1338,6 +1340,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		$user_id = $this->factory()->user->create([
 			'role' => 'editor'
 		]);
+
 		$this->factory()->post->create( [
 			'post_type'   => 'post',
 			'post_status' => 'publish',
@@ -1936,5 +1939,49 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	}
 
-	// @todo: We need to scaffold tests for SettingsMonitor! Need to chat with @Tyler more first.
+	public function testDeleteMenuCreatesActionMonitorAction() {
+
+		$location_name = 'gatsby-test';
+		register_nav_menu($location_name, __( 'Gatsby Test Menu', 'WPGatsby' ) );
+		$menu_id = wp_create_nav_menu( __( 'Test Menu', 'WPGatsby' ) );
+		$post_id = $this->factory()->post->create();
+
+		wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			[
+				'menu-item-title'     => 'Menu item',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+				'menu-item-type'      => 'post_type',
+			]
+		);
+
+		set_theme_mod( 'nav_menu_locations', [ $location_name => (int) $menu_id ] );
+
+		$this->clear_action_monitor();
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		// Delete the menu
+		wp_delete_nav_menu( $menu_id );
+
+		// Deleting a menu creates the following actions
+		// - 1 action for DELETE MENU
+		// Gatsby will delete the menu and all associated menu items when this action occurs
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 1, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		$this->assertQuerySuccessful( $actual, [
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'DELETE',
+				'referencedNodeID'           => (string) $menu_id,
+				'referencedNodeSingularName' => 'menu'
+			] ),
+		] );
+
+	}
+
 }

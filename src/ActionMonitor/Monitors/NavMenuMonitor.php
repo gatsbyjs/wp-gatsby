@@ -19,7 +19,7 @@ class NavMenuMonitor extends Monitor {
 		add_action( 'wp_update_nav_menu', [ $this, 'callback_update_nav_menu' ], 10, 2 );
 
 		// Log when a nav menu is deleted
-		add_action( 'wp_delete_menu', [ $this, 'callback_delete_menu' ], 10, 3 );
+		add_action( 'wp_delete_nav_menu', [ $this, 'callback_delete_nav_menu' ], 10, 3 );
 
 		// Log when a menu item is updated
 		add_action( 'wp_update_nav_menu_item', [ $this, 'callback_update_nav_menu_item' ], 10, 3 );
@@ -150,7 +150,7 @@ class NavMenuMonitor extends Monitor {
 				$this->log_action(
 					[
 						'action_type'         => 'DELETE',
-						'title'               => $removed_menu_id,
+						'title'               => 'Menu: ' . $removed_menu_id,
 						// menus don't have post status. This is for Gatsby
 						'status'              => 'trash',
 						'node_id'             => (int) $removed_menu_id,
@@ -167,20 +167,18 @@ class NavMenuMonitor extends Monitor {
 	/**
 	 * Log an action when a menu is deleted
 	 *
-	 * @param object $term          Term.
-	 * @param int    $tt_id         Term ID.
-	 * @param object $deleted_term  Deleted term.
+	 * @param int $term_id ID of the deleted menu.
 	 */
-	public function callback_delete_menu( $term, int $tt_id, $deleted_term ) {
+	public function callback_delete_nav_menu( $term_id ) {
 
 		$this->log_action(
 			[
 				'action_type'         => 'DELETE',
-				'title'               => $deleted_term->name,
+				'title'               => 'Menu: ' . $term_id,
 				// menus don't have post status. This is for Gatsby
 				'status'              => 'trash',
-				'node_id'             => (int) $deleted_term->term_id,
-				'relay_id'            => Relay::toGlobalId( 'term', $deleted_term->term_id ),
+				'node_id'             => (int) $term_id,
+				'relay_id'            => Relay::toGlobalId( 'term', $term_id ),
 				'graphql_single_name' => 'menu',
 				'graphql_plural_name' => 'menus',
 			]
