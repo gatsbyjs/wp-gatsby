@@ -17,7 +17,7 @@ If you follow the instructions below, you should be able to run tests locally wi
 ### Prerequisties
 You must have the following available locally: 
 - **PHP**
-- **MySQL** (or equivelant such as MariaDB)
+- **MySQL** (or equivalent such as MariaDB)
 - **[Composer](https://getcomposer.org/doc/00-intro.md)** 
 - **[WP-CLI](https://wp-cli.org/)** installed as well as terminal/shell/command-line access.
 

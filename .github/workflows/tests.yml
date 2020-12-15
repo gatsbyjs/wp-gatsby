@@ -20,22 +20,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ['7.1', '7.2', '7.3']
-        wordpress: ['5.3', '5.0']
+        php: ['7.3', '7.4']
+        wordpress: ['5.6', '5.5.3', '5.4.2' ]
         include:
-          - php: '7.1'
-            use_xdebug: 1
-          - php: '7.1'
-            wordpress: '5.0'
-            coverage: 1
+          - php: '7.4'
+            wordpress: '5.6'
+          - php: '7.4'
+            wordpress: '5.5.3'
+          - php: '7.4'
+            wordpress: '5.4.2'
           - php: '7.3'
-            wordpress: '5.0'
-            debug: 1
-          - php: '7.1'
-          - lowest: 1
-          - php: '7.2'
-          - lowest: 1
-
+            wordpress: '5.6'
+          - php: '7.3'
+            wordpress: '5.5.3'
+          - php: '7.3'
+            wordpress: '5.4.2'
       fail-fast: false
     name: WordPress ${{ matrix.wordpress }} on PHP ${{ matrix.php }}
     steps:

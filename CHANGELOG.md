@@ -1,21 +1,25 @@
 # Change Log
 
-## 0.7.3
+## Upcoming
 
-- Small internal changes to Previews to facilitate e2e tests.
+- BREAKING: This is a breaking change release that changes a lot of internals for the Gatsby Action Monitor.
+- Refactors Action Monitor to have separate classes for tracking activity for Acf, Media, Menus, Posts, Post Types, Settings, Taxonomies, Terms, and Users.
+- TESTS! Lots of tests for the Action Monitors. 
+- JWT Secret is now set once when WPGatsby is first loaded, instead of every time the settings page is visited.
 
-## 0.7.2
+Closes the following issues:
 
-- Version 0.7.0 introduced a change which resulted in Previews for some WP instances being overwritten by published posts on each preview.
-
-## 0.7.1
-
-- The last version added some internal taxonomies to the GraphQL schema unintentionally. This release removes them.
-## 0.7.0
-
-### Breaking Changes
-
-- Previously we were storing a brand new post internally for every content-related action that happened in your site. As of this release we only make a single action post for each post you take actions against and update it each time instead of creating a new one.
+- [#70](https://github.com/gatsbyjs/wp-gatsby/issues/70): When field groups are saved using ACF Field Group GUI, a "Diff Schema" action is triggered
+- [#58](https://github.com/gatsbyjs/wp-gatsby/issues/58): A "Refetch All" action is available and is used when Permalinks are changed
+- [#57](https://github.com/gatsbyjs/wp-gatsby/issues/57): Term meta is now properly tracked when changed
+- [#56](https://github.com/gatsbyjs/wp-gatsby/issues/56): Custom post types (all post types that are public and show_in_graphql) are now tracked when they are moved from publish to trash and vis-versa
+- [#41](https://github.com/gatsbyjs/wp-gatsby/issues/41): Codeception tests are now in place
+- [#38](https://github.com/gatsbyjs/wp-gatsby/issues/38): Many core WordPress options have been added to an allow-list and trigger a general NON_NODE_ROOT_FIELDS action. A few specific actions trigger specific actions for specific nodes. For example, changing the home_page triggers an update for the new page and the old page being changed as the URI is now different.
+- [#26](https://github.com/gatsbyjs/wp-gatsby/issues/26): Posts that transition from future->publish now trigger an action (ensuring WordPress cron is triggered for WordPress sites using Gatsby front-ends might need more thought still though. . .)
+- [#17](https://github.com/gatsbyjs/wp-gatsby/issues/17): Meta is now tracked for Posts, Terms and Users (comments are not currently tracked at the moment)
+- [#15](https://github.com/gatsbyjs/wp-gatsby/issues/15): Saving permalinks triggers a REFETCH_ALL Action
+- [#7](https://github.com/gatsbyjs/wp-gatsby/issues/7): Gatsby JWT Secret is now generated once and saved immediately and not generated again
+- [#6](https://github.com/gatsbyjs/wp-gatsby/issues/6): Gatsby now tracks only post_types (and taxonomies) that are set to be both public and show_in_graphql and there are filters to override as needed.
 
 ## 0.6.8
 
