@@ -1278,6 +1278,16 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 			'post_title'  => 'test'
 		] );
 
+
+		// Also create a draft page assigned to the user. This should NOT trigger an action
+		// when it's re-assigned during user deletion
+		$draft_page_id = $this->factory()->post->create( [
+			'post_type'   => 'page',
+			'post_status' => 'draft',
+			'post_author' => $user_id,
+			'post_title'  => 'test'
+		] );
+
 		$this->clear_action_monitor();
 
 		// Query for action monitor actions

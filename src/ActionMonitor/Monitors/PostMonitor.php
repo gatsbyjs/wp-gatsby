@@ -312,10 +312,10 @@ class PostMonitor extends Monitor {
 
 		if ( ! $user_monitor->is_published_author( $user->ID ) ) {
 			$action_type = 'DELETE';
-			$status = 'trash';
+			$status      = 'trash';
 		} else {
 			$action_type = 'UPDATE';
-			$status = 'publish';
+			$status      = 'publish';
 		}
 
 		$this->log_action(

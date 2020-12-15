@@ -15,6 +15,7 @@ class UserMonitor extends Monitor {
 
 	/**
 	 * IDs of posts to reassign
+	 *
 	 * @var array
 	 */
 	protected $post_ids_to_reassign;
@@ -24,29 +25,7 @@ class UserMonitor extends Monitor {
 	 *
 	 * @return mixed|void
 	 */
-	public function init() {if ( ! empty( $post_ids ) && is_array( $post_ids ) )  {
-		foreach ( $post_ids as $post_id ) {
-
-			// If there's a post for the Post ID
-			if ( ! empty( $post = get_post( absint( $post_id ) ) ) ) {
-
-				// Get the post type object
-				$post_type_object = get_post_type_object( $post->post_type );
-
-				// Log an action for the post being re-assigned
-				$this->log_action( [
-					'action_type'         => 'UPDATE',
-					'title'               => $post->post_title,
-					'node_id'             => (int) $post_id,
-					'relay_id'            => Relay::toGlobalId( 'post', (int) $post_id ),
-					'graphql_single_name' => $post_type_object->graphql_single_name,
-					'graphql_plural_name' => $post_type_object->graphql_plural_name,
-					'status'              => 'publish',
-				] );
-
-			}
-		}
-	}
+	public function init() {
 
 		$this->post_ids_to_reassign = [];
 
@@ -181,12 +160,11 @@ class UserMonitor extends Monitor {
 			global $wpdb;
 			$post_types = $this->action_monitor->get_tracked_post_types();
 			$post_types = implode( "', '", $post_types );
-			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_author = %d AND post_type IN ('$post_types')", $user_id ) );
+			$post_ids   = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_author = %d AND post_status = 'publish' AND post_type IN ('$post_types')", $user_id ) );
 
 			if ( ! empty( $post_ids ) && is_array( $post_ids ) ) {
 				$this->post_ids_to_reassign = array_merge( $this->post_ids_to_reassign, $post_ids );
 			}
-
 		}
 
 		$this->users_before_delete[ (int) $user_id ] = [
@@ -220,7 +198,7 @@ class UserMonitor extends Monitor {
 			]
 		);
 
-		if ( isset ( $before_delete['reassign']->display_name ) ) {
+		if ( isset( $before_delete['reassign']->display_name ) ) {
 			$this->log_action(
 				[
 					'action_type'         => 'UPDATE',
@@ -233,30 +211,37 @@ class UserMonitor extends Monitor {
 				]
 			);
 
-			if ( ! empty( $this->post_ids_to_reassign ) && is_array( $this->post_ids_to_reassign ) )  {
+			if ( ! empty( $this->post_ids_to_reassign ) && is_array( $this->post_ids_to_reassign ) ) {
+
 				foreach ( $this->post_ids_to_reassign as $post_id ) {
 
 					// If there's a post for the Post ID
 					if ( ! empty( $post = get_post( absint( $post_id ) ) ) ) {
 
+						// If the post status is not published, don't track an action for it
+						if ( 'publish' !== $post->post_status ) {
+							return;
+						}
+
 						// Get the post type object
 						$post_type_object = get_post_type_object( $post->post_type );
 
 						// Log an action for the post being re-assigned
-						$this->log_action( [
-							'action_type'         => 'UPDATE',
-							'title'               => $post->post_title,
-							'node_id'             => (int) $post_id,
-							'relay_id'            => Relay::toGlobalId( 'post', (int) $post_id ),
-							'graphql_single_name' => $post_type_object->graphql_single_name,
-							'graphql_plural_name' => $post_type_object->graphql_plural_name,
-							'status'              => 'publish',
-						] );
+						$this->log_action(
+							[
+								'action_type'         => 'UPDATE',
+								'title'               => $post->post_title,
+								'node_id'             => (int) $post_id,
+								'relay_id'            => Relay::toGlobalId( 'post', (int) $post_id ),
+								'graphql_single_name' => $post_type_object->graphql_single_name,
+								'graphql_plural_name' => $post_type_object->graphql_plural_name,
+								'status'              => 'publish',
+							]
+						);
 
 					}
 				}
 			}
-
 		}
 
 	}
