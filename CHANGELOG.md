@@ -1,13 +1,19 @@
 # Change Log
 
-## Upcoming
+## 0.8.0
 
-- BREAKING: This is a breaking change release that changes a lot of internals for the Gatsby Action Monitor.
+### Breaking Changes
+
+This is a breaking change release as a lot of internals for the Action Monitor class have been modified and moved around. For most users nothing will change but for those who are using our internal plugin functions/classes in their own custom code, things might break.
+
 - Refactors Action Monitor to have separate classes for tracking activity for Acf, Media, Menus, Posts, Post Types, Settings, Taxonomies, Terms, and Users.
+
+### Fixes and improvements
+
 - TESTS! Lots of tests for the Action Monitors. 
 - JWT Secret is now set once when WPGatsby is first loaded, instead of every time the settings page is visited.
 
-Closes the following issues:
+### Issues closed by this release
 
 - [#70](https://github.com/gatsbyjs/wp-gatsby/issues/70): When field groups are saved using ACF Field Group GUI, a "Diff Schema" action is triggered
 - [#58](https://github.com/gatsbyjs/wp-gatsby/issues/58): A "Refetch All" action is available and is used when Permalinks are changed
@@ -20,6 +26,23 @@ Closes the following issues:
 - [#15](https://github.com/gatsbyjs/wp-gatsby/issues/15): Saving permalinks triggers a REFETCH_ALL Action
 - [#7](https://github.com/gatsbyjs/wp-gatsby/issues/7): Gatsby JWT Secret is now generated once and saved immediately and not generated again
 - [#6](https://github.com/gatsbyjs/wp-gatsby/issues/6): Gatsby now tracks only post_types (and taxonomies) that are set to be both public and show_in_graphql and there are filters to override as needed.
+
+## 0.7.3
+
+- Small internal changes to Previews to facilitate e2e tests.
+
+## 0.7.2
+
+- Version 0.7.0 introduced a change which resulted in Previews for some WP instances being overwritten by published posts on each preview.
+
+## 0.7.1
+
+- The last version added some internal taxonomies to the GraphQL schema unintentionally. This release removes them.
+## 0.7.0
+
+### Breaking Changes
+
+- Previously we were storing a brand new post internally for every content-related action that happened in your site. As of this release we only make a single action post for each post you take actions against and update it each time instead of creating a new one.
 
 ## 0.6.8
 
