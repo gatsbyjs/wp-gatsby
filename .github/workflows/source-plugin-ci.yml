@@ -11,4 +11,14 @@ jobs:
   create_pr:
     runs-on: ubuntu-18.04
     steps:
-      - run: ./bin/rerun-source-plugin-ci.sh
+      - uses: octokit/request-action@v2.x
+        id: create_source_plugin_pr
+        with:
+          route: POST /{owner}/{repo}/actions/workflows/ci.yml
+          owner: gatsbjys
+          repo: gatsby-source-wordpress-experimental
+          ref: chore/test-wp-gatsby-$GITHUB_REF
+          inputs: |
+            { "version": $GITHUB_REF }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
