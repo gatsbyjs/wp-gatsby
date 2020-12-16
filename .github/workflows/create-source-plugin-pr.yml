@@ -5,9 +5,6 @@ on:
     branches:
       - develop
       - master
-    paths:
-      - '**.php'
-      - '!docs/**'
 jobs:
   create_pr:
     runs-on: ubuntu-18.04
