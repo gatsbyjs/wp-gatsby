@@ -331,6 +331,7 @@ class ActionMonitor {
 			'TaxonomyMonitor',
 			'TermMonitor',
 			'UserMonitor',
+			'PreviewMonitor',
 		];
 
 		$action_monitors = [];

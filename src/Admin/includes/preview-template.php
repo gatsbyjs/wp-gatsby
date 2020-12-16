@@ -18,7 +18,7 @@ $preview_url = Preview::get_gatsby_preview_instance_url();
 	</style>
 
 	<script>
-		<?php Preview::printInitialPreviewTemplateStateJS(); ?>        
+		<?php Preview::print_initial_preview_template_state_js(); ?>        
 		<?php Preview::printFileContents( 'assets/dist/preview-client.js' ); ?>
 	</script>
 </head>
