@@ -1,0 +1,14 @@
+name: Re-run Source Plugin PR CI
+on:
+  push:
+    branches:
+      - develop
+      - master
+    paths:
+      - '**.php'
+      - '!docs/**'
+jobs:
+  create_pr:
+    runs-on: ubuntu-18.04
+    steps:
+      - run: ./bin/rerun-source-plugin-ci.sh

@@ -1,0 +1,14 @@
+name: Create Source Plugin PR
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+    paths:
+      - '**.php'
+      - '!docs/**'
+jobs:
+  create_pr:
+    runs-on: ubuntu-18.04
+    steps:
+      - run: ./bin/create-pr.sh
