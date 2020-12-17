@@ -1,4 +1,4 @@
-name: Re-run Source Plugin PR CI
+name: Run Source Plugin PR CI for every WP Gatsby PR push
 on:
   push:
     branches:
@@ -11,9 +11,10 @@ jobs:
       - uses: octokit/request-action@v2.x
         id: create_source_plugin_pr
         with:
-          route: POST /{owner}/{repo}/actions/workflows/ci.yml/dispatches
+          route: POST /{owner}/{repo}/actions/workflows/.github/workflows/ci.yml/dispatches
           owner: gatsbjys
           repo: gatsby-source-wordpress-experimental
-          ref: chore/test-wp-gatsby-$GITHUB_REF
+          # use the generated branch name here
+          ref: chore/test-wp-gatsby_$GITHUB_REF
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

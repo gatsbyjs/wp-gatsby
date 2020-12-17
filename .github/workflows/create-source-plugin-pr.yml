@@ -15,7 +15,10 @@ jobs:
           route: POST /{owner}/{repo}/actions/workflows/.github/workflows/wp-gatsby-pr.yml/dispatches
           owner: gatsbjys
           repo: gatsby-source-wordpress-experimental
-          ref: master
+          # this ref is just to decide which version of the workflows to point to
+          # it should be the default branch unless we are testing a new PR to change this workflow
+          ref: master 
           remoteref: $GITHUB_REF
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
