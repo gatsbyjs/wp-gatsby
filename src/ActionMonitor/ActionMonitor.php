@@ -162,7 +162,7 @@ class ActionMonitor {
 					'with_front' => true,
 				],
 				'query_var'             => true,
-				'supports'              => [ 'title', 'editor' ],
+				'supports'              => [ 'title', 'editor', 'author' ],
 				'show_in_graphql'       => true,
 				'graphql_single_name'   => 'ActionMonitorAction',
 				'graphql_plural_name'   => 'ActionMonitorActions',
@@ -240,6 +240,19 @@ class ActionMonitor {
 				'show_admin_column'   => true,
 			]
 		);
+
+		register_taxonomy( 'gatsby_action_stream_type', 'action_monitor', [
+			'label'               => __( 'Stream Type', 'WPGatsby' ),
+			'public'              => false,
+			'show_ui'             => $this->wpgraphql_debug_mode,
+			'show_in_graphql'     => true,
+			'graphql_single_name' => 'ActionMonitorStreamType',
+			'graphql_plural_name' => 'ActionMonitorStreamTypes',
+			'hierarchical'        => false,
+			'show_in_nav_menus'   => false,
+			'show_tagcloud'       => false,
+			'show_admin_column'   => true,
+		] );
 
 	}
 
@@ -410,6 +423,75 @@ class ActionMonitor {
 
 		register_graphql_field(
 			'ActionMonitorAction',
+			'previewData',
+			[
+				'type'        => 'GatsbyPreviewData',
+				'description' => __(
+					'The preview data of the post that triggered this action.',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
+					$referenced_node_preview_data = get_post_meta(
+						$post->ID,
+						'_gatsby_preview_data',
+						true
+					);
+
+					return $referenced_node_preview_data 
+							&& $referenced_node_preview_data !== "" 
+								? json_decode( $referenced_node_preview_data )
+								: null;
+				}
+			]
+		);
+
+		register_graphql_object_type(
+			'GatsbyPreviewData',
+			[
+				'description' => __( 'Gatsby Preview webhook data.', 'WPGatsby' ),
+				'fields'      => [
+					'preview'              => [
+						'type' => 'Boolean'
+					],
+					'previewId'            => [
+						'type' => 'Int'
+					],
+					'id'                   => [
+						'type' => 'ID'
+					],
+					'singleName'           => [
+						'type' => 'String'
+					],
+					'isNewPostDraft'       => [
+						'type' => 'Boolean'
+					],
+					'isDraft'              => [
+						'type' => 'Boolean'
+					],
+					'isRevision'           => [
+						'type' => 'Boolean'
+					],
+					'remoteUrl'            => [
+						'type' => 'String'
+					],
+					'modified'             => [
+						'type' => 'String'
+					],
+					'modifiedGmt'          => [
+						'type' => 'String'
+					],
+					'parentId'             => [
+						'type' => 'Int'
+					],
+					'revisionsAreDisabled' => [
+						'type' => 'Boolean'
+					],
+				]
+			]
+		);
+
+		register_graphql_field(
+			'ActionMonitorAction',
 			'referencedNodeID',
 			[
 				'type'        => 'String',
@@ -514,6 +596,15 @@ class ActionMonitor {
 			]
 		);
 
+		register_graphql_field(
+			'RootQueryToActionMonitorActionConnectionWhereArgs',
+			'previewStream',
+			[
+				'type'        => 'boolean',
+				'description' => 'List Actions of the PREVIEW stream type.',
+			]
+		);
+
 		add_filter(
 			'graphql_post_object_connection_query_args',
 			function( $args ) {
@@ -524,6 +615,25 @@ class ActionMonitor {
 						[
 							'after'  => date( 'c', $sinceTimestamp / 1000 ),
 							'column' => 'post_modified',
+						],
+					];
+				}
+
+				return $args;
+			}
+		);
+
+		add_filter(
+			'graphql_post_object_connection_query_args',
+			function( $args ) {
+				$previewStream = $args['previewStream'] ?? false;
+
+				if ( $previewStream ) {
+					$args['tax_query'] = [
+						[
+							'taxonomy' => 'gatsby_action_stream_type',
+							'field' => 'slug',
+							'terms' => 'preview',
 						],
 					];
 				}
