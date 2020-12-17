@@ -163,7 +163,7 @@ class PreviewMonitor extends Monitor {
 
 		$graphql_url = get_site_url() . '/' . ltrim( $graphql_endpoint, '/' );
 
-		$post_body = [
+		$preview_data = [
 			'preview'              => true,
 			'previewId'            => $post_ID,
 			'id'                   => $global_relay_id,
@@ -173,15 +173,23 @@ class PreviewMonitor extends Monitor {
 			'isRevision'           => $is_revision,
 			'remoteUrl'            => $graphql_url,
 			'modified'             => $post->post_modified,
+			'modifiedGmt'          => $post->post_modified_gmt,
 			'parentId'             => $post->post_parent,
 			'revisionsAreDisabled' => $revisions_are_disabled,
-			'token'                => $token,
 		];
+
+		$post_body = array_merge(
+			$preview_data,
+			[
+				'token' => $token,
+				'userId' => get_current_user_id()
+			]
+		);
 
 		$this->log_action( [
 			'action_type'         => 'UPDATE',
 			'title'               => $post->post_title,
-			'node_id'             => $post_ID,
+			'node_id'             => $parent_post_id,
 			'relay_id'            => $global_relay_id,
 			'graphql_single_name' => $referenced_node_single_name_normalized,
 			'graphql_plural_name' => $referenced_node_plural_name_normalized,
@@ -189,7 +197,7 @@ class PreviewMonitor extends Monitor {
 			// as far as Gatsby is concerned.
 			'status'              => 'publish',
 			'stream_type'         => 'PREVIEW',
-			'preview_data'        => wp_json_encode( $post_body ),
+			'preview_data'        => wp_json_encode( $preview_data ),
 		] );
 
 		$response = wp_remote_post(
