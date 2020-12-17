@@ -13,7 +13,6 @@ class Preview {
 		$enable_gatsby_preview = self::get_setting( 'enable_gatsby_preview' );
 
 		if ( $enable_gatsby_preview === 'on' ) {
-			add_action( 'save_post', [ $this, 'post_to_preview_instance' ], 10, 2 );
 			add_filter( 'template_include', [ $this, 'setup_preview_template' ], 1, 99 );
 
 			add_action(
@@ -209,6 +208,34 @@ class Preview {
 							'_wpgatsby_node_remote_preview_status_context',
 							$preview_context
 						);
+					}
+
+					// delete action monitor preview action.
+					// once we've saved this preview status as succes
+					// we don't need the preview action anymore.
+					$existing = new \WP_Query( [
+						'post_type'      => 'action_monitor',
+						'post_status'    => 'any',
+						'posts_per_page' => 1,
+						'no_found_rows'  => true,
+						'fields'         => 'ids',
+						'tax_query'      => [
+							'relation' => 'AND',
+							[
+								'taxonomy' => 'gatsby_action_ref_node_dbid',
+								'field'    => 'name',
+								'terms'    => sanitize_text_field( $parent_id ),
+							],
+							[
+								'taxonomy' => 'gatsby_action_stream_type',
+								'field'    => 'name',
+								'terms'    => 'PREVIEW',
+							]
+						],
+					] );
+
+					if ( isset( $existing->posts ) && ! empty( $existing->posts ) ) {
+						wp_delete_post( $existing->posts[0], true );
 					}
 
 					return [
