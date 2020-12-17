@@ -162,7 +162,7 @@ class ActionMonitor {
 					'with_front' => true,
 				],
 				'query_var'             => true,
-				'supports'              => [ 'title', 'editor', 'author' ],
+				'supports'              => [ 'title', 'editor' ],
 				'show_in_graphql'       => true,
 				'graphql_single_name'   => 'ActionMonitorAction',
 				'graphql_plural_name'   => 'ActionMonitorActions',
@@ -454,6 +454,9 @@ class ActionMonitor {
 						'type' => 'Boolean'
 					],
 					'previewId'            => [
+						'type' => 'Int'
+					],
+					'userId'            => [
 						'type' => 'Int'
 					],
 					'id'                   => [

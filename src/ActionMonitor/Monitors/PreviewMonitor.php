@@ -176,13 +176,13 @@ class PreviewMonitor extends Monitor {
 			'modifiedGmt'          => $post->post_modified_gmt,
 			'parentId'             => $post->post_parent,
 			'revisionsAreDisabled' => $revisions_are_disabled,
+			'userId' => get_current_user_id(),
 		];
-
+		
 		$post_body = array_merge(
 			$preview_data,
 			[
-				'token' => $token,
-				'userId' => get_current_user_id()
+				'token' => $token
 			]
 		);
 
