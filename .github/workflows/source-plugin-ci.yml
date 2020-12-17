@@ -1,0 +1,20 @@
+name: Run Source Plugin PR CI for every WP Gatsby PR push
+on:
+  push:
+    branches:
+      - develop
+      - master
+jobs:
+  create_pr:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: octokit/request-action@v2.x
+        id: create_source_plugin_pr
+        with:
+          route: POST /{owner}/{repo}/actions/workflows/.github/workflows/ci.yml/dispatches
+          owner: gatsbjys
+          repo: gatsby-source-wordpress-experimental
+          # use the generated branch name here
+          ref: chore/test-wp-gatsby_$GITHUB_REF
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
