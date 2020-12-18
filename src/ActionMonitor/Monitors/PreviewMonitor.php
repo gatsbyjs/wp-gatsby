@@ -9,7 +9,7 @@ class PreviewMonitor extends Monitor {
 	public static $last_sent_modified_time_key = '_wpgatsby_last_preview_modified_time';
 
 	function init() {
-    	$enable_gatsby_preview = Preview::get_setting('enable_gatsby_preview');
+		$enable_gatsby_preview = Preview::get_setting('enable_gatsby_preview');
 
 		if ($enable_gatsby_preview === 'on') {
 			add_action( 'save_post', [ $this, 'post_to_preview_instance' ], 10, 2 );
@@ -164,15 +164,14 @@ class PreviewMonitor extends Monitor {
 		$graphql_url = get_site_url() . '/' . ltrim( $graphql_endpoint, '/' );
 
 		$preview_data = [
-			'preview'              => true,
-			'previewId'            => $post_ID,
-			'id'                   => $global_relay_id,
-			'singleName'           => $referenced_node_single_name_normalized,
-			'isDraft'              => $is_draft,
-			'remoteUrl'            => $graphql_url,
-			'modified'             => $post->post_modified,
-			'parentId'             => $post->post_parent,
-			'userId' => get_current_user_id(),
+			'previewDatabaseId' => $post_ID,
+			'id'                => $global_relay_id,
+			'singleName'        => $referenced_node_single_name_normalized,
+			'isDraft'           => $is_draft,
+			'remoteUrl'         => $graphql_url,
+			'modified'          => $post->post_modified,
+			'parentDatabaseId'  => $post->post_parent,
+			'userDatabaseId'    => get_current_user_id(),
 		];
 		
 		$post_body = array_merge(
@@ -196,6 +195,7 @@ class PreviewMonitor extends Monitor {
 			'preview_data'        => wp_json_encode( $preview_data ),
 		] );
 
+		// @todo move this to shutdown hook to prevent race conditions
 		$response = wp_remote_post(
 			$preview_webhook,
 			[

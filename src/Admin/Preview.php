@@ -120,7 +120,7 @@ class Preview {
 						'type'        => 'String',
 						'description' => __( 'The modified date of the latest revision for this preview.', 'wp-gatsby' ),
 					],
-					'parentId'      => [
+					'parentDatabaseId'      => [
 						'type'        => 'Number',
 						'description' => __( 'The previewed revisions post parent id', 'wp-gatsby' ),
 					],
@@ -149,7 +149,7 @@ class Preview {
 				'mutateAndGetPayload' => function ( $input, $context, $info ) {
 					$page_path       = $input['pagePath'] ?? null;
 					$modified        = $input['modified'] ?? null;
-					$parent_id       = $input['parentId'] ?? null;
+					$parent_id       = $input['parentDatabaseId'] ?? null;
 					$remote_status   = $input['status'] ?? null;
 					$preview_context = $input['statusContext'] ?? null;
 

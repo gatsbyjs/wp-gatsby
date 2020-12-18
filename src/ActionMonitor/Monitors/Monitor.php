@@ -216,7 +216,7 @@ abstract class Monitor {
 			? 'PREVIEW' 
 			: 'CONTENT';
 
-		$is_preview = $stream_type === 'PREVIEW';
+		$is_preview_stream = $stream_type === 'PREVIEW';
 
 		// Check to see if an action already exists for this node type/database id
 		$existing = new \WP_Query( [
@@ -304,7 +304,7 @@ abstract class Monitor {
 			);
 
 			// preview actions should remain private
-			if ( !$is_preview ) {
+			if ( !$is_preview_stream ) {
 				\wp_update_post( [
 					'ID'          => $action_monitor_post_id,
 					'post_status' => 'publish'
@@ -316,7 +316,7 @@ abstract class Monitor {
 		// If $should_dispatch is not set to false, schedule a dispatch. Actions being logged that
 		// set $should_dispatch to false will be logged, but not trigger a webhook immediately.
 		// if this is a preview we should always not dispatch
-		if ( $should_dispatch && ! $is_preview ) {
+		if ( $should_dispatch && ! $is_preview_stream ) {
 			// we've saved at least 1 action, so we should update
 			// but only if this isn't a preview
 			// previews will dispatch on their own

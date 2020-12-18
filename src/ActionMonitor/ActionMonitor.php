@@ -450,32 +450,37 @@ class ActionMonitor {
 			[
 				'description' => __( 'Gatsby Preview webhook data.', 'WPGatsby' ),
 				'fields'      => [
-					'preview'              => [
-						'type' => 'Boolean'
+					'previewDatabaseId'  => [
+						'type' => 'Int',
+						'description' => __( 'The WordPress database ID of the preview. Could be a revision or draft ID.', 'WPGatsby' ),
 					],
-					'previewId'            => [
-						'type' => 'Int'
+					'userDatabaseId'     => [
+						'type' => 'Int',
+						'description' => __( 'The database ID of the user who made the original preview.', 'WPGatsby' ),
 					],
-					'userId'            => [
-						'type' => 'Int'
+					'id'         => [
+						'type' => 'ID',
+						'description' => __( 'The Relay id of the previewed node.', 'WPGatsby' ),
 					],
-					'id'                   => [
-						'type' => 'ID'
+					'singleName' => [
+						'type' => 'String',
+						'description' => __( 'The GraphQL single field name for the type of the preview.', 'WPGatsby' ),
 					],
-					'singleName'           => [
-						'type' => 'String'
+					'isDraft'    => [
+						'type' => 'Boolean',
+						'description' => __( 'Wether or not the preview is a draft.', 'WPGatsby' ),
 					],
-					'isDraft'              => [
-						'type' => 'Boolean'
+					'remoteUrl'  => [
+						'type' => 'String',
+						'description' => __( 'The WP url at the time of the preview.', 'WPGatsby' ),
 					],
-					'remoteUrl'            => [
-						'type' => 'String'
+					'modified'   => [
+						'type' => 'String',
+						'description' => __( 'The modified time of the previewed node.', 'WPGatsby' ),
 					],
-					'modified'             => [
-						'type' => 'String'
-					],
-					'parentId'             => [
-						'type' => 'Int'
+					'parentDatabaseId'   => [
+						'type' => 'Int',
+						'description' => __( 'The WordPress database ID of the preview. If this is a draft it will potentially return 0, if it\'s a revision of a post, it will return the ID of the original post that this is a revision of.', 'WPGatsby' ),
 					],
 				]
 			]
@@ -587,6 +592,7 @@ class ActionMonitor {
 			]
 		);
 
+		// @todo write a test for this previewStream input arg
 		register_graphql_field(
 			'RootQueryToActionMonitorActionConnectionWhereArgs',
 			'previewStream',
@@ -648,7 +654,7 @@ class ActionMonitor {
 		$build_webhook_field   = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
 		$preview_webhook_field = Settings::prefix_get_option( 'preview_api_webhook', 'wpgatsby_settings', false );
 
-		$we_should_call_build_webhooks =
+		$should_call_build_webhooks =
 			$build_webhook_field &&
 			$this->should_dispatch;
 
@@ -656,7 +662,7 @@ class ActionMonitor {
 			$preview_webhook_field &&
 			$this->should_dispatch;
 
-		if ( $we_should_call_build_webhooks ) {
+		if ( $should_call_build_webhooks ) {
 			$webhooks = explode( ',', $build_webhook_field );
 
 			$truthy_webhooks = array_filter( $webhooks );
@@ -684,10 +690,13 @@ class ActionMonitor {
 				// in case someone pressed preview right after
 				// we got to this point from someone else pressing
 				// publish/update.
-				$post_body = [
-					'token' => $token,
-					'userId' => get_current_user_id()
-				];
+				$post_body = apply_filters(
+					'gatsby_trigger_preview_build_dispatch_post_body',
+					[
+						'token' => $token,
+						'userDatabaseId' => get_current_user_id()
+					]
+				);
 
 				$args = apply_filters(
 					'gatsby_trigger_preview_build_dispatch_args',
