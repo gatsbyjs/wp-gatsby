@@ -12,11 +12,9 @@ jobs:
       - run: |
           curl --request POST \
             --url https://api.github.com/repos/gatsbyjs/gatsby-source-wordpress-experimental/actions/workflows/wp-gatsby-pr.yml/dispatches \
-            --header 'Authorization: Bearer $GITHUB_TOKEN' \
+            --header 'Authorization: Bearer ${{ secrets.PAT }}' \
             --header 'Content-Type: application/json' \
             --data '{
             "ref": "master",
             "inputs": { "remoteref": $GITHUB_REF }
           }'
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
