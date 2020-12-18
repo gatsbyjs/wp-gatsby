@@ -16,7 +16,7 @@ jobs:
             --header 'Content-Type: application/json' \
             --data "{
             \"ref\": \"master\",
-            \"inputs\": { \"remoteref\": \"${GITHUB_HEAD_REF}\" }
+            \"inputs\": { \"remoteref\": \"${GITHUB_BASE_REF}\" }
           }"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
