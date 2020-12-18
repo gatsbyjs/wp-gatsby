@@ -1,9 +1,6 @@
 name: Run Source Plugin PR CI for every WP Gatsby PR push
 on:
-  push:
-    branches:
-      - develop
-      - master
+  push
 jobs:
   create_pr:
     runs-on: ubuntu-18.04
