@@ -5,10 +5,9 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - run: |
-          echo '${GITHUB_TOKEN} ${GITHUB_REF}'
           curl --request POST \
             --url https://api.github.com/repos/gatsbyjs/gatsby-source-wordpress-experimental/actions/workflows/ci.yml/dispatches \
-            --header 'Authorization: Bearer ${GITHUB_TOKEN}' \
+            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
             --header 'Content-Type: application/json' \
             --data '{
             "ref": "${GITHUB_REF}",
