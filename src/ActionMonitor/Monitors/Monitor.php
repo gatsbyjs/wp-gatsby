@@ -175,6 +175,7 @@ abstract class Monitor {
 	 * $graphql_plural_name]
 	 *
 	 * @param array $args Array of arguments to configure the action to be inserted
+	 * @param bool $should_dispatch Whether the logged action should dispatch a webhook. Set to false to log the action but not schedule a dispatch.
 	 */
 	public function log_action( array $args ) {
 
@@ -195,6 +196,9 @@ abstract class Monitor {
 		if ( in_array( $args['node_id'], $this->ignored_ids, true ) ) {
 			return;
 		}
+
+		$should_dispatch = 
+			! isset( $args['skip_webhook'] ) || ! $args['skip_webhook'];
 
 		$time = time();
 
@@ -309,7 +313,10 @@ abstract class Monitor {
 
 		}
 
-		if ( !$is_preview ) {
+		// If $should_dispatch is not set to false, schedule a dispatch. Actions being logged that
+		// set $should_dispatch to false will be logged, but not trigger a webhook immediately.
+		// if this is a preview we should always not dispatch
+		if ( $should_dispatch && ! $is_preview ) {
 			// we've saved at least 1 action, so we should update
 			// but only if this isn't a preview
 			// previews will dispatch on their own
