@@ -1,9 +1,5 @@
 name: Run Source Plugin PR CI for every WP Gatsby PR push
-on:
-  push:
-    branches:
-      - develop
-      - master
+on: [push]
 jobs:
   create_pr:
     runs-on: ubuntu-18.04
@@ -11,10 +7,10 @@ jobs:
       - run: |
           curl --request POST \
             --url https://api.github.com/repos/gatsbyjs/gatsby-source-wordpress-experimental/actions/workflows/ci.yml/dispatches \
-            --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
             --header 'Content-Type: application/json' \
-            --data '{
-            "ref": "$GITHUB_REF",
-          }'
+            --data "{
+            \"ref\": \"${GITHUB_REF:11}\"
+          }"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
