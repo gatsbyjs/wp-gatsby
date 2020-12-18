@@ -168,14 +168,10 @@ class PreviewMonitor extends Monitor {
 			'previewId'            => $post_ID,
 			'id'                   => $global_relay_id,
 			'singleName'           => $referenced_node_single_name_normalized,
-			'isNewPostDraft'       => $is_new_post_draft,
 			'isDraft'              => $is_draft,
-			'isRevision'           => $is_revision,
 			'remoteUrl'            => $graphql_url,
 			'modified'             => $post->post_modified,
-			'modifiedGmt'          => $post->post_modified_gmt,
 			'parentId'             => $post->post_parent,
-			'revisionsAreDisabled' => $revisions_are_disabled,
 			'userId' => get_current_user_id(),
 		];
 		

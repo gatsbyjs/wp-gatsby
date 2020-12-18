@@ -465,13 +465,7 @@ class ActionMonitor {
 					'singleName'           => [
 						'type' => 'String'
 					],
-					'isNewPostDraft'       => [
-						'type' => 'Boolean'
-					],
 					'isDraft'              => [
-						'type' => 'Boolean'
-					],
-					'isRevision'           => [
 						'type' => 'Boolean'
 					],
 					'remoteUrl'            => [
@@ -480,14 +474,8 @@ class ActionMonitor {
 					'modified'             => [
 						'type' => 'String'
 					],
-					'modifiedGmt'          => [
-						'type' => 'String'
-					],
 					'parentId'             => [
 						'type' => 'Int'
-					],
-					'revisionsAreDisabled' => [
-						'type' => 'Boolean'
 					],
 				]
 			]
