@@ -50,8 +50,8 @@ class MediaMonitor extends  Monitor {
 				'relay_id'            => $global_relay_id,
 				'graphql_single_name' => 'mediaItem',
 				'graphql_plural_name' => 'mediaItems',
+				'skip_webhook'        => true,
 			],
-			false // This skips scheduling the webhook.
 		);
 
 	}
@@ -84,8 +84,8 @@ class MediaMonitor extends  Monitor {
 				'relay_id'            => $global_relay_id,
 				'graphql_single_name' => 'mediaItem',
 				'graphql_plural_name' => 'mediaItems',
+				'skip_webhook'        => true,
 			],
-			false // This skips scheduling the webhook.
 		);
 
 	}
@@ -118,8 +118,8 @@ class MediaMonitor extends  Monitor {
 				'relay_id'            => $global_relay_id,
 				'graphql_single_name' => 'mediaItem',
 				'graphql_plural_name' => 'mediaItems',
+				'skip_webhook'        => true,
 			],
-			false // This skips scheduling the webhook.
 		);
 
 	}
