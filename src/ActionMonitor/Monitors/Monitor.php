@@ -175,8 +175,9 @@ abstract class Monitor {
 	 * $graphql_plural_name]
 	 *
 	 * @param array $args Array of arguments to configure the action to be inserted
+	 * @param bool $should_dispatch Whether the logged action should dispatch a webhook. Set to false to log the action but not schedule a dispatch.
 	 */
-	public function log_action( array $args ) {
+	public function log_action( array $args, $should_dispatch = true ) {
 
 		if (
 			! isset( $args['action_type'] ) ||
@@ -291,8 +292,12 @@ abstract class Monitor {
 
 		}
 
-		// we've saved at least 1 action, so we should update
-		$this->action_monitor->schedule_dispatch();
+		// If $should_dispatch is not set to false, schedule a dispatch. Actions being logged that
+		// set $should_dispatch to false will be logged, but not trigger a webhook immediately.
+		if ( false !== $should_dispatch ) {
+			// we've saved at least 1 action, so we should update
+			$this->action_monitor->schedule_dispatch();
+		}
 
 		// Delete old actions
 		$this->action_monitor->garbage_collect_actions();
