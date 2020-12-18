@@ -2,7 +2,6 @@
 
 namespace WPGatsby\Admin;
 
-use GraphQLRelay\Relay;
 use GraphQL\Error\UserError;
 use WPGraphQL\Router;
 
@@ -14,7 +13,6 @@ class Preview {
 		$enable_gatsby_preview = self::get_setting( 'enable_gatsby_preview' );
 
 		if ( $enable_gatsby_preview === 'on' ) {
-			add_action( 'save_post', [ $this, 'post_to_preview_instance' ], 10, 2 );
 			add_filter( 'template_include', [ $this, 'setup_preview_template' ], 1, 99 );
 
 			add_action(
@@ -26,7 +24,7 @@ class Preview {
 		}
 	}
 
-	public static function printInitialPreviewTemplateStateJS() {
+	public static function print_initial_preview_template_state_js() {
 		global $post;
 		$post_id = $post->ID;
 
@@ -43,7 +41,7 @@ class Preview {
 				'previewFrontendUrl'     => $preview_url,
 				'previewWebhookIsOnline' => $preview_webhook_online,
 				'graphqlEndpoint'        => Router::$route,
-				'webhookWasCalled'       => Preview::wasPreviewWebhookCalledForPostId(
+				'webhookWasCalled'       => self::was_preview_webhook_called_for_post_id(
 					$post_id
 				),
 			]
@@ -52,7 +50,7 @@ class Preview {
 		echo "var initialState = $initial_state; console.log({ initialState: initialState });";
 	}
 
-	static function getLastSentModifiedTimeByPostId( $post_id ) {
+	public static function get_last_sent_modified_time_by_post_id( $post_id ) {
 		return get_post_meta(
 			$post_id,
 			self::$last_sent_modified_time_key,
@@ -60,12 +58,12 @@ class Preview {
 		);
 	}
 
-	public static function wasPreviewWebhookCalledForPostId( $post_id ) {
+	static function was_preview_webhook_called_for_post_id( $post_id ) {
 		$revision = self::getPreviewablePostObjectByPostId( $post_id );
 
 		$revision_modified = $revision->post_modified ?? null;
 
-		$last_sent_modified_time = self::getLastSentModifiedTimeByPostId(
+		$last_sent_modified_time = self::get_last_sent_modified_time_by_post_id(
 			$post_id
 		);
 
@@ -210,6 +208,34 @@ class Preview {
 							'_wpgatsby_node_remote_preview_status_context',
 							$preview_context
 						);
+					}
+
+					// delete action monitor preview action.
+					// once we've saved this preview status as succes
+					// we don't need the preview action anymore.
+					$existing = new \WP_Query( [
+						'post_type'      => 'action_monitor',
+						'post_status'    => 'any',
+						'posts_per_page' => 1,
+						'no_found_rows'  => true,
+						'fields'         => 'ids',
+						'tax_query'      => [
+							'relation' => 'AND',
+							[
+								'taxonomy' => 'gatsby_action_ref_node_dbid',
+								'field'    => 'name',
+								'terms'    => sanitize_text_field( $parent_id ),
+							],
+							[
+								'taxonomy' => 'gatsby_action_stream_type',
+								'field'    => 'name',
+								'terms'    => 'PREVIEW',
+							]
+						],
+					] );
+
+					if ( isset( $existing->posts ) && ! empty( $existing->posts ) ) {
+						wp_delete_post( $existing->posts[0], true );
 					}
 
 					return [
@@ -359,8 +385,9 @@ class Preview {
 					$node_modified_was_updated =
 					strtotime( $gatsby_node_modified ) >= strtotime( $modified );
 
-					if ( $node_modified_was_updated
-						&& $remote_status === 'NO_PAGE_CREATED_FOR_PREVIEWED_NODE'
+					if ( 
+						$node_modified_was_updated
+						&& 'NO_PAGE_CREATED_FOR_PREVIEWED_NODE' === $remote_status
 					) {
 						return [
 							'statusType'    => null,
@@ -398,7 +425,7 @@ class Preview {
 						strtotime( $modified_response ) >= strtotime( $modified );
 
 						if ( ! $preview_was_deployed ) {
-									// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED
+									// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED.
 									return [
 										'statusType'    =>
 										'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED',
@@ -406,12 +433,12 @@ class Preview {
 										'remoteStatus'  => null,
 									];
 						} else {
-							// if it is deployed, send back PREVIEW_READY below
+							// if it is deployed, send back PREVIEW_READY below.
 							$node_was_updated = true;
 						}
 					}
 
-					// if the node wasn't updated, then any status we have is stale
+					// if the node wasn't updated, then any status we have is stale.
 					$remote_status_type = $remote_status && $node_was_updated
 					? $remote_status
 					: null;
@@ -425,7 +452,7 @@ class Preview {
 					 * special case where we always need to show the status regardless
 					 * of wether the node was updated.
 					 */
-					if ( $remote_status === 'GATSBY_PREVIEW_PROCESS_ERROR' ) {
+					if ( 'GATSBY_PREVIEW_PROCESS_ERROR' === $remote_status ) {
 						$remote_status_type = $remote_status;
 					}
 
@@ -588,169 +615,7 @@ class Preview {
 		return $preview_webhook;
 	}
 
-	/**
-	 * Send a Preview to Gatsby
-	 */
-	public function post_to_preview_instance( $post_ID, $post ) {
-		$revisions_are_disabled =
-		! wp_revisions_enabled( $post );
-
-		if ( defined( 'DOING_AUTOSAVE' )
-			&& DOING_AUTOSAVE
-			// if revisions are disabled, our autosave is our preview
-			&& ! $revisions_are_disabled
-		) {
-			return;
-		}
-
-		if ( $post->post_type === 'action_monitor' ) {
-			return;
-		}
-
-		if ( $post->post_status === 'auto-draft' ) {
-			return;
-		}
-
-		$is_new_post_draft =
-		(
-		$post->post_status === 'auto-draft'
-		|| $post->post_status === 'draft'
-		) &&
-		$post->post_date_gmt === '0000-00-00 00:00:00';
-
-		$is_revision = $post->post_type === 'revision';
-		$is_draft    = $post->post_status === 'draft';
-
-		if ( ! $is_revision && ! $is_new_post_draft ) {
-			return;
-		}
-
-		$token = \WPGatsby\GraphQL\Auth::get_token();
-
-		if ( ! $token ) {
-			error_log(
-				'Please set a JWT token in WPGatsby to enable Preview support.'
-			);
-			return;
-		}
-
-		$preview_webhook = $this::get_gatsby_preview_webhook();
-
-		$original_post = get_post( $post->post_parent );
-
-		$this_is_a_publish_not_a_preview =
-		$original_post && $original_post->post_modified === $post->post_modified;
-
-		if ( $this_is_a_publish_not_a_preview ) {
-			// we will handle this in ActionMonitor.php, not here
-			return;
-		}
-
-		$parent_post_id = $original_post->ID ?? $post_ID;
-
-		$post_type_object = $original_post
-		? \get_post_type_object( $original_post->post_type )
-		: \get_post_type_object( $post->post_type );
-
-		if ( ! $post_type_object->show_in_graphql ?? true ) {
-			// if the post type doesn't have show_in_graphql set,
-			// we don't want to send a preview webhook for this post type
-			return;
-		}
-
-		$last_sent_modified_time = $this::getLastSentModifiedTimeByPostId(
-			$parent_post_id
-		);
-
-		$last_sent_modified_time_unix = strtotime( $last_sent_modified_time );
-		$this_sent_modified_time_unix = strtotime( $post->post_modified );
-
-		$difference_between_last_modified_and_this_modified =
-		$this_sent_modified_time_unix - $last_sent_modified_time_unix;
-
-		if ( $last_sent_modified_time
-			&& (
-			// if the last time was the same as this
-			$last_sent_modified_time === $post->post_modified
-			// or the last time was within the last 5 seconds
-			|| $difference_between_last_modified_and_this_modified < 5 )
-		) {
-			// we've already sent a webhook for this revision.
-			// return early to prevent extra builds
-			return;
-		} else {
-			// otherwise store this modified time so we can compare it next time
-			update_post_meta(
-				$parent_post_id,
-				self::$last_sent_modified_time_key,
-				$post->post_modified
-			);
-		}
-
-		$global_relay_id = Relay::toGlobalId(
-			'post',
-			// sometimes this is a draft instead of a revision
-			// so we can't expect original post to exist
-			absint( $original_post->ID ?? $post_ID )
-		);
-
-		$referenced_node_single_name
-		= $post_type_object->graphql_single_name ?? null;
-
-		$referenced_node_single_name_normalized = lcfirst(
-			$referenced_node_single_name
-		);
-
-		$graphql_endpoint = apply_filters( 'graphql_endpoint', 'graphql' );
-
-		$graphql_url = get_site_url() . '/' . ltrim( $graphql_endpoint, '/' );
-
-		$post_body = [
-			'preview'              => true,
-			'token'                => $token,
-			'previewId'            => $post_ID,
-			'id'                   => $global_relay_id,
-			'singleName'           => $referenced_node_single_name_normalized,
-			'isNewPostDraft'       => $is_new_post_draft,
-			'isDraft'              => $is_draft,
-			'isRevision'           => $is_revision,
-			'remoteUrl'            => $graphql_url,
-			'modified'             => $post->post_modified,
-			'parentId'             => $post->post_parent,
-			'revisionsAreDisabled' => $revisions_are_disabled,
-		];
-
-		$response = wp_remote_post(
-			$preview_webhook,
-			[
-				'body'        => wp_json_encode( $post_body ),
-				'headers'     => [
-					'Content-Type' => 'application/json; charset=utf-8',
-				],
-				'method'      => 'POST',
-				'data_format' => 'body',
-			]
-		);
-
-		// this is used to optimistically load the preview iframe
-		// we also check if the frontend is responding to requests from the
-		// preview template JS
-		$webhook_success = $this->was_request_successful( $response );
-
-		update_option(
-			'_wp_gatsby_preview_webhook_is_online',
-			$webhook_success, // boolean
-			true
-		);
-
-		if ( ! $webhook_success ) {
-			error_log(
-				'WPGatsby couldn\'t reach the Preview webhook set in plugin options.'
-			);
-		}
-	}
-
-	function was_request_successful( $response ) {
+	public static function was_request_successful( $response ) {
 		$is_wp_error = is_wp_error( $response );
 
 		$status_code             = ! $is_wp_error ? $response['response']['code'] ?? null : null;

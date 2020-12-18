@@ -241,6 +241,19 @@ class ActionMonitor {
 			]
 		);
 
+		register_taxonomy( 'gatsby_action_stream_type', 'action_monitor', [
+			'label'               => __( 'Stream Type', 'WPGatsby' ),
+			'public'              => false,
+			'show_ui'             => $this->wpgraphql_debug_mode,
+			'show_in_graphql'     => true,
+			'graphql_single_name' => 'ActionMonitorStreamType',
+			'graphql_plural_name' => 'ActionMonitorStreamTypes',
+			'hierarchical'        => false,
+			'show_in_nav_menus'   => false,
+			'show_tagcloud'       => false,
+			'show_admin_column'   => true,
+		] );
+
 	}
 
 	/**
@@ -331,6 +344,7 @@ class ActionMonitor {
 			'TaxonomyMonitor',
 			'TermMonitor',
 			'UserMonitor',
+			'PreviewMonitor',
 		];
 
 		$action_monitors = [];
@@ -404,6 +418,66 @@ class ActionMonitor {
 
 					return $referenced_node_status ?? null;
 				},
+			]
+		);
+
+		register_graphql_field(
+			'ActionMonitorAction',
+			'previewData',
+			[
+				'type'        => 'GatsbyPreviewData',
+				'description' => __(
+					'The preview data of the post that triggered this action.',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
+					$referenced_node_preview_data = get_post_meta(
+						$post->ID,
+						'_gatsby_preview_data',
+						true
+					);
+
+					return $referenced_node_preview_data 
+							&& $referenced_node_preview_data !== "" 
+								? json_decode( $referenced_node_preview_data )
+								: null;
+				}
+			]
+		);
+
+		register_graphql_object_type(
+			'GatsbyPreviewData',
+			[
+				'description' => __( 'Gatsby Preview webhook data.', 'WPGatsby' ),
+				'fields'      => [
+					'preview'              => [
+						'type' => 'Boolean'
+					],
+					'previewId'            => [
+						'type' => 'Int'
+					],
+					'userId'            => [
+						'type' => 'Int'
+					],
+					'id'                   => [
+						'type' => 'ID'
+					],
+					'singleName'           => [
+						'type' => 'String'
+					],
+					'isDraft'              => [
+						'type' => 'Boolean'
+					],
+					'remoteUrl'            => [
+						'type' => 'String'
+					],
+					'modified'             => [
+						'type' => 'String'
+					],
+					'parentId'             => [
+						'type' => 'Int'
+					],
+				]
 			]
 		);
 
@@ -513,6 +587,15 @@ class ActionMonitor {
 			]
 		);
 
+		register_graphql_field(
+			'RootQueryToActionMonitorActionConnectionWhereArgs',
+			'previewStream',
+			[
+				'type'        => 'boolean',
+				'description' => 'List Actions of the PREVIEW stream type.',
+			]
+		);
+
 		add_filter(
 			'graphql_post_object_connection_query_args',
 			function( $args ) {
@@ -523,6 +606,25 @@ class ActionMonitor {
 						[
 							'after'  => date( 'c', $sinceTimestamp / 1000 ),
 							'column' => 'post_modified',
+						],
+					];
+				}
+
+				return $args;
+			}
+		);
+
+		add_filter(
+			'graphql_post_object_connection_query_args',
+			function( $args ) {
+				$previewStream = $args['previewStream'] ?? false;
+
+				if ( $previewStream ) {
+					$args['tax_query'] = [
+						[
+							'taxonomy' => 'gatsby_action_stream_type',
+							'field' => 'slug',
+							'terms' => 'preview',
 						],
 					];
 				}
@@ -546,21 +648,59 @@ class ActionMonitor {
 		$build_webhook_field   = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
 		$preview_webhook_field = Settings::prefix_get_option( 'preview_api_webhook', 'wpgatsby_settings', false );
 
-		$we_should_call_webhooks =
-			( $build_webhook_field || $preview_webhook_field ) &&
+		$we_should_call_build_webhooks =
+			$build_webhook_field &&
 			$this->should_dispatch;
 
-		if ( $we_should_call_webhooks ) {
-			$webhooks = array_merge(
-				explode( ',', $build_webhook_field ),
-				explode( ',', $preview_webhook_field )
-			);
+		$we_should_call_preview_webhooks =
+			$preview_webhook_field &&
+			$this->should_dispatch;
+
+		if ( $we_should_call_build_webhooks ) {
+			$webhooks = explode( ',', $build_webhook_field );
 
 			$truthy_webhooks = array_filter( $webhooks );
 			$unique_webhooks = array_unique( $truthy_webhooks );
 
 			foreach ( $unique_webhooks as $webhook ) {
 				$args = apply_filters( 'gatsby_trigger_dispatch_args', [], $webhook );
+
+				wp_safe_remote_post( $webhook, $args );
+			}
+		}
+
+		if ( $we_should_call_preview_webhooks ) {
+			$webhooks = explode( ',', $preview_webhook_field );
+
+			$truthy_webhooks = array_filter( $webhooks );
+			$unique_webhooks = array_unique( $truthy_webhooks );
+
+			foreach ( $unique_webhooks as $webhook ) {
+				$token = \WPGatsby\GraphQL\Auth::get_token();
+
+				// For preview webhooks we send the token
+				// because this is a build but
+				// we want it to source any pending previews
+				// in case someone pressed preview right after
+				// we got to this point from someone else pressing
+				// publish/update.
+				$post_body = [
+					'token' => $token,
+					'userId' => get_current_user_id()
+				];
+
+				$args = apply_filters(
+					'gatsby_trigger_preview_build_dispatch_args',
+					[
+						'body'        => wp_json_encode( $post_body ),
+						'headers'     => [
+							'Content-Type' => 'application/json; charset=utf-8',
+						],
+						'method'      => 'POST',
+						'data_format' => 'body',
+					],
+					$webhook 
+				);
 
 				wp_safe_remote_post( $webhook, $args );
 			}

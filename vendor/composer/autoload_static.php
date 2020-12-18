@@ -6,6 +6,10 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
 {
+    public static $files = array (
+        '6413a0507de9f277a61292c211ec9a9e' => __DIR__ . '/../..' . '/tests/_data/config.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
         'W' => 
         array (
@@ -104,6 +108,7 @@ class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
         'WPGatsby\\ActionMonitor\\Monitors\\NavMenuMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/NavMenuMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\PostMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/PostMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\PostTypeMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/PostTypeMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\PreviewMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/PreviewMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\SettingsMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/SettingsMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\TaxonomyMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/TaxonomyMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\TermMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/TermMonitor.php',
