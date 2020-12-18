@@ -9,8 +9,8 @@ jobs:
             --url https://api.github.com/repos/gatsbyjs/gatsby-source-wordpress-experimental/actions/workflows/ci.yml/dispatches \
             --header "Authorization: Bearer ${GITHUB_TOKEN}" \
             --header 'Content-Type: application/json' \
-            --data '{
-            "ref": "${GITHUB_REF}"
-          }'
+            --data "{
+            'ref': '${GITHUB_REF}'
+          }"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
