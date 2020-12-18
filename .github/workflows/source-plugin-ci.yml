@@ -10,7 +10,7 @@ jobs:
             --header "Authorization: Bearer ${GITHUB_TOKEN}" \
             --header 'Content-Type: application/json' \
             --data "{
-            \"ref\": \"${GITHUB_REF}\"
+            \"ref\": \"${GITHUB_HEAD_REF}\"
           }"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
