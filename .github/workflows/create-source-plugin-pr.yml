@@ -9,16 +9,14 @@ jobs:
   create_pr:
     runs-on: ubuntu-18.04
     steps:
-      - uses: octokit/request-action@v2.x
-        id: create_source_plugin_pr
-        with:
-          route: POST /{owner}/{repo}/actions/workflows/.github/workflows/wp-gatsby-pr.yml/dispatches
-          owner: gatsbjys
-          repo: gatsby-source-wordpress-experimental
-          # this ref is just to decide which version of the workflows to point to
-          # it should be the default branch unless we are testing a new PR to change this workflow
-          ref: master 
-          remoteref: $GITHUB_REF
+      - run: |
+          curl --request POST \
+            --url https://api.github.com/repos/gatsbyjs/gatsby-source-wordpress-experimental/actions/workflows/wp-gatsby-pr.yml/dispatches \
+            --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            --header 'Content-Type: application/json' \
+            --data '{
+            "ref": "master",
+            "inputs": { "remoteref": $GITHUB_REF }
+          }'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
