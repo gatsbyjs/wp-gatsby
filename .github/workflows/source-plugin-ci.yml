@@ -4,7 +4,8 @@ jobs:
   run_ci:
     runs-on: ubuntu-18.04
     steps:
-      - run: export REF="${GITHUB_REF:11}"
+      - run: echo "REF=${GITHUB_REF:11}" >> $GITHUB_ENV
+      - run: echo $REF
       - uses: octokit/request-action@v2.x
         with:
           route: POST /repos/{owner}/{repo}/actions/workflows/{workflow}/dispatches
