@@ -56,6 +56,7 @@ return array(
     'WPGatsby\\ActionMonitor\\Monitors\\NavMenuMonitor' => $baseDir . '/src/ActionMonitor/Monitors/NavMenuMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\PostMonitor' => $baseDir . '/src/ActionMonitor/Monitors/PostMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\PostTypeMonitor' => $baseDir . '/src/ActionMonitor/Monitors/PostTypeMonitor.php',
+    'WPGatsby\\ActionMonitor\\Monitors\\PreviewMonitor' => $baseDir . '/src/ActionMonitor/Monitors/PreviewMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\SettingsMonitor' => $baseDir . '/src/ActionMonitor/Monitors/SettingsMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\TaxonomyMonitor' => $baseDir . '/src/ActionMonitor/Monitors/TaxonomyMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\TermMonitor' => $baseDir . '/src/ActionMonitor/Monitors/TermMonitor.php',

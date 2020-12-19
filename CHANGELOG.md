@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.9.0
+
+### Breaking Changes
+
+- This release massively increases the performance of Gatsby Previews when more than one person is previewing or editing content at the same time. Previously when multiple users previewed simultaneously, only one of those users would see their preview or it would take a very long time for the others to see their previews. Now many users can preview concurrently. This was tested with a headless chrome puppeteer script. We found that 10 users making 100 previews over the course of a few minutes now have a 100% success rate. Previously 3 users making 30 previews would have a less than 30% success rate. This is a breaking change because `gatsby-source-wordpress-experimental` has some changes which are required to make this work.
+- Previously, saving a Media item would call the build and preview webhooks. This wasn't desireable because if you upload an image to your post, that will start a build to just source that media item, then when you press publish or preview you'd have to wait for the image build to complete before being able to see your build. Now a webhook is not sent out when images are uploaded/edited and other content updates which do send a webhook will catch these image changes and apply them alongside the other changes.
+
 ## 0.8.0
 
 ### Breaking Changes

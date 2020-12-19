@@ -175,6 +175,7 @@ abstract class Monitor {
 	 * $graphql_plural_name]
 	 *
 	 * @param array $args Array of arguments to configure the action to be inserted
+	 * @param bool $should_dispatch Whether the logged action should dispatch a webhook. Set to false to log the action but not schedule a dispatch.
 	 */
 	public function log_action( array $args ) {
 
@@ -196,6 +197,9 @@ abstract class Monitor {
 			return;
 		}
 
+		$should_dispatch = 
+			! isset( $args['skip_webhook'] ) || ! $args['skip_webhook'];
+
 		$time = time();
 
 		$node_type = 'unknown';
@@ -208,41 +212,48 @@ abstract class Monitor {
 			}
 		}
 
+		$stream_type = ( $args['stream_type'] ?? null ) === 'PREVIEW' 
+			? 'PREVIEW' 
+			: 'CONTENT';
+
+		$is_preview_stream = $stream_type === 'PREVIEW';
+
 		// Check to see if an action already exists for this node type/database id
-		$existing = new \WP_Query(
-			[
-				'post_type'      => 'action_monitor',
-				'post_status'    => 'any',
-				'posts_per_page' => 1,
-				'no_found_rows'  => true,
-				'fields'         => 'ids',
-				'tax_query'      => [
-					'relation' => 'AND',
-					[
-						'taxonomy' => 'gatsby_action_ref_node_dbid',
-						'field'    => 'name',
-						'terms'    => sanitize_text_field( $args['node_id'] ),
-					],
-					[
-						'taxonomy' => 'gatsby_action_ref_node_type',
-						'field'    => 'name',
-						'terms'    => $node_type,
-					],
+		$existing = new \WP_Query( [
+			'post_type'      => 'action_monitor',
+			'post_status'    => 'any',
+			'posts_per_page' => 1,
+			'no_found_rows'  => true,
+			'fields'         => 'ids',
+			'tax_query'      => [
+				'relation' => 'AND',
+				[
+					'taxonomy' => 'gatsby_action_ref_node_dbid',
+					'field'    => 'name',
+					'terms'    => sanitize_text_field( $args['node_id'] ),
 				],
-			]
-		);
+				[
+					'taxonomy' => 'gatsby_action_ref_node_type',
+					'field'    => 'name',
+					'terms'    => $node_type,
+				],
+				[
+					'taxonomy' => 'gatsby_action_stream_type',
+					'field'    => 'name',
+					'terms'    => $stream_type,
+				]
+			],
+		] );
 
 		// If there's already an action logged for this node, update the record
 		if ( isset( $existing->posts ) && ! empty( $existing->posts ) ) {
 
 			$existing_id            = $existing->posts[0];
-			$action_monitor_post_id = wp_update_post(
-				[
-					'ID'           => absint( $existing_id ),
-					'post_title'   => $args['title'],
-					'post_content' => wp_json_encode( $args ),
-				]
-			);
+			$action_monitor_post_id = wp_update_post( [
+				'ID'           => absint( $existing_id ),
+				'post_title'   => $args['title'],
+				'post_content' => wp_json_encode( $args ),
+			] );
 
 		} else {
 
@@ -264,8 +275,18 @@ abstract class Monitor {
 
 		wp_set_object_terms( $action_monitor_post_id, sanitize_text_field( $args['relay_id'] ), 'gatsby_action_ref_node_id' );
 		wp_set_object_terms( $action_monitor_post_id, $args['action_type'], 'gatsby_action_type' );
+		wp_set_object_terms( $action_monitor_post_id, $stream_type, 'gatsby_action_stream_type' );
 
 		if ( $action_monitor_post_id !== 0 ) {
+
+			if ( isset( $args['preview_data'] ) ) {
+				\update_post_meta(
+					$action_monitor_post_id,
+					'_gatsby_preview_data',
+					$args['preview_data']
+				);
+			}
+
 			\update_post_meta(
 				$action_monitor_post_id,
 				'referenced_node_status',
@@ -282,17 +303,25 @@ abstract class Monitor {
 				graphql_format_field_name( $args['graphql_plural_name'] )
 			);
 
-			\wp_update_post(
-				[
+			// preview actions should remain private
+			if ( !$is_preview_stream ) {
+				\wp_update_post( [
 					'ID'          => $action_monitor_post_id,
-					'post_status' => 'publish',
-				]
-			);
+					'post_status' => 'publish'
+				] );
+			}
 
 		}
 
-		// we've saved at least 1 action, so we should update
-		$this->action_monitor->schedule_dispatch();
+		// If $should_dispatch is not set to false, schedule a dispatch. Actions being logged that
+		// set $should_dispatch to false will be logged, but not trigger a webhook immediately.
+		// if this is a preview we should always not dispatch
+		if ( $should_dispatch && ! $is_preview_stream ) {
+			// we've saved at least 1 action, so we should update
+			// but only if this isn't a preview
+			// previews will dispatch on their own
+			$this->action_monitor->schedule_dispatch();
+		}
 
 		// Delete old actions
 		$this->action_monitor->garbage_collect_actions();
@@ -306,7 +335,5 @@ abstract class Monitor {
 	 * @return mixed
 	 */
 	abstract public function init();
-
-
-
+	
 }
