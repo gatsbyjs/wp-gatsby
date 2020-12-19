@@ -1,15 +1,16 @@
 name: Run Source Plugin PR CI for every WP Gatsby PR push
 on: [push]
 jobs:
-  create_pr:
+  run_ci:
     runs-on: ubuntu-18.04
     steps:
+      - run: export REF = "${GITHUB_REF:11}"
       - uses: octokit/request-action@v2.x
         with:
           route: POST /repos/{owner}/{repo}/actions/workflows/{workflow}/dispatches
           owner: gatsbyjs
           repo: gatsby-source-wordpress-experimental
           workflow: ci.yml
-          ref: "${GITHUB_REF:11}"
+          ref: $REF
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
