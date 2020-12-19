@@ -12,6 +12,6 @@ jobs:
           owner: gatsbyjs
           repo: gatsby-source-wordpress-experimental
           workflow: ci.yml
-          ref: $REF
+          ref: ${{ env.REF }}
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
