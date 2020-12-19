@@ -9,6 +9,7 @@ jobs:
   create_pr:
     runs-on: ubuntu-18.04
     steps:
+      - run: echo $GITHUB_REF
       - run: echo "REF=${GITHUB_REF:11}" >> $GITHUB_ENV
       - run: echo $REF
       - uses: octokit/request-action@v2.x
@@ -18,6 +19,6 @@ jobs:
           repo: gatsby-source-wordpress-experimental
           workflow: wp-gatsby-pr.yml
           ref: master
-          inputs: "{ \"remoteref\": \"${{ env.REF }}\" }"
+          inputs: "{ \"remoteref\": \"${{ env.GITHUB_REF }}\" }"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
