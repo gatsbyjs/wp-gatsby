@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.1
+
+- Removed a new internal taxonomy from the GraphQL schema which was unintentionally added in the last release.
+
 ## 0.9.0
 
 ### Breaking Changes
