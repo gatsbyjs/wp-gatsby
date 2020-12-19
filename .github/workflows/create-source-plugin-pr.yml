@@ -9,14 +9,13 @@ jobs:
   create_pr:
     runs-on: ubuntu-18.04
     steps:
-      - run: |
-          curl --request POST \
-            --url https://api.github.com/repos/gatsbyjs/gatsby-source-wordpress-experimental/actions/workflows/wp-gatsby-pr.yml/dispatches \
-            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
-            --header 'Content-Type: application/json' \
-            --data "{
-            \"ref\": \"master\",
-            \"inputs\": { \"remoteref\": \"${GITHUB_BASE_REF}\" }
-          }"
+      - uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/{owner}/{repo}/actions/workflows/{workflow}/dispatches
+          owner: gatsbyjs
+          repo: gatsby-source-wordpress-experimental
+          workflow: wp-gatsby-pr.yml
+          ref: master
+          remoteref: $GITHUB_BASE_REF
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
