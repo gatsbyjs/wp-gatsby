@@ -1994,4 +1994,63 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 	}
 
+	public function testUpdatePermalinksCreatesActionMonitorAction() {
+
+		$option_name = 'permalink_structure';
+		$structure = '/%year%/%monthnum%/%postname%/';
+		update_option( $option_name, $structure );
+
+		$this->clear_action_monitor();
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		update_option( $option_name, '/archives/%post_id%' );
+
+		// Updating permalinks should create 1 action
+		// - 1 action
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 1, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		$this->assertQuerySuccessful( $actual, [
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'REFETCH_ALL',
+				'referencedNodeID'           => (string) 'refetch_all',
+				'referencedNodeSingularName' => 'refetchAll'
+			] ),
+		] );
+
+	}
+
+	public function testUpdateUntrackedOptionDoesNotCreateActionMonitorAction() {
+
+		$this->clear_action_monitor();
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		update_option( 'test_option', 'test' );
+
+		// Updating untracked option should create 0 actions
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+	}
+
+	public function testSetTransientDoesNotCreateActionMonitorAction() {
+
+		$this->clear_action_monitor();
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		$transient = set_transient( 'test_transient', 'test', 600 );
+
+		// Setting a transient should create 0 action
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+	}
+
+
 }
