@@ -2031,8 +2031,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 		update_option( 'test_option', 'test' );
 
-		// Updating permalinks should create 1 action
-		// - 1 action
+		// Updating untracked option should create 0 actions
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
@@ -2047,8 +2046,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 		$transient = set_transient( 'test_transient', 'test', 600 );
 
-		// Updating permalinks should create 1 action
-		// - 1 action
+		// Setting a transient should create 0 action
 		$actual = $this->graphql( compact( 'query' ) );
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
 
