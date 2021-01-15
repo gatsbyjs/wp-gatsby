@@ -17,7 +17,7 @@ class Preview {
 
 			add_action(
 				'graphql_register_types',
-				function () {
+				function() {
 					$this->registerPreviewStatusFieldsAndMutations();
 				}
 			);
@@ -72,12 +72,12 @@ class Preview {
 
 	static function getPreviewablePostObjectByPostId( $post_id ) {
 		$revision = array_values(
-			wp_get_post_revisions( $post_id )
-		)[0]
-		// or if revisions are disabled, get the autosave
-		?? wp_get_post_autosave( $post_id, get_current_user_id() )
-		// otherwise we can't preview anything
-		?? null;
+			            wp_get_post_revisions( $post_id )
+		            )[0]
+		            // or if revisions are disabled, get the autosave
+		            ?? wp_get_post_autosave( $post_id, get_current_user_id() )
+		               // otherwise we can't preview anything
+		               ?? null;
 
 		if ( $revision ) {
 			return $revision;
@@ -112,23 +112,23 @@ class Preview {
 			'wpGatsbyRemotePreviewStatus',
 			[
 				'inputFields'         => [
-					'pagePath'      => [
+					'pagePath'         => [
 						'type'        => 'String',
 						'description' => __( 'The Gatsby page path for this preview.', 'wp-gatsby' ),
 					],
-					'modified'      => [
+					'modified'         => [
 						'type'        => 'String',
 						'description' => __( 'The modified date of the latest revision for this preview.', 'wp-gatsby' ),
 					],
-					'parentDatabaseId'      => [
+					'parentDatabaseId' => [
 						'type'        => 'Number',
 						'description' => __( 'The previewed revisions post parent id', 'wp-gatsby' ),
 					],
-					'status'        => [
+					'status'           => [
 						'type'        => [ 'non_null' => 'WPGatsbyRemotePreviewStatusEnum' ],
 						'description' => __( 'The remote status of the previewed node', 'wp-gatsby' ),
 					],
-					'statusContext' => [
+					'statusContext'    => [
 						'type'        => 'String',
 						'description' => __( 'Additional context about the preview status', 'wp-gatsby' ),
 					],
@@ -137,7 +137,7 @@ class Preview {
 					'success' => [
 						'type'        => 'Boolean',
 						'description' => __( 'Wether or not the revision mutation was successful', 'wp-gatsby' ),
-						'resolve'     => function ( $payload, $args, $context, $info ) {
+						'resolve'     => function( $payload, $args, $context, $info ) {
 							$success = $payload['success'] ?? null;
 
 							return [
@@ -146,7 +146,7 @@ class Preview {
 						},
 					],
 				],
-				'mutateAndGetPayload' => function ( $input, $context, $info ) {
+				'mutateAndGetPayload' => function( $input, $context, $info ) {
 					$page_path       = $input['pagePath'] ?? null;
 					$modified        = $input['modified'] ?? null;
 					$parent_id       = $input['parentDatabaseId'] ?? null;
@@ -156,15 +156,15 @@ class Preview {
 					$post = get_post( $parent_id );
 
 					$post_type_object = $post
-					? get_post_type_object( $post->post_type )
-					: null;
+						? get_post_type_object( $post->post_type )
+						: null;
 
 					$user_can_edit_this_post = $post
-					? current_user_can(
-						$post_type_object->cap->edit_posts,
-						$parent_id
-					)
-					: null;
+						? current_user_can(
+							$post_type_object->cap->edit_posts,
+							$parent_id
+						)
+						: null;
 
 					if ( ! $post || ! $user_can_edit_this_post ) {
 						$message = sprintf(
@@ -262,19 +262,19 @@ class Preview {
 			[
 				'description' => __( 'The different statuses a Gatsby Preview can be in for a single node.', 'wp-gatsby' ),
 				'values'      => [
-					'NO_NODE_FOUND'                        => [
+					'NO_NODE_FOUND'                             => [
 						'value' => 'NO_NODE_FOUND',
 					],
-					'PREVIEW_READY'                        => [
+					'PREVIEW_READY'                             => [
 						'value' => 'PREVIEW_READY',
 					],
-					'REMOTE_NODE_NOT_YET_UPDATED'          => [
+					'REMOTE_NODE_NOT_YET_UPDATED'               => [
 						'value' => 'REMOTE_NODE_NOT_YET_UPDATED',
 					],
-					'NO_PREVIEW_PATH_FOUND'                => [
+					'NO_PREVIEW_PATH_FOUND'                     => [
 						'value' => 'NO_PREVIEW_PATH_FOUND',
 					],
-					'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' => [
+					'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL'      => [
 						'value' => 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL',
 					],
 					'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED' => [
@@ -323,22 +323,22 @@ class Preview {
 						'description' => __( 'The post id for the previewed node.', 'wp-gatsby' ),
 					],
 				],
-				'resolve'     => function ( $root, $args, $context, $info ) {
+				'resolve'     => function( $root, $args, $context, $info ) {
 					$post_id = $args['nodeId'] ?? null;
 
 					// make sure post_id is a valid post
 					$post = get_post( $post_id );
 
 					$post_type_object = $post
-					? get_post_type_object( $post->post_type )
-					: null;
+						? get_post_type_object( $post->post_type )
+						: null;
 
 					$user_can_edit_this_post = $post
-					? current_user_can(
-						$post_type_object->cap->edit_posts,
-						$post_id
-					)
-					: null;
+						? current_user_can(
+							$post_type_object->cap->edit_posts,
+							$post_id
+						)
+						: null;
 
 					if ( ! $post || ! $user_can_edit_this_post ) {
 						throw new UserError(
@@ -383,9 +383,9 @@ class Preview {
 					);
 
 					$node_modified_was_updated =
-					strtotime( $gatsby_node_modified ) >= strtotime( $modified );
+						strtotime( $gatsby_node_modified ) >= strtotime( $modified );
 
-					if ( 
+					if (
 						$node_modified_was_updated
 						&& 'NO_PAGE_CREATED_FOR_PREVIEWED_NODE' === $remote_status
 					) {
@@ -402,13 +402,13 @@ class Preview {
 						$server_side = true;
 
 						$gatbsy_preview_frontend_url =
-						\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url(
-							$server_side
-						);
+							\WPGatsby\Admin\Preview::get_gatsby_preview_instance_url(
+								$server_side
+							);
 
 						$modified_deployed_url =
-						$gatbsy_preview_frontend_url .
-						"page-data/$found_preview_path_post_meta/page-data.json";
+							$gatbsy_preview_frontend_url .
+							"page-data/$found_preview_path_post_meta/page-data.json";
 
 						// check if node page was deployed
 						$request  = wp_remote_get( $modified_deployed_url );
@@ -417,21 +417,21 @@ class Preview {
 						$page_data = json_decode( $response );
 
 						$modified_response =
-						$page_data->result->pageContext->__wpGatsbyNodeModified
-						?? null;
+							$page_data->result->pageContext->__wpGatsbyNodeModified
+							?? null;
 
 						$preview_was_deployed =
-						$modified_response &&
-						strtotime( $modified_response ) >= strtotime( $modified );
+							$modified_response &&
+							strtotime( $modified_response ) >= strtotime( $modified );
 
 						if ( ! $preview_was_deployed ) {
-									// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED.
-									return [
-										'statusType'    =>
-										'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED',
-										'statusContext' => null,
-										'remoteStatus'  => null,
-									];
+							// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED.
+							return [
+								'statusType'    =>
+									'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED',
+								'statusContext' => null,
+								'remoteStatus'  => null,
+							];
 						} else {
 							// if it is deployed, send back PREVIEW_READY below.
 							$node_was_updated = true;
@@ -440,8 +440,8 @@ class Preview {
 
 					// if the node wasn't updated, then any status we have is stale.
 					$remote_status_type = $remote_status && $node_was_updated
-					? $remote_status
-					: null;
+						? $remote_status
+						: null;
 
 					/**
 					 * We need the above check for wether the node was updated so we
@@ -477,7 +477,7 @@ class Preview {
 					}
 
 					$normalized_preview_page_path =
-					$found_preview_path_post_meta !== ''
+						$found_preview_path_post_meta !== ''
 							? $found_preview_path_post_meta
 							: null;
 
@@ -501,7 +501,7 @@ class Preview {
 			[
 				'description' => __( 'Wether or not the Preview frontend URL is online.', 'wp-gatsby' ),
 				'type'        => 'Boolean',
-				'resolve'     => function ( $root, $args, $context, $info ) {
+				'resolve'     => function( $root, $args, $context, $info ) {
 					if ( ! is_user_logged_in() ) {
 						return false;
 					}
@@ -511,7 +511,7 @@ class Preview {
 					$request = wp_remote_get( $preview_url );
 
 					$request_was_successful =
-					$this->was_request_successful( $request );
+						$this->was_request_successful( $request );
 
 					return $request_was_successful;
 				},
@@ -519,18 +519,34 @@ class Preview {
 		);
 	}
 
+	/**
+	 * If specific conditions are met, this loads the Gatsby Preview template
+	 * instead of the core WordPress preview template
+	 *
+	 * @param string $template The template to load
+	 *
+	 * @return string
+	 */
 	public function setup_preview_template( $template ) {
 		global $post;
 
+		// If the global post isn't set, but the preview_id is passed, use that to determine
+		// the preview post
+		if ( empty( $post ) && isset( $_GET['preview_id'] ) ) {
+			$post = get_post( $_GET['preview_id'] );
+		}
+
+		// Determine the post_type of the post to be previewed
 		$post_type = $post->post_type ?? null;
 
-		$post_type_object = get_post_type_object( $post->post_type ) ?? null;
-
+		// Ensure the post_type is set to show_in_graphql
+		$post_type_object = $post_type ? get_post_type_object( $post->post_type ) : null;
 		if ( $post_type && ! $post_type_object->show_in_graphql ?? true ) {
 			return plugin_dir_path( __FILE__ ) . 'includes/post-type-not-shown-in-graphql.php';
 		}
 
-		$is_preview  = is_preview();
+		// Determine if it's a preview
+		$is_preview  = is_preview() || isset( $_GET['preview_nonce'] );
 		$preview_url = self::get_gatsby_preview_instance_url();
 
 		if ( $is_preview && $preview_url ) {
@@ -559,6 +575,7 @@ class Preview {
 	 */
 	static function get_setting( string $key ) {
 		$wpgatsby_settings = get_option( 'wpgatsby_settings' );
+
 		return isset( $wpgatsby_settings[ $key ] ) ? $wpgatsby_settings[ $key ] : null;
 	}
 
@@ -581,8 +598,8 @@ class Preview {
 		// as the server preview frontend and template preview frontend
 		if ( count( $preview_url_exploded ) > 1 ) {
 			$preview_url = $server_side
-			? $preview_url_exploded[0]
-			: $preview_url_exploded[1];
+				? $preview_url_exploded[0]
+				: $preview_url_exploded[1];
 		}
 
 		if ( ! $preview_url || ! filter_var( $preview_url, FILTER_VALIDATE_URL ) ) {
@@ -603,7 +620,7 @@ class Preview {
 		$preview_webhook = self::get_setting( 'preview_api_webhook' );
 
 		if ( ! $preview_webhook
-			|| ! filter_var( $preview_webhook, FILTER_VALIDATE_URL )
+		     || ! filter_var( $preview_webhook, FILTER_VALIDATE_URL )
 		) {
 			return false;
 		}
@@ -625,12 +642,12 @@ class Preview {
 		// we also check if the frontend is responding to requests from the
 		// preview template JS
 		$success =
-		! $is_wp_error &&
-		(
-		$status_code === 200 ||
-		$status_code === 204 ||
-		$response_message_was_ok
-		);
+			! $is_wp_error &&
+			(
+				$status_code === 200 ||
+				$status_code === 204 ||
+				$response_message_was_ok
+			);
 
 		return $success;
 	}
