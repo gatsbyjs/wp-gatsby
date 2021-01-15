@@ -1,6 +1,6 @@
 # Change Log
 
-## Upcoming
+## 0.9.2
 
 ### Bug Fixes
 
