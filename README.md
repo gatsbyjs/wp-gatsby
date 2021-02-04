@@ -26,7 +26,7 @@ Composer from wpackagist.org.
 
 This plugin has 2 primary responsibilities:
 
--   [Monitor Activity in WordPress to keep Gatsby in sync with WP](./docs/action-monitor.md)
+-   [Monitor Activity in WordPress to keep Gatsby in sync with WP](https://github.com/gatsbyjs/wp-gatsby/blob/master/docs/action-monitor.md)
 -   [Configure WordPress Previews to work with Gatsby](https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md#setting-up-preview)
 
 Additionally, WPGatsby has a settings page to connect your WordPress site with your Gatsby site:

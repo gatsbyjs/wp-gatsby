@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.1
+
+-   Fixed a broken link in the readme.
+
 ## 1.0.0
 
 This plugin has come a long way over the past few months! This release introduces no changes outside of a few pages of docs. We're choosing this point to call this plugin stable as the plugin is well tested via our test suites and members of the community using it in the wild. Thanks everyone for your help and support in getting this plugin to this point!
