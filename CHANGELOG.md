@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.2
+
+-   An erroneous change in our composer autoload broke our first stable release 😅 bit of a rocky start but lets try this again 🤝 😁 You can bet we'll be adding a test for this 😂
+
 ## 1.0.1
 
 -   Fixed a broken link in the readme.
