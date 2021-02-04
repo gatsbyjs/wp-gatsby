@@ -17,8 +17,8 @@ class MediaMonitor extends  Monitor {
 		add_action( 'add_attachment', [ $this, 'callback_add_attachment' ] );
 		add_action( 'edit_attachment', [ $this, 'callback_edit_attachment' ] );
 		add_action( 'delete_attachment', [ $this, 'callback_delete_attachment' ] );
-		add_action( 'wp_save_image_editor_file', [ $this, 'callback_wp_save_image_editor_file' ] );
-		add_action( 'wp_save_image_file', [ $this, 'callback_wp_save_image_file' ] );
+		add_action( 'wp_save_image_editor_file', [ $this, 'callback_wp_save_image_editor_file' ], 10, 5 );
+		add_action( 'wp_save_image_file', [ $this, 'callback_wp_save_image_file' ], 10, 5 );
 
 	}
 
