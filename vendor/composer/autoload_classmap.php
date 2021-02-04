@@ -6,7 +6,6 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'Composer\\Semver\\Comparator' => $vendorDir . '/composer/semver/src/Comparator.php',
     'Composer\\Semver\\Constraint\\AbstractConstraint' => $vendorDir . '/composer/semver/src/Constraint/AbstractConstraint.php',
     'Composer\\Semver\\Constraint\\Constraint' => $vendorDir . '/composer/semver/src/Constraint/Constraint.php',
@@ -52,7 +51,6 @@ return array(
     'SecurityLib\\Util' => $vendorDir . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
     'WPGatsby\\ActionMonitor\\ActionMonitor' => $baseDir . '/src/ActionMonitor/ActionMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\AcfMonitor' => $baseDir . '/src/ActionMonitor/Monitors/AcfMonitor.php',
-    'WPGatsby\\ActionMonitor\\Monitors\\ActionMonitor' => $baseDir . '/src/ActionMonitor/Monitors/ActionMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\MediaMonitor' => $baseDir . '/src/ActionMonitor/Monitors/MediaMonitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\Monitor' => $baseDir . '/src/ActionMonitor/Monitors/Monitor.php',
     'WPGatsby\\ActionMonitor\\Monitors\\NavMenuMonitor' => $baseDir . '/src/ActionMonitor/Monitors/NavMenuMonitor.php',
