@@ -24,7 +24,7 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 # WPGatsby
 
 WPGatsby is a free open-source WordPress plugin that optimizes your WordPress site to work as a data
-source for [Gatsby](https://www.gatsbyjs.com/docs/how-to/sourcing-data/sourcing-from-wordpress).
+source for [Gatsby](https://www.gatsbyjs.com/docs/how-to/sourcing-data/sourcing-from-wordpress). This plugin must be used in combination with the npm packages [`gatsby-source-wordpress-experimental`](https://www.npmjs.com/package/gatsby-source-wordpress-experimental) or [`gatsby-source-wordpress@^4.0.0`](https://www.npmjs.com/package/gatsby-source-wordpress).
 
 ## Install and Activation
 
@@ -34,12 +34,11 @@ Composer from wpackagist.org.
 
 ## Plugin Overview
 
-This plugin has 3 primary responsibilities:
+This plugin has 2 primary responsibilities:
 
-- [GraphQL Schema Modifications](./docs/schema-customization.md)
-- [Monitor Activity in WordPress to keep Gatsby in sync](./docs/action-monitor.md)
-- [Configure WordPress Previews to work with Gatsby](./docs/preview.md)
+-   [Monitor Activity in WordPress to keep Gatsby in sync with WP](./docs/action-monitor.md)
+-   [Configure WordPress Previews to work with Gatsby](https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md#setting-up-preview)
 
 Additionally, WPGatsby has a settings page to connect your WordPress site with your Gatsby site:
 
-- [WPGatsby Settings](./docs/settings.md)
+-   [WPGatsby Settings](https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md)

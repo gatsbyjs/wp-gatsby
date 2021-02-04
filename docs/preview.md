@@ -1,3 +1,0 @@
-# Gatsby Previews
-
-@todo
