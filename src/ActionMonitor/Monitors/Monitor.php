@@ -1,7 +1,6 @@
 <?php
 namespace WPGatsby\ActionMonitor\Monitors;
 
-use Composer\Package\Package;
 use GraphQLRelay\Relay;
 use WPGatsby\ActionMonitor\ActionMonitor;
 
@@ -175,7 +174,7 @@ abstract class Monitor {
 	 * $graphql_plural_name]
 	 *
 	 * @param array $args Array of arguments to configure the action to be inserted
-	 * @param bool $should_dispatch Whether the logged action should dispatch a webhook. Set to false to log the action but not schedule a dispatch.
+	 *
 	 */
 	public function log_action( array $args ) {
 
@@ -192,12 +191,27 @@ abstract class Monitor {
 			return;
 		}
 
+		/**
+		 * Filter to allow skipping a logged action. If set to false, the action will not be logged.
+		 *
+		 * @param null Whether the action should be logged
+		 * @param array $args The args to log
+		 * @param Monitor $this Instance of the Monitor
+		 */
+		$pre_log_action = apply_filters( 'gatsby_pre_log_action_monitor_action', null, $args, $this );
+
+		if ( null !== $pre_log_action ) {
+			if ( false === $pre_log_action ) {
+				return;
+			}
+		}
+
 		// If the node_id is set to be ignored, don't create a log
 		if ( in_array( $args['node_id'], $this->ignored_ids, true ) ) {
 			return;
 		}
 
-		$should_dispatch = 
+		$should_dispatch =
 			! isset( $args['skip_webhook'] ) || ! $args['skip_webhook'];
 
 		$time = time();
@@ -212,8 +226,8 @@ abstract class Monitor {
 			}
 		}
 
-		$stream_type = ( $args['stream_type'] ?? null ) === 'PREVIEW' 
-			? 'PREVIEW' 
+		$stream_type = ( $args['stream_type'] ?? null ) === 'PREVIEW'
+			? 'PREVIEW'
 			: 'CONTENT';
 
 		$is_preview_stream = $stream_type === 'PREVIEW';
@@ -335,5 +349,5 @@ abstract class Monitor {
 	 * @return mixed
 	 */
 	abstract public function init();
-	
+
 }
