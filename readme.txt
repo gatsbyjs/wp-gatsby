@@ -21,17 +21,13 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
   </a>
 </p>
 
-# WPGatsby
-
 WPGatsby is a free open-source WordPress plugin that optimizes your WordPress site to work as a data source for [Gatsby](https://www.gatsbyjs.com/docs/how-to/sourcing-data/sourcing-from-wordpress).
 
-This plugin must be used in combination with the npm packages [`gatsby-source-wordpress-experimental`](https://www.npmjs.com/package/gatsby-source-wordpress-experimental) or [`gatsby-source-wordpress@^4.0.0`](https://www.npmjs.com/package/gatsby-source-wordpress).
+This plugin must be used in combination with the npm package [`gatsby-source-wordpress@^4.0.0`](https://www.npmjs.com/package/gatsby-source-wordpress).
 
 ## Install and Activation
 
-WPGatsby is available on the WordPress.org repository and can be installed from your WordPress
-dashboard, or by using any other plugin installation method you prefer, such as installing with
-Composer from wpackagist.org.
+WPGatsby is available on the WordPress.org repository and can be installed from your WordPress dashboard, or by using any other plugin installation method you prefer, such as installing with Composer from wpackagist.org.
 
 ## Plugin Overview
 
