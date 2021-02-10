@@ -16,7 +16,7 @@
 	<h1>Post type not configured properly</h1>
 
 	<p>
-		The post type <b>"<?php echo $post->post_type; ?>"</b> is not set up properly for Gatsby Preview. 
+		The post type <b>"<?php echo esc_html( get_post_type() ); ?>"</b> is not set up properly for Gatsby Preview. 
 		<br />
 		Post types must have <b>"show_in_graphql"</b> set to work with Preview.
 		<br />
