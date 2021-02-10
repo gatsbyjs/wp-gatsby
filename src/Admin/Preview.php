@@ -546,13 +546,10 @@ class Preview {
 		}
 
 		// Determine if it's a preview
-		$is_preview  = is_preview() || isset( $_GET['preview_nonce'] );
-		$preview_url = self::get_gatsby_preview_instance_url();
-
-		if ( $is_preview && $preview_url ) {
-			return trailingslashit( dirname( __FILE__ ) ) . 'includes/preview-template.php';
-		} elseif ( $is_preview && ! $preview_url ) {
-			return trailingslashit( dirname( __FILE__ ) ) . 'includes/no-preview-url-set.php';
+		if ( is_preview() || isset( $_GET['preview_nonce'] ) ) {
+			return false == self::get_gatsby_preview_instance_url()
+			    ? plugin_dir_path( __FILE__ ) . 'includes/no-preview-url-set.php'
+				: plugin_dir_path( __FILE__ ) . 'includes/preview-template.php';
 		}
 
 		return $template;
