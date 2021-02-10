@@ -54,6 +54,7 @@ class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
     );
 
     public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Composer\\Semver\\Comparator' => __DIR__ . '/..' . '/composer/semver/src/Comparator.php',
         'Composer\\Semver\\Constraint\\AbstractConstraint' => __DIR__ . '/..' . '/composer/semver/src/Constraint/AbstractConstraint.php',
         'Composer\\Semver\\Constraint\\Constraint' => __DIR__ . '/..' . '/composer/semver/src/Constraint/Constraint.php',
@@ -99,6 +100,7 @@ class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
         'SecurityLib\\Util' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
         'WPGatsby\\ActionMonitor\\ActionMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/ActionMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\AcfMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/AcfMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\ActionMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/ActionMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\MediaMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/MediaMonitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\Monitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/Monitor.php',
         'WPGatsby\\ActionMonitor\\Monitors\\NavMenuMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/NavMenuMonitor.php',
