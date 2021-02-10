@@ -506,14 +506,7 @@ class Preview {
 						return false;
 					}
 
-					$preview_url = self::get_gatsby_preview_instance_url();
-
-					$request = wp_remote_get( $preview_url );
-
-					$request_was_successful =
-						$this->was_request_successful( $request );
-
-					return $request_was_successful;
+					return $this->was_request_successful( wp_remote_get( self::get_gatsby_preview_instance_url() ) );
 				},
 			]
 		);
