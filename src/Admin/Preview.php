@@ -606,8 +606,8 @@ class Preview {
 			return false;
 		}
 
-		if ( substr( $preview_url, - 1 ) !== '/' ) {
-			$preview_url = "$preview_url/";
+		if ( substr( $preview_url, -1 ) !== '/' ) {
+			$preview_url .= '/';
 		}
 
 		return $preview_url;
@@ -625,8 +625,8 @@ class Preview {
 			return false;
 		}
 
-		if ( substr( $preview_webhook, - 1 ) !== '/' ) {
-			$preview_webhook = "$preview_webhook/";
+		if ( substr( $preview_webhook, -1 ) !== '/' ) {
+			$preview_webhook .= '/';
 		}
 
 		return $preview_webhook;
