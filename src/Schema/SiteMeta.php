@@ -159,9 +159,7 @@ class SiteMeta {
 			[
 				'type'        => 'Boolean',
 				'description' => __( 'Confirms this is a WP Gatsby site', 'wp-gatsby' ),
-				'resolve'     => function() {
-					return true;
-				},
+				'resolve'     => '__return_true',
 			]
 		);
 

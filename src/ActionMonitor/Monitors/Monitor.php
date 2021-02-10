@@ -136,11 +136,7 @@ abstract class Monitor {
 		}
 
 		// If the meta key starts with an underscore, don't track it
-		if ( '_' === substr( $meta_key, 0, 1 ) ) {
-			return false;
-		}
-
-		return true;
+		return '_' !== substr( $meta_key, 0, 1 );
 
 	}
 

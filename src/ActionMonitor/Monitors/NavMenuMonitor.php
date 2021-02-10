@@ -66,15 +66,7 @@ class NavMenuMonitor extends Monitor {
 		$locations         = get_theme_mod( 'nav_menu_locations' );
 		$assigned_menu_ids = ! empty( $locations ) ? array_values( $locations ) : [];
 
-		if ( empty( $assigned_menu_ids ) ) {
-			return false;
-		}
-
-		if ( in_array( $menu_id, $assigned_menu_ids, true ) ) {
-			return true;
-		}
-
-		return false;
+		return ! empty( $assigned_menu_ids ) && in_array( $menu_id, $assigned_menu_ids, true );
 	}
 
 	/**

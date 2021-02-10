@@ -48,14 +48,7 @@ class UserMonitor extends Monitor {
 	 */
 	public function is_published_author( int $user_id ) {
 
-		$post_types            = $this->action_monitor->get_tracked_post_types();
-		$published_posts_count = count_user_posts( $user_id, $post_types );
-
-		if ( empty( $published_posts_count ) ) {
-			return false;
-		}
-
-		return true;
+		return (int) count_user_posts( $user_id, $this->action_monitor->get_tracked_post_types() ) > 0;
 
 	}
 
@@ -83,11 +76,7 @@ class UserMonitor extends Monitor {
 
 		$tracked_meta_keys = apply_filters( 'gatsby_action_monitor_tracked_user_meta_keys', $tracked_meta_keys, $meta_key, $meta_value, $object );
 
-		if ( in_array( $meta_key, $tracked_meta_keys, true ) ) {
-			return true;
-		}
-
-		return false;
+		return in_array( $meta_key, $tracked_meta_keys, true );
 
 	}
 

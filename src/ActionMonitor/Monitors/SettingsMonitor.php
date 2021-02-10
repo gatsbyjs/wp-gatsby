@@ -84,16 +84,7 @@ class SettingsMonitor extends Monitor {
 			]
 		);
 
-		if ( in_array( $option_name, $tracked_option_names, true ) ) {
-			return true;
-		}
-
-		// If the meta key starts with an underscore, don't track it
-		if ( '_' === substr( $option_name, 0, 1 ) ) {
-			return false;
-		}
-
-		return false;
+		return in_array( $option_name, $tracked_option_names, true );
 
 	}
 
