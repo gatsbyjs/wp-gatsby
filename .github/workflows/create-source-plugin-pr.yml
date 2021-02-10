@@ -9,7 +9,10 @@ jobs:
   create_pr:
     runs-on: ubuntu-18.04
     steps:
-      - run: |
+      - env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        if: env.GITHUB_TOKEN != ''
+        run: |
           curl --request POST \
             --url https://api.github.com/repos/gatsbyjs/gatsby-source-wordpress-experimental/actions/workflows/wp-gatsby-pr.yml/dispatches \
             --header "Authorization: Bearer ${GITHUB_TOKEN}" \
@@ -18,5 +21,3 @@ jobs:
             \"ref\": \"master\",
             \"inputs\": { \"remoteref\": \"${GITHUB_BASE_REF}\" }
           }"
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
