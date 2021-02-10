@@ -52,8 +52,8 @@ class TermMonitor extends Monitor {
 
 		$tax_object = get_taxonomy( $taxonomy );
 
-		// If the term is in a taxonomy that's not being tracked, ignore it
-		if ( ! $this->is_taxonomy_tracked( $taxonomy ) ) {
+		// If the term is non-existent or in a taxonomy that's not being tracked, ignore it
+		if ( false === $tax_object || ! $this->is_taxonomy_tracked( $taxonomy ) ) {
 			return;
 		}
 
