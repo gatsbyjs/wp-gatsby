@@ -276,7 +276,7 @@ abstract class Monitor {
 					'post_title'   => $args['title'],
 					'post_type'    => 'action_monitor',
 					'post_status'  => 'private',
-					'author'       => - 1,
+					'author'       => -1,
 					'post_name'    => sanitize_title( "{$args['title']}-{$time}" ),
 					'post_content' => wp_json_encode( $args ),
 				]
