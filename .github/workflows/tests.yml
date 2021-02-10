@@ -12,6 +12,7 @@ on:
       - develop
       - master
     paths:
+      - '.github/workflows/*.yml'
       - '**.php'
       - '!docs/**'
 
