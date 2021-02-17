@@ -24,7 +24,7 @@ class Preview {
 		}
 	}
 
-	public static function print_initial_preview_template_state_js() {
+	public static function get_preview_template_state() {
 		global $post;
 		$post_id = $post->ID;
 
@@ -35,16 +35,22 @@ class Preview {
 			'_wp_gatsby_preview_webhook_is_online'
 		);
 
+		$initial_state = [
+			'postId'                 => $post_id,
+			'previewFrontendUrl'     => $preview_url,
+			'previewWebhookIsOnline' => $preview_webhook_online,
+			'graphqlEndpoint'        => Router::$route,
+			'webhookWasCalled'       => self::was_preview_webhook_called_for_post_id(
+				$post_id
+			),
+		];	
+
+		return $initial_state;
+	}
+
+	public static function print_initial_preview_template_state_js() {
 		$initial_state = json_encode(
-			[
-				'postId'                 => $post_id,
-				'previewFrontendUrl'     => $preview_url,
-				'previewWebhookIsOnline' => $preview_webhook_online,
-				'graphqlEndpoint'        => Router::$route,
-				'webhookWasCalled'       => self::was_preview_webhook_called_for_post_id(
-					$post_id
-				),
-			]
+			self::get_preview_template_state()
 		);
 
 		echo "var initialState = $initial_state; console.log({ initialState: initialState });";
