@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.4
+
+-   In some cases the homepage was not previewable in Gatsby Preview - this is now fixed.
+
 ## 1.0.3
 
 -   Fixed `wp_save_image_file` and `wp_save_image_editor_file` callback argument count.
