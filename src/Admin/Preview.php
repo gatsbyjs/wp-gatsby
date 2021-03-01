@@ -406,9 +406,14 @@ class Preview {
 								$server_side
 							);
 
+						$page_data_path = $found_preview_path_post_meta === "/" 
+							? "/index/"
+							: $found_preview_path_post_meta;
+		
+
 						$modified_deployed_url =
 							$gatbsy_preview_frontend_url .
-							"page-data/$found_preview_path_post_meta/page-data.json";
+							"page-data/$page_data_path/page-data.json";
 
 						// check if node page was deployed
 						$request  = wp_remote_get( $modified_deployed_url );
