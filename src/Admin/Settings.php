@@ -139,7 +139,7 @@ class Settings {
 		echo '<div class="notice-info notice">
 			<p>
 				<a target="_blank" href="'
-					. esc_url( 'https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md' ) . '">
+					. esc_url( 'https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-wordpress/docs/tutorials/configuring-wp-gatsby.md' ) . '">
 					Learn how to configure WPGatsby here 
 					.
 				</a>
