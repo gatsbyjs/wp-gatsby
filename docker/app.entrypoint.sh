@@ -37,7 +37,7 @@ fi
 # Install and activate WPGraphQL
 if [ ! -f "${PLUGINS_DIR}/wp-graphql/wp-graphql.php" ]; then
     wp plugin install \
-        https://github.com/wp-graphql/wp-graphql/archive/${CORE_BRANCH-master}.zip \
+        https://github.com/wp-graphql/wp-graphql/archive/${WPGRAPHQL_VERSION}.zip \
         --activate --allow-root
 else
     wp plugin activate wp-graphql --allow-root
