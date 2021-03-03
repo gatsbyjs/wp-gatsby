@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.6
+
+- Bump stable version tag
+
 ## 1.0.5
 
 - Fixed our build/publish process which was failing due to using the develop branch of WPGraphQL in tests.
