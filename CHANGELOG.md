@@ -1,5 +1,9 @@
 # Change Log
 
+## Upcoming
+
+- Before using WPGraphQL::debug() we weren't making sure that the debug method exists on that class. This could throw errors for older versions of WPGraphQL - we now check that the method exists before using it.
+
 ## 1.0.6
 
 - Bump stable version tag
