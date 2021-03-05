@@ -83,7 +83,7 @@ $preview_url = Preview::get_gatsby_preview_instance_url();
 	<h2>Developer instructions</h2>
 	<p>Please visit 
 		<a
-			href="https://github.com/gatsbyjs/gatsby-source-wordpress-experimental/blob/master/docs/tutorials/configuring-wp-gatsby.md#setting-up-preview" target="_blank"
+			href="https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-wordpress/docs/tutorials/configuring-wp-gatsby.md#setting-up-preview" target="_blank"
 			rel="noopener, nofollow. noreferrer, noopener, external"
 		>
 		the docs
