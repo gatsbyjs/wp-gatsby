@@ -53,7 +53,7 @@ class TermMonitor extends Monitor {
 		$tax_object = get_taxonomy( $taxonomy );
 
 		// If the term is in a taxonomy that's not being tracked, ignore it
-		if ( ! $this->is_taxonomy_tracked( $taxonomy ) ) {
+		if ( false === $tax_object || ! $this->is_taxonomy_tracked( $taxonomy ) ) {
 			return;
 		}
 
@@ -117,11 +117,11 @@ class TermMonitor extends Monitor {
 	 */
 	public function callback_delete_term( int $term_id, int $tt_id, string $taxonomy, $deleted_term ) {
 
-		if ( ! $this->is_taxonomy_tracked( $taxonomy ) ) {
+		$tax_object = get_taxonomy( $taxonomy );
+
+		if ( false === $tax_object || ! $this->is_taxonomy_tracked( $taxonomy ) ) {
 			return;
 		}
-
-		$tax_object = get_taxonomy( $taxonomy );
 
 		$this->log_action(
 			[
@@ -150,11 +150,11 @@ class TermMonitor extends Monitor {
 	 */
 	public function callback_edited_term( int $term_id, int $tt_id, string $taxonomy ) {
 
-		if ( ! $this->is_taxonomy_tracked( $taxonomy ) ) {
+		$tax_object = get_taxonomy( $taxonomy );
+
+		if ( false === $tax_object || ! $this->is_taxonomy_tracked( $taxonomy ) ) {
 			return;
 		}
-
-		$tax_object = get_taxonomy( $taxonomy );
 
 		$term = get_term( $term_id, $taxonomy );
 
@@ -249,8 +249,10 @@ class TermMonitor extends Monitor {
 			return;
 		}
 
+		$tax_object = get_taxonomy( $term->taxonomy );
+
 		// If the updated term is of a post type that isn't being tracked, do nothing
-		if ( ! $this->is_taxonomy_tracked( $term->taxonomy ) ) {
+		if ( false === $tax_object || ! $this->is_taxonomy_tracked( $term->taxonomy ) ) {
 			return;
 		}
 
@@ -263,8 +265,8 @@ class TermMonitor extends Monitor {
 			'title'               => $term->name,
 			'node_id'             => $term->term_id,
 			'relay_id'            => Relay::toGlobalId( 'term', $term->term_id ),
-			'graphql_single_name' => get_taxonomy( $term->taxonomy )->graphql_single_name,
-			'graphql_plural_name' => get_taxonomy( $term->taxonomy )->graphql_plural_name,
+			'graphql_single_name' => $tax_object->graphql_single_name,
+			'graphql_plural_name' => $tax_object->graphql_plural_name,
 			'status'              => 'publish',
 		];
 
@@ -287,8 +289,10 @@ class TermMonitor extends Monitor {
 			return;
 		}
 
+		$tax_object = get_taxonomy( $term->taxonomy );
+
 		// If the updated term is of a post type that isn't being tracked, do nothing
-		if ( ! $this->is_taxonomy_tracked( $term->taxonomy ) ) {
+		if ( false === $tax_object || ! $this->is_taxonomy_tracked( $term->taxonomy ) ) {
 			return;
 		}
 
@@ -301,8 +305,8 @@ class TermMonitor extends Monitor {
 			'title'               => $term->name,
 			'node_id'             => $term->term_id,
 			'relay_id'            => Relay::toGlobalId( 'term', $term->term_id ),
-			'graphql_single_name' => get_taxonomy( $term->taxonomy )->graphql_single_name,
-			'graphql_plural_name' => get_taxonomy( $term->taxonomy )->graphql_plural_name,
+			'graphql_single_name' => $tax_object->graphql_single_name,
+			'graphql_plural_name' => $tax_object->graphql_plural_name,
 			'status'              => 'publish',
 		];
 
