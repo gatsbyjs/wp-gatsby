@@ -52,7 +52,10 @@ class ActionMonitor {
 	public function __construct() {
 
 		// Determine if WPGraphQL is in debug mode
-		$this->wpgraphql_debug_mode = class_exists( 'WPGraphQL' ) ? \WPGraphQL::debug() : false;
+		$this->wpgraphql_debug_mode = 
+			class_exists( 'WPGraphQL' ) && method_exists( 'WPGraphQL', 'debug' ) 
+				? \WPGraphQL::debug()
+				: false;
 
 		// Initialize action monitors
 		add_action( 'wp_loaded', [ $this, 'init_action_monitors' ], 11 );
