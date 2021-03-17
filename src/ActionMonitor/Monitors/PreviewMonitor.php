@@ -29,8 +29,8 @@ class PreviewMonitor extends Monitor {
 			return false;
 		}
 
-		if ( substr( $preview_webhook, - 1 ) !== '/' ) {
-			$preview_webhook = "$preview_webhook/";
+		if ( substr( $preview_webhook, -1 ) !== '/' ) {
+			$preview_webhook .= '/';
 		}
 
 		return $preview_webhook;
@@ -129,14 +129,14 @@ class PreviewMonitor extends Monitor {
 			// we've already sent a webhook for this revision.
 			// return early to prevent extra builds.
 			return;
-		} else {
-			// otherwise store this modified time so we can compare it next time.
-			update_post_meta(
-				$parent_post_id,
-				self::$last_sent_modified_time_key,
-				$post->post_modified
-			);
 		}
+
+		// otherwise store this modified time so we can compare it next time.
+		update_post_meta(
+			$parent_post_id,
+			self::$last_sent_modified_time_key,
+			$post->post_modified
+		);
 
 		$global_relay_id = Relay::toGlobalId(
 			'post',
