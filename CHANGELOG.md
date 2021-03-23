@@ -1,8 +1,12 @@
 # Change Log
 
-## Upcoming
+## 1.0.7
 
 - Before using WPGraphQL::debug() we weren't making sure that the debug method exists on that class. This could throw errors for older versions of WPGraphQL - we now check that the method exists before using it.
+
+- Documents using multiple webhooks support in Build and Preview webhook input field labels.
+
+- Fixes trailing comma in MediaActionMonitor log array.
 
 ## 1.0.6
 
