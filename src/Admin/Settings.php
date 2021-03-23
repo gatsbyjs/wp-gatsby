@@ -214,7 +214,7 @@ class Settings {
 				[
 					'name'              => 'builds_api_webhook',
 					'label'             => __( 'Builds Webhook', 'wpgatsby_settings' ),
-					'desc'              => __( 'Enter your Gatsby Builds Webhook URL. Must begin with http:// or https://.', 'wpgatsby_settings' ),
+					'desc'              => __( 'Enter your Gatsby Builds Webhook URL. Must begin with http:// or https://. Use a comma-separated list to configure multiple webhooks.', 'wpgatsby_settings' ),
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
 					'sanitize_callback' => function ( $input ) {
@@ -240,7 +240,7 @@ class Settings {
 				[
 					'name'              => 'preview_api_webhook',
 					'label'             => __( 'Preview Webhook', 'wpgatsby_settings' ),
-					'desc'              => __( 'Enter your Gatsby Preview Webhook URL. Must begin with http:// or https://.', 'wpgatsby_settings' ),
+					'desc'              => __( 'Enter your Gatsby Preview Webhook URL. Must begin with http:// or https://. Use a comma-separated list to configure multiple webhooks.', 'wpgatsby_settings' ),
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
 					'sanitize_callback' => function ( $input ) {
