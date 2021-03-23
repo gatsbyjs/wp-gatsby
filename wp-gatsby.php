@@ -221,10 +221,14 @@ function wpgatsby_show_admin_notice()
     add_action(
         'admin_notices',
         function () {
-            ?>
-            <div class="error notice">
-                    <p><?php esc_html_e('WPGraphQL must be active for WPGatsby to work.', 'wp-gatsby'); ?> <a target="_blank" href="<?php echo esc_url('https://github.com/wp-graphql/wp-graphql/releases'); ?>">Download the latest release here.</a></p>
-            </div>
+            if(!empty(get_admin_url())){
+                $adminURL = get_admin_url();
+                $installWPGRAPHQL = $adminURL . 'plugin-install.php?s=WPGraphQL&tab=search&type=term';
+            }
+        ?>
+        <div class="error notice">
+                <p><?php esc_html_e('WPGraphQL must be active for WPGatsby to work.', 'wp-gatsby'); ?> <a target="_self" href="<?php echo esc_url( $installWPGRAPHQL ); ?>">Install WPGraphQL</a></p>
+        </div>
             <?php
         }
     );
