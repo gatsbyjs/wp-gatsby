@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.8
+
+- Our internal preview logic had a bug where a request was being made with double forward slashes in the url in some cases. This broke incremental builds previews but worked on regular `gatsby develop` previews. This is fixed in this release.
+
 ## 1.0.7
 
 - Before using WPGraphQL::debug() we weren't making sure that the debug method exists on that class. This could throw errors for older versions of WPGraphQL - we now check that the method exists before using it.
