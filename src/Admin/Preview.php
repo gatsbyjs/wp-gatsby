@@ -410,10 +410,11 @@ class Preview {
 							? "/index/"
 							: $found_preview_path_post_meta;
 		
+						$page_data_path_trimmed = trim( $page_data_path, "/" );
 
 						$modified_deployed_url =
 							$gatbsy_preview_frontend_url .
-							"page-data/$page_data_path/page-data.json";
+							"page-data/$page_data_path_trimmed/page-data.json";
 
 						// check if node page was deployed
 						$request  = wp_remote_get( $modified_deployed_url );
