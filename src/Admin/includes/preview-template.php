@@ -23,8 +23,7 @@ $user_id = get_current_user_id();
     </style>
 
     <script>
-        <?php // Preview::print_initial_preview_template_state_js(); ?>        
-        <?php // Preview::printFileContents('assets/dist/preview-client.js'); ?>
+        window.location.href = "<?php echo $preview_config['previewFrontendUrl']; ?>/?id=<?php echo $id; ?>"
     </script>
 </head>
 
@@ -41,8 +40,6 @@ $user_id = get_current_user_id();
     <h1>Loading Preview</h1>
     <p id="preview-loader-warning" style="display: none;"></p>
 </div> -->
-
-<iframe id='preview' name="preview" frameborder="0" src="<?php echo $preview_config['previewFrontendUrl']; ?>/__preview/gatsby-source-wordpress/?id=<?php echo $id; ?>&token=<?php echo $token; ?>&user_id=<?php echo $user_id; ?>"></iframe>
 
 <!-- <div class="content error" style="display: none;">
     <h1>The Preview couldn't be loaded</h1>
