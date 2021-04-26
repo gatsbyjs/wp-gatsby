@@ -60,6 +60,8 @@ class PreviewMonitor extends Monitor {
 			return;
 		}
 
+		$is_draft = $post->post_status === 'draft';
+
 		$is_new_post_draft =
 			(
 				$post->post_status === 'auto-draft'
@@ -70,7 +72,7 @@ class PreviewMonitor extends Monitor {
 		$is_revision = $post->post_type === 'revision';
 		$is_draft = $post->post_status === 'draft';
 
-		if ( !$is_revision && !$is_new_post_draft ) {
+		if ( !$is_draft && !$is_revision && !$is_new_post_draft ) {
 			return;
 		}
 
