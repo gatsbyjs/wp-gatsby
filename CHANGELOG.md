@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.9
+
+- Fixed a bug where draft posts weren't previewable.
+
 ## 1.0.8
 
 - Our internal preview logic had a bug where a request was being made with double forward slashes in the url in some cases. This broke incremental builds previews but worked on regular `gatsby develop` previews. This is fixed in this release.
