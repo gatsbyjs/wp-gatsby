@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.10
+
+- Fixed preview loader logic for subdirectory WP installs so that we request the GraphQL endpoint from the right URL.
+
 ## 1.0.9
 
 - Fixed a bug where draft posts weren't previewable.
