@@ -44,6 +44,7 @@ class Preview {
 				'webhookWasCalled'       => self::was_preview_webhook_called_for_post_id(
 					$post_id
 				),
+				'wordpressSiteUrl' 		=> get_site_url()
 			]
 		);
 
