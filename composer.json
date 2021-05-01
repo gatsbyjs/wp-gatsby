@@ -51,6 +51,9 @@
     "wp-graphql/wp-graphql-testcase": "^1.0",
     "phpunit/phpunit": "9.4.1"
   },
+  "suggest": {
+    "wp-graphql/wp-graphql": "WPGraphQL must be active for WPGatsby to work"
+  },
   "scripts": {
     "install-test-env": "bash bin/install-test-env.sh",
     "docker-build": "bash bin/run-docker.sh build",
