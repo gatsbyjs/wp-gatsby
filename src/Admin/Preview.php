@@ -388,7 +388,10 @@ class Preview {
 
 					if (
 						$node_modified_was_updated
-						&& 'NO_PAGE_CREATED_FOR_PREVIEWED_NODE' === $remote_status
+						&& (
+						'NO_PAGE_CREATED_FOR_PREVIEWED_NODE' === $remote_status
+						|| 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' === $remote_status
+						)
 					) {
 						return [
 							'statusType'    => null,
