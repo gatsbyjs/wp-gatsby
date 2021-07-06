@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.11
+
+- Fixed a warning state for Preview to let users know when the preview Gatsby site set in the preview webhook setting is pointing at a Gatsby site which isn't sourcing data from the current WP site. Preview requires a 1:1 connection between WP and Gatsby where settings point at a Gatsby site that sources data from the WP instance previews are originating from.
+
 ## 1.0.10
 
 - Fixed preview loader logic for subdirectory WP installs so that we request the GraphQL endpoint from the right URL.
