@@ -2,8 +2,8 @@
 
 namespace WPGatsby\ActionMonitor;
 
+use WP_Post;
 use WPGatsby\Admin\Settings;
-use GraphQLRelay\Relay;
 
 /**
  * This class registers and controls a post type which can be used to
@@ -22,931 +22,619 @@ class ActionMonitor {
 	/**
 	 * An array of posts ID's for posts that have been updated
 	 * in this ActionMonitor instantiation
+	 *
+	 * @var array
 	 */
 	protected $updated_post_ids = [];
 
 	/**
+	 * Whether WPGraphQL Debug Mode is active
+	 *
+	 * @var bool Whether GraphQL Debug Mode is active
+	 */
+	protected $wpgraphql_debug_mode = false;
+
+	/**
+	 * @var mixed|null|WP_Post The post object before update
+	 */
+	public $post_object_before_update = null;
+
+	/**
+	 * Holds the classes for each action monitor
+	 *
+	 * @var array
+	 */
+	protected $action_monitors;
+
+	/**
 	 * Set up the Action monitor when the class is initialized
 	 */
-	function __construct() {
+	public function __construct() {
+
+		// Determine if WPGraphQL is in debug mode
+		$this->wpgraphql_debug_mode = 
+			class_exists( 'WPGraphQL' ) && method_exists( 'WPGraphQL', 'debug' ) 
+				? \WPGraphQL::debug()
+				: false;
+
+		// Initialize action monitors
+		add_action( 'wp_loaded', [ $this, 'init_action_monitors' ], 11 );
+
+		// Register the GraphQL Fields Gatsby Source WordPress needs to interact with the Action Monitor
+		add_action( 'graphql_register_types', [ $this, 'register_graphql_fields' ] );
+
+		// Register post type and taxonomies to track CRUD events in WordPress
+		add_action( 'init', [ $this, 'init_post_type_and_taxonomies' ] );
+		add_filter( 'manage_action_monitor_posts_columns', [ $this, 'add_modified_column' ], 10 );
 		add_action(
-			'init',
-			function() {
-				$this->initPostType();
-			}
+			'manage_action_monitor_posts_custom_column',
+			[
+				$this,
+				'render_modified_column',
+			],
+			10,
+			2
 		);
 
+		// Trigger webhook dispatch
 		add_action( 'shutdown', [ $this, 'trigger_dispatch' ] );
 
-		$this->registerGraphQLFields();
-		$this->monitorActions();
 	}
 
-	function garbageCollectActions() {
-		$posts = get_posts( [
-			'numberposts' => - 1,
-			'post_type'   => 'action_monitor',
-			'date_query'  => [
-				'before' => date( "Y-m-d H:i:s", strtotime( '-7 days' ) ),
-			],
-		] );
+	/**
+	 * Get the post types that are tracked by WPGatsby
+	 *
+	 * @return array|mixed|void
+	 */
+	public function get_tracked_post_types() {
+		$tracked_post_types = apply_filters(
+			'gatsby_action_monitor_tracked_post_types',
+			get_post_types(
+				[
+					'show_in_graphql' => true,
+					'public'          => true,
+				]
+			)
+		);
 
-		if ( ! empty( $posts ) ) {
-			foreach ( $posts as $post ) {
-				wp_delete_post( $post->ID );
-			}
-		}
+		return ! empty( $tracked_post_types ) && is_array( $tracked_post_types ) ? $tracked_post_types : [];
 	}
 
-	// $args = [$action_type, $title, $status, $node_id, $relay_id, $graphql_single_name, $graphql_plural_name]
-	function insertNewAction( $args ) {
-		if (
-			! $args['action_type'] ||
-			! $args['title'] ||
-			! $args['node_id'] ||
-			! $args['relay_id'] ||
-			! $args['graphql_single_name'] ||
-			! $args['graphql_plural_name']
-		) {
-			// @todo log that this action isn't working??
-			return;
-		}
+	/**
+	 * Get the taxonomies that are tracked by WPGatsby
+	 *
+	 * @return array|mixed|void
+	 */
+	public function get_tracked_taxonomies() {
+		$tracked_taxonomies = apply_filters(
+			'gatsby_action_monitor_tracked_taxonomies',
+			get_taxonomies(
+				[
+					'show_in_graphql' => true,
+					'public'          => true,
+				]
+			)
+		);
 
-		$time = time();
+		return ! empty( $tracked_taxonomies ) && is_array( $tracked_taxonomies ) ? $tracked_taxonomies : [];
+	}
 
-		$action_monitor_post_id = \wp_insert_post(
+	/**
+	 * Register Action monitor post type and associated taxonomies.
+	 *
+	 * The post type is used to store records of CRUD actions that have occurred in WordPress so
+	 * that Gatsby can keep in Sync with changes in WordPress.
+	 *
+	 * The taxonomies are registered to store data related to the actions, but make it more
+	 * efficient to filter actions by the values as Tax Queries are much more efficient than Meta
+	 * Queries.
+	 */
+	public function init_post_type_and_taxonomies() {
+
+		/**
+		 * Post Type: Action Monitor.
+		 */
+		$post_type_labels = [
+			'name'          => __( 'Action Monitor', 'WPGatsby' ),
+			'singular_name' => __( 'Action Monitor', 'WPGatsby' ),
+		];
+
+		// Registers the post_type that logs actions for Gatsby
+		register_post_type(
+			'action_monitor',
 			[
-				'post_title'  => $args['title'],
-				'post_type'   => 'action_monitor',
-				'post_status' => 'private',
-				'author'      => - 1,
-				'post_name'   => sanitize_title( "{$args['title']}-{$time}" )
+				'label'                 => __( 'Action Monitor', 'WPGatsby' ),
+				'labels'                => $post_type_labels,
+				'description'           => 'Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wordpress.',
+				'public'                => false,
+				'publicly_queryable'    => false,
+				'show_ui'               => $this->wpgraphql_debug_mode,
+				'delete_with_user'      => false,
+				'show_in_rest'          => false,
+				'rest_base'             => '',
+				'rest_controller_class' => 'WP_REST_Posts_Controller',
+				'has_archive'           => false,
+				'show_in_menu'          => $this->wpgraphql_debug_mode,
+				'show_in_nav_menus'     => false,
+				'exclude_from_search'   => true,
+				'capability_type'       => 'post',
+				'map_meta_cap'          => true,
+				'hierarchical'          => false,
+				'rewrite'               => [
+					'slug'       => 'action_monitor',
+					'with_front' => true,
+				],
+				'query_var'             => true,
+				'supports'              => [ 'title', 'editor' ],
+				'show_in_graphql'       => true,
+				'graphql_single_name'   => 'ActionMonitorAction',
+				'graphql_plural_name'   => 'ActionMonitorActions',
 			]
 		);
 
-		if ( $action_monitor_post_id !== 0 ) {
-			\update_post_meta(
-				$action_monitor_post_id,
-				'action_type',
-				$args['action_type']
-			);
-			\update_post_meta(
-				$action_monitor_post_id,
-				'referenced_node_status',
-				$args['status'] // menus don't have post status. This is for Gatsby
-			);
-			\update_post_meta(
-				$action_monitor_post_id,
-				'referenced_node_id',
-				$args['node_id']
-			);
-			\update_post_meta(
-				$action_monitor_post_id,
-				'referenced_node_relay_id',
-				$args['relay_id']
-			);
-			\update_post_meta(
-				$action_monitor_post_id,
-				'referenced_node_single_name',
-				graphql_format_field_name( $args['graphql_single_name'] )
-			);
-			\update_post_meta(
-				$action_monitor_post_id,
-				'referenced_node_plural_name',
-				graphql_format_field_name( $args['graphql_plural_name'] )
-			);
+		// Registers the taxonomy that connects the node type to the action_monitor post
+		register_taxonomy(
+			'gatsby_action_ref_node_type',
+			'action_monitor',
+			[
+				'label'               => __( 'Referenced Node Type', 'WPGatsby' ),
+				'public'              => false,
+				'show_ui'             => $this->wpgraphql_debug_mode,
+				'show_in_graphql'     => false,
+				'graphql_single_name' => 'ReferencedNodeType',
+				'graphql_plural_name' => 'ReferencedNodeTypes',
+				'hierarchical'        => false,
+				'show_in_nav_menus'   => false,
+				'show_tagcloud'       => false,
+				'show_admin_column'   => true,
+			]
+		);
 
-			if ( $args['post_modified'] ?? null ) {
-				\update_post_meta(
-					$action_monitor_post_id,
-					'referenced_node_post_modified',
-					$args['post_modified']
-				);
-			}
+		// Registers the taxonomy that connects the node databaseId to the action_monitor post
+		register_taxonomy(
+			'gatsby_action_ref_node_dbid',
+			'action_monitor',
+			[
+				'label'               => __( 'Referenced Node Database ID', 'WPGatsby' ),
+				'public'              => false,
+				'show_ui'             => $this->wpgraphql_debug_mode,
+				'show_in_graphql'     => false,
+				'graphql_single_name' => 'ReferencedNodeDatabaseId',
+				'graphql_plural_name' => 'ReferencedNodeDatabaseIds',
+				'hierarchical'        => false,
+				'show_in_nav_menus'   => false,
+				'show_tagcloud'       => false,
+				'show_admin_column'   => true,
+			]
+		);
 
-			\wp_update_post( [
-				'ID'          => $action_monitor_post_id,
-				'post_status' => 'publish'
-			] );
+		// Registers the taxonomy that connects the node global ID to the action_monitor post
+		register_taxonomy(
+			'gatsby_action_ref_node_id',
+			'action_monitor',
+			[
+				'label'               => __( 'Referenced Node Global ID', 'WPGatsby' ),
+				'public'              => false,
+				'show_ui'             => $this->wpgraphql_debug_mode,
+				'show_in_graphql'     => false,
+				'graphql_single_name' => 'ReferencedNodeId',
+				'graphql_plural_name' => 'ReferencedNodeIds',
+				'hierarchical'        => false,
+				'show_in_nav_menus'   => false,
+				'show_tagcloud'       => false,
+				'show_admin_column'   => true,
+			]
+		);
+
+		// Registers the taxonomy that connects the action type (CREATE, UPDATE, DELETE) to the action_monitor post
+		register_taxonomy(
+			'gatsby_action_type',
+			'action_monitor',
+			[
+				'label'               => __( 'Action Type', 'WPGatsby' ),
+				'public'              => false,
+				'show_ui'             => $this->wpgraphql_debug_mode,
+				'show_in_graphql'     => false,
+				'hierarchical'        => false,
+				'show_in_nav_menus'   => false,
+				'show_tagcloud'       => false,
+				'show_admin_column'   => true,
+			]
+		);
+
+		register_taxonomy( 'gatsby_action_stream_type', 'action_monitor', [
+			'label'               => __( 'Stream Type', 'WPGatsby' ),
+			'public'              => false,
+			'show_ui'             => $this->wpgraphql_debug_mode,
+			'show_in_graphql'     => false,
+			'hierarchical'        => false,
+			'show_in_nav_menus'   => false,
+			'show_tagcloud'       => false,
+			'show_admin_column'   => true,
+		] );
+
+	}
+
+	/**
+	 * Adds a column to the action monitor Post Type to show the last modified time
+	 *
+	 * @param array $columns The column names included in the post table
+	 *
+	 * @return array
+	 */
+	public function add_modified_column( array $columns ) {
+		$columns['gatsby_last_modified'] = __( 'Last Modified', 'WPGatsby' );
+
+		return $columns;
+	}
+
+	/**
+	 * Renders the last modified time in the action_monitor post type "modified" column
+	 *
+	 * @param string $column_name The name of the column
+	 * @param int    $post_id     The ID of the post in the table
+	 */
+	public function render_modified_column( string $column_name, int $post_id ) {
+		if ( 'gatsby_last_modified' === $column_name ) {
+			$m_orig   = get_post_field( 'post_modified', $post_id, 'raw' );
+			$m_stamp  = strtotime( $m_orig );
+			$modified = date( 'n/j/y @ g:i a', $m_stamp );
+			echo '<p class="mod-date">';
+			echo '<em>' . esc_html( $modified ) . '</em><br />';
+			echo '</p>';
 		}
+	}
 
-		// we've saved at least 1 action, so we should update
+	/**
+	 * Sets should_dispatch to true
+	 */
+	public function schedule_dispatch() {
 		$this->should_dispatch = true;
+	}
 
-		$this->garbageCollectActions();
+	/**
+	 * Deletes all posts of the action_monitor post_type that are 7 days old, as well as any
+	 * associated post meta and term relationships.
+	 *
+	 * @return bool|int
+	 */
+	public function garbage_collect_actions() {
+
+		global $wpdb;
+		$post_type = 'action_monitor';
+		$sql       = wp_strip_all_tags(
+			'DELETE posts, pm, pt
+			FROM ' . $wpdb->prefix . 'posts AS posts
+			LEFT JOIN ' . $wpdb->prefix . 'term_relationships AS pt ON pt.object_id = posts.ID
+			LEFT JOIN ' . $wpdb->prefix . 'postmeta AS pm ON pm.post_id = posts.ID
+			WHERE posts.post_type = \'%1$s\'
+			AND posts.post_modified < \'%2$s\'',
+			true
+		);
+
+		$query = $wpdb->prepare( $sql, $post_type, date( 'Y-m-d H:i:s', strtotime( '-7 days' ) ) );
+
+		return $wpdb->query( $query );
+	}
+
+	/**
+	 * Given the name of an Action Monitor, this returns it
+	 *
+	 * @param string $name The name of the Action Monitor to get
+	 *
+	 * @return mixed|null
+	 */
+	public function get_action_monitor( string $name ) {
+		return $this->action_monitors[ $name ] ?? null;
 	}
 
 	/**
 	 * Use WP Action hooks to create action monitor posts
 	 */
-	function monitorActions() {
-		// Post / Page actions
-		add_action( 'save_post', function( $post_id, $post ) {
+	function init_action_monitors() {
 
-			$this->savePost( $post_id );
-
-		}, 1, 2 );
-
-		add_action( 'pre_post_update', [ $this, 'preSavePost' ], 10, 2 );
-
-		// Menu actions
-		add_action( 'wp_update_nav_menu', function( $menu_id ) {
-			$this->saveMenu( $menu_id, 'UPDATE' );
-		} );
-
-		add_action( 'wp_create_nav_menu', function( $menu_id ) {
-			$this->saveMenu( $menu_id, 'CREATE' );
-		} );
-
-		add_action( 'wp_delete_nav_menu', [ $this, 'deleteMenu' ], 10, 1 );
-
-		// Media item actions
-		add_action( 'add_attachment', [ $this, 'saveMediaItem' ], 10, 1 );
-
-		add_filter( 'wp_save_image_editor_file', [ $this, 'updateMediaItem' ], 10, 5 );
-
-		add_action( 'delete_attachment', [ $this, 'deleteMediaItem' ], 10, 1 );
-
-		// Taxonomy / term actions
-		add_action( 'created_term', function( $term_id, $tt_id, $taxonomy ) {
-			$this->saveTerm( $term_id, $taxonomy, 'CREATE' );
-		}, 10, 3 );
-
-		add_action( 'edited_terms', function( $term_id, $taxonomy ) {
-			$this->saveTerm( $term_id, $taxonomy, 'UPDATE' );
-		}, 10, 2 );
-
-		add_action( 'delete_term', [ $this, 'deleteTerm' ], 10, 5 );
-
-		// User actions
-		add_action( 'save_post', [ $this, 'updateUserIsPublic' ], 10, 2 );
-
-		add_action( 'profile_update', [ $this, 'updateUser' ], 10 );
-
-		add_action( 'delete_user', [ $this, 'deleteUser' ], 10, 2 );
-
-		// Post meta updates
-		$meta_types = [ 'user', 'post', 'page' ];
-
-		foreach ( $meta_types as $type ) {
-			add_action( "updated_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
-			add_action( "added_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
-			add_action( "deleted_{$type}_meta", [ $this, 'modifyMeta' ], 100, 3 );
-		}
-
-	}
-
-	function modifyMeta( $meta_id, $object_id, $meta_key ) {
-		if ( $meta_key === '_edit_lock' ) {
-			return;
-		}
-
-		if ( get_post_type( $object_id ) === 'action_monitor' ) {
-			return;
-		}
-
-		$this->savePost( $object_id );
-	}
-
-	function deleteUser( $user_id, $reassigned_user_id ) {
-		$this->updateUser( $user_id, 'DELETE', 'private ' );
-
-		if ( $reassigned_user_id ) {
-			// get all their posts that are
-			// available in wpgraphql and update each of them
-			$post_types = get_post_types( [ 'show_in_graphql' => true ] );
-
-			foreach ( $post_types as $post_type ) {
-				$query = new \WP_Query( [
-					'post_type'      => $post_type,
-					'author'         => $user_id,
-					'posts_per_page' => - 1
-					// @todo this is a big no-no. Could break a large site. In Gatsby we should store potential 2 way connections and if there is a 2 way connection and a post is updated, check its child nodes for 2 way connections. For any 2 way connections check if this node is a child of that node. If it's not then refetch that node as well.
-				] );
-
-				if ( $query->have_posts() ) {
-					while ( $query->have_posts() ) {
-						$query->the_post();
-						$post = get_post();
-						$this->savePost( $post->ID, $post );
-					}
-
-					wp_reset_postdata();
-				}
-			}
-
-			$this->updateUser( $reassigned_user_id, 'UPDATE', 'publish' );
-		}
-	}
-
-	function updateUser( $user_id, $action_type = 'UPDATE', $status = 'publish' ) {
-		$user_data = \get_userdata( $user_id );
-
-		$user_was_public = \get_user_meta( $user_id, 'gatsby_user_is_public', true );
-
-		if ( ! $user_was_public ) {
-			$user_is_public = $this->checkIfUserIsPublic( $user_id );
-
-			if ( ! $user_is_public ) {
-				return;
-			}
-		}
-
-		$relay_id = $relay_id = Relay::toGlobalId( 'user', $user_id );
-
-		$this->insertNewAction( [
-			'action_type'         => $action_type,
-			'title'               => $user_data->data->user_nicename,
-			'status'              => $status,
-			'node_id'             => $user_id,
-			'relay_id'            => $relay_id,
-			'graphql_single_name' => 'user',
-			'graphql_plural_name' => 'users',
-		] );
-	}
-
-	function checkIfUserIsPublic( $user_id ) {
-		if ( ! $user_id ) {
-			// @todo error or log here?
-			return;
-		}
-
-		$post_types = get_post_types( [ 'show_in_graphql' => true ] );
-
-		$user_is_public = false;
-
-		foreach ( $post_types as $post_type ) {
-			// action monitor doesn't count
-			if ( $post_type === 'action_monitor' ) {
-				continue;
-			}
-
-			$post_type_post_count = count_user_posts( $user_id, $post_type, true );
-			if ( $post_type_post_count > 0 ) {
-				// this user has public posts so they are public too
-				$user_is_public = true;
-				break;
-			}
-		}
-
-		return $user_is_public;
-	}
-
-	function updateUserIsPublic( $post_id, $post ) {
-		if ( ! $this->savePostGuardClauses( $post ) ) {
-			return;
-		}
-
-		$current_user = wp_get_current_user() ?? null;
-		$user_id      = $current_user->ID ?? null;
-
-		if ( ! $user_id ) {
-			return;
-		}
-
-		$user_is_public  = $this->checkIfUserIsPublic( $user_id );
-		$user_was_public = \get_user_meta( $user_id, 'gatsby_user_is_public', true );
-
-		if (
-			( $user_is_public && $user_was_public ) ||
-			( ! $user_is_public && ! $user_was_public ) ||
-			$user_is_public === $user_was_public
-		) {
-			// no change in privacy has happened. Do nothing
-			return;
-		}
-
-		// else a change in privacy has happened.
-		// we need to record that in WP and Gatsby
-
-		\update_user_meta( $user_id, 'gatsby_user_is_public', $user_is_public );
-
-		$title = $user_is_public && isset( $current_user->data->user_nicename )
-			? $current_user->data->user_nicename
-			: "User";
-
-		$relay_id = Relay::toGlobalId( 'user', $user_id );
-
-		$this->insertNewAction( [
-			'action_type'         => $user_is_public ? 'CREATE' : 'DELETE',
-			'title'               => $title,
-			'status'              => $user_is_public ? 'publish' : 'private',
-			'node_id'             => $user_id,
-			'relay_id'            => $relay_id,
-			'graphql_single_name' => 'user',
-			'graphql_plural_name' => 'users',
-		] );
-	}
-
-	function getTermInfo( $term_id, $taxonomy, $deleted_term = null ) {
-		$global_relay_id = Relay::toGlobalId(
-			'term',
-			$term_id
-		);
-
-		$taxonomy_object = get_taxonomy( $taxonomy );
-
-		if ( ! $taxonomy_object ) {
-			return null;
-		}
-
-		$graphql_single_name = $taxonomy_object->graphql_single_name ?? null;
-		$graphql_plural_name = $taxonomy_object->graphql_plural_name ?? null;
-
-		if ( ! $graphql_plural_name || ! $graphql_single_name ) {
-			return null;
-		}
-
-		if ( $deleted_term ) {
-			$term = $deleted_term;
-		} else {
-			$term = get_term( $term_id, $taxonomy );
-		}
-
-		if ( ! $term ) {
-			return null;
-		}
-
-		$term_info = [
-			'global_relay_id'     => $global_relay_id,
-			'taxonomy_object'     => $taxonomy_object,
-			'graphql_single_name' => $graphql_single_name,
-			'graphql_plural_name' => $graphql_plural_name,
-			'term'                => $term,
+		$class_names = [
+			'AcfMonitor',
+			'MediaMonitor',
+			'NavMenuMonitor',
+			'PostMonitor',
+			'PostTypeMonitor',
+			'SettingsMonitor',
+			'TaxonomyMonitor',
+			'TermMonitor',
+			'UserMonitor',
+			'PreviewMonitor',
 		];
 
-		return $term_info;
-  }
+		$action_monitors = [];
 
-  function isTermPrivate( $taxonomy_object ) {
-    // if the terms tax is not public, don't monitor it
-    if ( $taxonomy_object->public ?? null ) {
-      return false;
-    }
-
-    // if the terms tax isn't shown in graphql, don't monitor it
-    if ( $taxonomy_object->show_in_graphql ?? null ) {
-      return false;
-    }
-
-    return true;
-  }
-
-  function getTermParent( $term_info ) {
-    $taxonomy_object = $term_info['taxonomy_object'] ?? null;
-
-    // if the tax isn't hierarchical we can duck out here
-    if ( ! $taxonomy_object->hierarchical ?? null ) {
-      return false;
-    }
-
-    $term_parent_id = $term_info['term']->parent ?? null;
-
-    return $term_parent_id;
-  }
-
-  function getTermChildren( $term_info ) {
-    $taxonomy_object = $term_info['taxonomy_object'] ?? null;
-
-    // if the tax isn't hierarchical we can duck out here
-    if ( ! $taxonomy_object->hierarchical ?? null ) {
-      return false;
-    }
-
-    $term = $term_info['term'] ?? null;
-    $term_id = $term->term_id ?? null;
-
-    if ( ! $term_id ) {
-      return null;
-    }
-
-    $term_children = get_terms( [
-      'parent' => $term_id,
-      'taxonomy' => $taxonomy_object->name ?? null,
-      'hide_empty' => false
-    ] );
-
-    return $term_children;
-  }
-
-  function saveChildTerms( $term_info, $taxonomy, $action_type ) {
-    $child_terms = $this->getTermChildren( $term_info );
-
-    if ( $child_terms && count( $child_terms ) ) {
-      foreach ( $child_terms as $term ) {
-        if ( $term->term_id ?? null ) {
-          $this->saveTerm( $term->term_id, $taxonomy, $action_type, 'DOWN' );
-        }
-      }
-    }
-  }
-
-  function saveTermRelatives( $term_info, $taxonomy, $action_type, $recursing ) {
-    if ( $recursing ) {
-      return;
-    }
-
-    $term_parent_id = $this->getTermParent( $term_info );
-
-    if ( $term_parent_id ) {
-      // re-save the parent to make sure the cache is in sync
-      $this->saveTerm( $term_parent_id, $taxonomy, $action_type, 'UP' );
-    }
-
-    // re-save direct children so they have this term as their parent
-    $this->saveChildTerms( $term_info, $taxonomy, $action_type );
-  }
-
-	function deleteTerm(
-		$term_id,
-		$taxonomy_id,
-		$taxonomy,
-		$deleted_term,
-		$object_ids
-	) {
-    $term_info = $this->getTermInfo( $term_id, $taxonomy, $deleted_term );
-    $taxonomy_object = $term_info['taxonomy_object'] ?? null;
-
-    if ( $this->isTermPrivate( $taxonomy_object ) ) {
-      return;
-    }
-
-		$this->insertNewAction( [
-			'action_type'         => 'DELETE',
-			'title'               => $term_info['term']->name,
-			'status'              => 'private',
-			'node_id'             => $term_id,
-			'relay_id'            => $term_info['global_relay_id'],
-			'graphql_single_name' => $term_info['graphql_single_name'],
-			'graphql_plural_name' => $term_info['graphql_plural_name'],
-    ] );
-
-    $this->saveTermRelatives( $term_info, $taxonomy, 'UPDATE', null );
-  }
-
-	function saveTerm( $term_id, $taxonomy, $action_type, $recursing = null ) {
-		$term_info = $this->getTermInfo( $term_id, $taxonomy );
-		$taxonomy_object = $term_info['taxonomy_object'] ?? null;
-
-		if ( $this->isTermPrivate( $taxonomy_object) ) {
-		return;
+		foreach ( $class_names as $class_name ) {
+			$class = 'WPGatsby\ActionMonitor\Monitors\\' . $class_name;
+			if ( class_exists( $class ) ) {
+				$monitor = new $class( $this );
+				$monitor->init();
+				$action_monitors[ $class_name ] = $monitor;
+			}
 		}
 
-		$this->insertNewAction( [
-			'action_type'         => $action_type,
-			'title'               => $term_info['term']->name ?? null,
-			'status'              => 'publish', // publish means go in Gatsby @todo rename this..
-			'node_id'             => $term_id,
-			'relay_id'            => $term_info['global_relay_id'],
-			'graphql_single_name' => $term_info['graphql_single_name'],
-			'graphql_plural_name' => $term_info['graphql_plural_name'],
-		] );
+		/**
+		 * Filter the action monitors. This can allow for other monitors
+		 * to be registered, or can allow for monitors to be overridden.
+		 *
+		 * Overriding monitors is not advised, but there are cases where it might
+		 * be necessary. Override with caution.
+		 *
+		 * @param array $action_monitors
+		 */
+		$this->action_monitors = apply_filters( 'gatsby_action_monitors', $action_monitors );
 
-		$this->saveTermRelatives( $term_info, $taxonomy, $action_type, $recursing );
+		do_action( 'gatsby_init_action_monitors', $this->action_monitors );
+
 	}
 
-	function deleteMediaItem( $attachment_id ) {
-		$attachment = get_post( $attachment_id );
+	function register_post_graphql_fields() {
 
-		$global_relay_id = Relay::toGlobalId(
-			'post',
-			$attachment_id
-		);
+		register_graphql_field(
+			'ActionMonitorAction',
+			'actionType',
+			[
+				'type'        => 'String',
+				'description' => __(
+					'The type of action (CREATE, UPDATE, DELETE)',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
 
-		$this->insertNewAction( [
-			'action_type'         => 'DELETE',
-			'title'               => $attachment->post_title ?? "Attachment #$attachment_id",
-			'status'              => 'publish',
-			// there is no concept of inheriting post status in Gatsby, so images will always be considered published.
-			'node_id'             => $attachment_id,
-			'relay_id'            => $global_relay_id,
-			'graphql_single_name' => 'mediaItem',
-			'graphql_plural_name' => 'mediaItems',
-		] );
-	}
+					$terms = get_the_terms( $post->databaseId, 'gatsby_action_type' );
 
-	function updateMediaItem( $override, $filename, $image, $mime_type, $post_id ) {
+					if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+						$action_type = (string) $terms[0]->name;
+					} else {
+						$action_type
+							= get_post_meta( $post->ID, 'action_type', true );
+					}
 
-		$this->saveMediaItem( $post_id, 'UPDATE' );
-
-		return null;
-	}
-
-	function saveMediaItem( $attachment_id, $action_type = 'CREATE' ) {
-		$attachment = get_post( $attachment_id );
-
-		if ( ! $attachment ) {
-			return $attachment_id;
-		}
-
-		$global_relay_id = Relay::toGlobalId(
-			'post',
-			$attachment_id
-		);
-
-		$this->insertNewAction( [
-			'action_type'         => $action_type,
-			'title'               => $attachment->post_title ?? "Attachment #$attachment_id",
-			'status'              => 'publish',
-			// there is no concept of inheriting post status in Gatsby, so images will always be considered published.
-			'node_id'             => $attachment_id,
-			'relay_id'            => $global_relay_id,
-			'graphql_single_name' => 'mediaItem',
-			'graphql_plural_name' => 'mediaItems',
-		] );
-	}
-
-	function deleteMenu( $menu_id ) {
-
-		$global_relay_id = Relay::toGlobalId(
-			'term',
-			$menu_id
-		);
-
-		$this->insertNewAction( [
-			'action_type'         => 'DELETE',
-			'title'               => "Menu #${menu_id}",
-			'status'              => 'trash', // menus don't have post status. This is for Gatsby
-			'node_id'             => $menu_id,
-			'relay_id'            => $global_relay_id,
-			'graphql_single_name' => 'menu',
-			'graphql_plural_name' => 'menus',
-		] );
-	}
-
-	/**
-	 * On save menus (created/updated)
-	 */
-	function saveMenu( $menu_id, $action_type ) {
-		if (
-			did_action( 'wp_update_nav_menu' ) > 1 ||
-			did_action( 'wp_create_nav_menu' ) > 1
-		) {
-			return $menu_id;
-		}
-
-		// Get a menu object
-		$menu_object = wp_get_nav_menu_object( $menu_id );
-
-		// Bail if not a menu object
-		if ( empty( $menu_object ) ) {
-			return $menu_id;
-		}
-
-		$global_relay_id = Relay::toGlobalId(
-			'term',
-			$menu_id
-		);
-
-		$this->insertNewAction( [
-			'action_type'         => $action_type,
-			'title'               => $menu_object->name,
-			'status'              => 'publish', // menus don't have post status. This is for Gatsby
-			'node_id'             => $menu_id,
-			'relay_id'            => $global_relay_id,
-			'graphql_single_name' => 'menu',
-			'graphql_plural_name' => 'menus',
-		] );
-	}
-
-	function savePostGuardClauses( $post, $in_pre_save_post = false ) {
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return false;
-		}
-
-		if ( $post->post_status === 'auto-draft' ) {
-			return false;
-		}
-
-		$last_status_was_publish
-			= $this->post_object_before_update->post_status ?? null 
-				!== 'publish';
-
-		if (
-			$last_status_was_publish &&
-			$post->post_status === 'draft'
-		) {
-			return false;
-		}
-
-		if ( $post->post_type === 'revision' ) {
-			return false;
-		}
-
-		if ( $post->post_type === 'action_monitor' ) {
-			return false;
-		}
-		
-		// if we've recorded this post being updated already
-		// no need to do it twice
-		if ( !$in_pre_save_post && in_array( $post->ID, $this->updated_post_ids ) ) {
-			return false;
-		}
-
-		$duplicate_actions = new \WP_Query( [
-			'post_type'  => 'action_monitor',
-			'meta_query' => [
-					'relation' => 'AND',
-					[
-						'key' => 'referenced_node_post_modified',
-						'value' => $post->post_modified
-					],
-					[
-						'key' => 'referenced_node_id',
-						'value' => $post->ID
-					],
-				],
+					return $action_type ? $action_type : null;
+				},
 			]
 		);
 
-		
-		if ( $duplicate_actions->found_posts ) {
-			return false;
-		}
+		register_graphql_field(
+			'ActionMonitorAction',
+			'referencedNodeStatus',
+			[
+				'type'        => 'String',
+				'description' => __(
+					'The post status of the post that triggered this action',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
+					$referenced_node_status = get_post_meta(
+						$post->ID,
+						'referenced_node_status',
+						true
+					);
 
-		return true;
-	}
-
-	public $post_object_before_update;
-
-	function preSavePost( $post_id, $updated_post_object ) {
-		$post = get_post( $post_id );
-
-		$this->post_object_before_update = $post;
-	}
-
-	/**
-	 * On save post
-	 */
-	function savePost( $post_id, $post = null, $update_post_parent = true ) {
-		if ( ! $post ) {
-			$post = get_post( $post_id );
-		}
-
-		if ( ! $this->savePostGuardClauses( $post ) ) {
-			return;
-		}
-
-		// store that we've saved an action for this post,
-		// so that we don't store it more than once.
-		array_push( $this->updated_post_ids, $post_id );
-
-		$post_type_object = \get_post_type_object( $post->post_type );
-
-		$title           = $post->post_title ?? '';
-		$global_relay_id = '';
-		$global_relay_id = Relay::toGlobalId(
-			'post',
-			absint( $post_id )
+					return $referenced_node_status ?? null;
+				},
+			]
 		);
 
-		$referenced_node_single_name
-			= $post_type_object->graphql_single_name ?? null;
-		$referenced_node_plural_name
-			= $post_type_object->graphql_plural_name ?? null;
-		$referenced_node_modified_date
-			= $post->post_modified;
+		register_graphql_field(
+			'ActionMonitorAction',
+			'previewData',
+			[
+				'type'        => 'GatsbyPreviewData',
+				'description' => __(
+					'The preview data of the post that triggered this action.',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
+					$referenced_node_preview_data = get_post_meta(
+						$post->ID,
+						'_gatsby_preview_data',
+						true
+					);
 
-		if ( $post->post_type === 'nav_menu_item' ) {
-			// for now, bail on nav menu items.
-			// we're pulling them as a side effect in Gatsby for now
-			// once we can get a flat list of all menu items regardless
-			// of location in WPGQL, this can be removed
-			return $post_id;
-			// $global_relay_id = Relay::toGlobalId( 'nav_menu_item', $post_id );
-			// $title = "MenuItem #$post_id";
-			// $referenced_node_single_name = 'menuItem';
-			// $referenced_node_plural_name = 'menuItems';
-		}
+					return $referenced_node_preview_data 
+							&& $referenced_node_preview_data !== "" 
+								? json_decode( $referenced_node_preview_data )
+								: null;
+				}
+			]
+		);
 
-		//
-		// add a check here to make sure this is a post type available in WPGQL
-		// so that we don't monitor posts made by plugins
-		// maybe add a filter to allow plugins to add themselves to this list of
-		// whitelisted post types?
-		//
+		register_graphql_object_type(
+			'GatsbyPreviewData',
+			[
+				'description' => __( 'Gatsby Preview webhook data.', 'WPGatsby' ),
+				'fields'      => [
+					'previewDatabaseId'  => [
+						'type' => 'Int',
+						'description' => __( 'The WordPress database ID of the preview. Could be a revision or draft ID.', 'WPGatsby' ),
+					],
+					'userDatabaseId'     => [
+						'type' => 'Int',
+						'description' => __( 'The database ID of the user who made the original preview.', 'WPGatsby' ),
+					],
+					'id'         => [
+						'type' => 'ID',
+						'description' => __( 'The Relay id of the previewed node.', 'WPGatsby' ),
+					],
+					'singleName' => [
+						'type' => 'String',
+						'description' => __( 'The GraphQL single field name for the type of the preview.', 'WPGatsby' ),
+					],
+					'isDraft'    => [
+						'type' => 'Boolean',
+						'description' => __( 'Wether or not the preview is a draft.', 'WPGatsby' ),
+					],
+					'remoteUrl'  => [
+						'type' => 'String',
+						'description' => __( 'The WP url at the time of the preview.', 'WPGatsby' ),
+					],
+					'modified'   => [
+						'type' => 'String',
+						'description' => __( 'The modified time of the previewed node.', 'WPGatsby' ),
+					],
+					'parentDatabaseId'   => [
+						'type' => 'Int',
+						'description' => __( 'The WordPress database ID of the preview. If this is a draft it will potentially return 0, if it\'s a revision of a post, it will return the ID of the original post that this is a revision of.', 'WPGatsby' ),
+					],
+				]
+			]
+		);
 
-		$action_type = null;
+		register_graphql_field(
+			'ActionMonitorAction',
+			'referencedNodeID',
+			[
+				'type'        => 'String',
+				'description' => __(
+					'The post ID of the post that triggered this action',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
 
-		// this post meta helps determine if this is a new post or not
-		// since the 3rd argument in the save_post hook "$update" always
-		// returns true unless using wp_insert_post(), which we're not
-		$update = get_post_meta( $post_id, '__update', true );
-
-
-		if ( $post->post_status === 'trash' && ! $update ) {
-			// this post has already been trashed, Gutenberg just fires post_save 2x on trash. It happens in separate threads so did_action('post_save') doesn't increment. :(
-			return $post_id;
-		}
-
-		if ( $post->post_status === 'trash' ) {
-			$action_type = 'DELETE';
-			// when we delete a post, Gatsby deletes it
-			// that means when we untrash a post, it's a new
-			// node for Gatsby. If WP thinks of untrashing as an update
-			// rather than a create, Gatsby will error.
-			// So set __update to false, when next time this post
-			// is untrashed, we'll record it as a new post.
-			update_post_meta( $post_id, '__update', false );
-		} else {
-			if ( ! $update ) {
-				update_post_meta( $post_id, '__update', true );
-			}
-
-			$action_type = $update ? 'UPDATE' : 'CREATE';
-		}
-
-		$this->insertNewAction( [
-			'action_type'         => $action_type,
-			'title'               => $title,
-			'status'              => $post->post_status,
-			'node_id'             => $post_id,
-			'relay_id'            => $global_relay_id,
-			'graphql_single_name' => $referenced_node_single_name,
-			'graphql_plural_name' => $referenced_node_plural_name,
-			'post_modified'       => $referenced_node_modified_date,
-		] );
-
-		$previous_post_parent        = $this->post_object_before_update->post_parent ?? 0;
-		$potentially_new_post_parent = $post->post_parent ?? 0;
-
-		// @todo also move this logic Gatsby-side so it works
-		// for all 2-way relationships
-		if (
-			$previous_post_parent !== $potentially_new_post_parent &&
-			$update_post_parent
-		) {
-			if ( $potentially_new_post_parent !== 0 ) {
-				// if we just saved a new post parent, we need to update the parent
-				// so we have this page as a child.
-				$this->savePost( $potentially_new_post_parent, null, false );
-			}
-
-			// if we previously had this page as a child of another page,
-			// we need to update that page so this page isn't a child of it anymore..
-			if ( $previous_post_parent !== 0 ) {
-				$this->savePost( $previous_post_parent, null, false );
-			}
-		}
-
-		// update the author node so that this node is recorded as a child
-		// @todo move this logic Gatsby-side so that it works for all 2-way relationships
-		$previous_author = $this->post_object_before_update->post_author ?? 0;
-		$new_author      = $post->post_author ?? 0;
-
-		if ( $previous_author !== $new_author && $previous_author !== 0 ) {
-			// if we change the author we need to re-save the old author too
-			$this->updateUser( $previous_author );
-		}
-
-		$this->updateUser( $new_author );
-	}
-
-	function registerPostGraphQLFields() {
-		add_action(
-			'graphql_register_types',
-			function() {
-				register_graphql_field(
-					'ActionMonitorAction',
-					'actionType',
-					[
-						'type'        => 'String',
-						'description' => __(
-							'The type of action (CREATE, UPDATE, DELETE)',
-							'WPGatsby'
-						),
-						'resolve'     => function( $post ) {
-							$action_type
-								= get_post_meta( $post->ID, 'action_type', true );
-
-							return $action_type ?? null;
-						}
-					]
-				);
-				register_graphql_field(
-					'ActionMonitorAction',
-					'referencedNodeStatus',
-					[
-						'type'        => 'String',
-						'description' => __(
-							'The post status of the post that triggered this action',
-							'WPGatsby'
-						),
-						'resolve'     => function( $post ) {
-							$referenced_node_status = get_post_meta(
-								$post->ID,
-								'referenced_node_status',
-								true
-							);
-
-							return $referenced_node_status ?? null;
-						}
-					]
-				);
-				register_graphql_field(
-					'ActionMonitorAction',
-					'referencedNodeID',
-					[
-						'type'        => 'String',
-						'description' => __(
-							'The post ID of the post that triggered this action',
-							'WPGatsby'
-						),
-						'resolve'     => function( $post ) {
-							$referenced_node_id = get_post_meta(
-								$post->ID,
-								'referenced_node_id',
-								true
-							);
-
-							return $referenced_node_id ?? null;
-						}
-					]
-				);
-				register_graphql_field(
-					'ActionMonitorAction',
-					'referencedNodeGlobalRelayID',
-					[
-						'type'        => 'String',
-						'description' => __(
-							'The global relay ID of the post that triggered this action',
-							'WPGatsby'
-						),
-						'resolve'     => function( $post ) {
-							$referenced_node_relay_id = get_post_meta(
-								$post->ID,
-								'referenced_node_relay_id',
-								true
-							);
-
-							return $referenced_node_relay_id ?? null;
-						}
-					]
-				);
-				register_graphql_field(
-					'ActionMonitorAction',
-					'referencedNodeSingularName',
-					[
-						'type'        => 'String',
-						'description' => __(
-							'The WPGraphQL single name of the referenced post',
-							'WPGatsby'
-						),
-						'resolve'     => function( $post ) {
-							$referenced_node_single_name = get_post_meta(
-								$post->ID,
-								'referenced_node_single_name',
-								true
-							);
-
-							return $referenced_node_single_name ?? null;
-						}
-					]
-				);
-				register_graphql_field(
-					'ActionMonitorAction',
-					'referencedNodePluralName',
-					[
-						'type'        => 'String',
-						'description' => __(
-							'The WPGraphQL plural name of the referenced post',
-							'WPGatsby'
-						),
-						'resolve'     => function( $post ) {
-							$referenced_node_plural_name = get_post_meta(
-								$post->ID,
-								'referenced_node_plural_name',
-								true
-							);
-
-							return $referenced_node_plural_name ?? null;
-						}
-					]
-				);
-
-				register_graphql_field(
-					'RootQueryToActionMonitorActionConnectionWhereArgs',
-					'sinceTimestamp',
-					[
-						'type'        => 'Number',
-						'description' => 'List Actions performed since a timestamp.'
-					]
-				);
-
-				add_filter(
-					'graphql_post_object_connection_query_args',
-					function( $args ) {
-						$sinceTimestamp = $args['sinceTimestamp'] ?? null;
-
-						if ( $sinceTimestamp ) {
-							$args['date_query'] = [
-								'after' => date( 'c', $sinceTimestamp / 1000 )
-							];
-						}
-
-						return $args;
+					$terms = get_the_terms( $post->databaseId, 'gatsby_action_ref_node_dbid' );
+					if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+						$referenced_node_id = (string) $terms[0]->name;
+					} else {
+						$referenced_node_id = get_post_meta(
+							$post->ID,
+							'referenced_node_id',
+							true
+						);
 					}
-				);
+
+					return $referenced_node_id ?? null;
+				},
+			]
+		);
+
+		register_graphql_field(
+			'ActionMonitorAction',
+			'referencedNodeGlobalRelayID',
+			[
+				'type'        => 'String',
+				'description' => __(
+					'The global relay ID of the post that triggered this action',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
+
+					$terms = get_the_terms( $post->databaseId, 'gatsby_action_ref_node_id' );
+					if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+						$referenced_node_relay_id = (string) $terms[0]->name;
+					} else {
+
+						$referenced_node_relay_id = get_post_meta(
+							$post->ID,
+							'referenced_node_relay_id',
+							true
+						);
+					}
+
+					return $referenced_node_relay_id ?? null;
+				},
+			]
+		);
+
+		register_graphql_field(
+			'ActionMonitorAction',
+			'referencedNodeSingularName',
+			[
+				'type'        => 'String',
+				'description' => __(
+					'The WPGraphQL single name of the referenced post',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
+					$referenced_node_single_name = get_post_meta(
+						$post->ID,
+						'referenced_node_single_name',
+						true
+					);
+
+					return $referenced_node_single_name ?? null;
+				},
+			]
+		);
+
+		register_graphql_field(
+			'ActionMonitorAction',
+			'referencedNodePluralName',
+			[
+				'type'        => 'String',
+				'description' => __(
+					'The WPGraphQL plural name of the referenced post',
+					'WPGatsby'
+				),
+				'resolve'     => function( $post ) {
+					$referenced_node_plural_name = get_post_meta(
+						$post->ID,
+						'referenced_node_plural_name',
+						true
+					);
+
+					return $referenced_node_plural_name ?? null;
+				},
+			]
+		);
+
+		register_graphql_field(
+			'RootQueryToActionMonitorActionConnectionWhereArgs',
+			'sinceTimestamp',
+			[
+				'type'        => 'Number',
+				'description' => 'List Actions performed since a timestamp.',
+			]
+		);
+
+		// @todo write a test for this previewStream input arg
+		register_graphql_field(
+			'RootQueryToActionMonitorActionConnectionWhereArgs',
+			'previewStream',
+			[
+				'type'        => 'boolean',
+				'description' => 'List Actions of the PREVIEW stream type.',
+			]
+		);
+
+		add_filter(
+			'graphql_post_object_connection_query_args',
+			function( $args ) {
+				$sinceTimestamp = $args['sinceTimestamp'] ?? null;
+
+				if ( $sinceTimestamp ) {
+					$args['date_query'] = [
+						[
+							'after'  => date( 'c', $sinceTimestamp / 1000 ),
+							'column' => 'post_modified',
+						],
+					];
+				}
+
+				return $args;
+			}
+		);
+
+		add_filter(
+			'graphql_post_object_connection_query_args',
+			function( $args ) {
+				$previewStream = $args['previewStream'] ?? false;
+
+				if ( $previewStream ) {
+					$args['tax_query'] = [
+						[
+							'taxonomy' => 'gatsby_action_stream_type',
+							'field' => 'slug',
+							'terms' => 'preview',
+						],
+					];
+				}
+
+				return $args;
 			}
 		);
 	}
@@ -954,63 +642,76 @@ class ActionMonitor {
 	/**
 	 * Add post meta to schema
 	 */
-	function registerGraphQLFields() {
-		$this->registerPostGraphQLFields();
+	function register_graphql_fields() {
+		$this->register_post_graphql_fields();
 	}
 
 	/**
-	 * Register Action monitor post type
+	 * Triggers the dispatch to the remote endpoint(s)
 	 */
-	function initPostType() {
-		/**
-		 * Post Type: Action Monitor.
-		 */
-
-		$labels = array(
-			"name"          => __( "Action Monitor", "WPGatsby" ),
-			"singular_name" => __( "Action Monitor", "WPGatsby" ),
-		);
-
-		$args = array(
-			"label"                 => __( "Action Monitor", "WPGatsby" ),
-			"labels"                => $labels,
-			"description"           => "Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wpgraphql.",
-			"public"                => false,
-			"publicly_queryable"    => false,
-			"show_ui"               => defined( 'GRAPHQL_DEBUG' ) && GRAPHQL_DEBUG,
-			"delete_with_user"      => false,
-			"show_in_rest"          => true,
-			"rest_base"             => "",
-			"rest_controller_class" => "WP_REST_Posts_Controller",
-			"has_archive"           => false,
-			"show_in_menu"          => true,
-			"show_in_nav_menus"     => true,
-			"exclude_from_search"   => false,
-			"capability_type"       => "post",
-			"map_meta_cap"          => true,
-			"hierarchical"          => false,
-			"rewrite"               => array( "slug" => "action_monitor", "with_front" => true ),
-			"query_var"             => true,
-			"supports"              => array( "title" ),
-			"show_in_graphql"       => true,
-			"graphql_single_name"   => "ActionMonitorAction",
-			"graphql_plural_name"   => "ActionMonitorActions",
-		);
-
-		register_post_type( "action_monitor", $args );
-	}
-
 	public function trigger_dispatch() {
-		$webhook_field = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
-		
-		if ( $webhook_field && $this->should_dispatch ) {
-			
-			$webhooks = explode( ',', $webhook_field );
+		$build_webhook_field   = Settings::prefix_get_option( 'builds_api_webhook', 'wpgatsby_settings', false );
+		$preview_webhook_field = Settings::prefix_get_option( 'preview_api_webhook', 'wpgatsby_settings', false );
 
-			foreach ( $webhooks as $webhook ) {
-				wp_safe_remote_post( $webhook );
+		$should_call_build_webhooks =
+			$build_webhook_field &&
+			$this->should_dispatch;
+
+		$we_should_call_preview_webhooks =
+			$preview_webhook_field &&
+			$this->should_dispatch;
+
+		if ( $should_call_build_webhooks ) {
+			$webhooks = explode( ',', $build_webhook_field );
+
+			$truthy_webhooks = array_filter( $webhooks );
+			$unique_webhooks = array_unique( $truthy_webhooks );
+
+			foreach ( $unique_webhooks as $webhook ) {
+				$args = apply_filters( 'gatsby_trigger_dispatch_args', [], $webhook );
+
+				wp_safe_remote_post( $webhook, $args );
 			}
+		}
 
+		if ( $we_should_call_preview_webhooks ) {
+			$webhooks = explode( ',', $preview_webhook_field );
+
+			$truthy_webhooks = array_filter( $webhooks );
+			$unique_webhooks = array_unique( $truthy_webhooks );
+
+			foreach ( $unique_webhooks as $webhook ) {
+				$token = \WPGatsby\GraphQL\Auth::get_token();
+
+				// For preview webhooks we send the token
+				// because this is a build but
+				// we want it to source any pending previews
+				// in case someone pressed preview right after
+				// we got to this point from someone else pressing
+				// publish/update.
+				$post_body = apply_filters(
+					'gatsby_trigger_preview_build_dispatch_post_body',
+					[
+						'token' => $token,
+						'userDatabaseId' => get_current_user_id()
+					]
+				);
+
+				$args = apply_filters(
+					'gatsby_trigger_preview_build_dispatch_args',
+					[
+						'body'        => wp_json_encode( $post_body ),
+						'headers'     => [
+							'Content-Type' => 'application/json; charset=utf-8',
+						],
+						'method'      => 'POST',
+						'data_format' => 'body',
+					],
+					$webhook 
+				);
+
+				wp_safe_remote_post( $webhook, $args );
+			}
 		}
 	}
 }

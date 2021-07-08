@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2
+class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
 {
     public static $prefixLengthsPsr4 = array (
         'W' => 
@@ -98,6 +98,17 @@ class ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2
         'SecurityLib\\Strength' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Strength.php',
         'SecurityLib\\Util' => __DIR__ . '/..' . '/ircmaxell/security-lib/lib/SecurityLib/Util.php',
         'WPGatsby\\ActionMonitor\\ActionMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/ActionMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\AcfMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/AcfMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\MediaMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/MediaMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\Monitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/Monitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\NavMenuMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/NavMenuMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\PostMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/PostMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\PostTypeMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/PostTypeMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\PreviewMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/PreviewMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\SettingsMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/SettingsMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\TaxonomyMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/TaxonomyMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\TermMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/TermMonitor.php',
+        'WPGatsby\\ActionMonitor\\Monitors\\UserMonitor' => __DIR__ . '/../..' . '/src/ActionMonitor/Monitors/UserMonitor.php',
         'WPGatsby\\Admin\\Preview' => __DIR__ . '/../..' . '/src/Admin/Preview.php',
         'WPGatsby\\Admin\\Settings' => __DIR__ . '/../..' . '/src/Admin/Settings.php',
         'WPGatsby\\AllIds\\AllIds' => __DIR__ . '/../..' . '/src/Schema/AllIds.php',
@@ -106,15 +117,16 @@ class ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2
         'WPGatsby\\Schema\\Schema' => __DIR__ . '/../..' . '/src/Schema/Schema.php',
         'WPGatsby\\Schema\\SiteMeta' => __DIR__ . '/../..' . '/src/Schema/SiteMeta.php',
         'WPGatsby\\Schema\\WPGatsbyWPGraphQLSchemaChanges' => __DIR__ . '/../..' . '/src/Schema/WPGatsbyWPGraphQLSchemaChanges.php',
+        'WPGatsby\\ThemeSupport\\ThemeSupport' => __DIR__ . '/../..' . '/src/ThemeSupport/ThemeSupport.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInitc0886b39d0133e2a7e0cedd66a0ecaf2::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe::$classMap;
 
         }, null, ClassLoader::class);
     }

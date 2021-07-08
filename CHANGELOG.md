@@ -1,5 +1,213 @@
 # Change Log
 
+## 1.0.11
+
+- Fixed a warning state for Preview to let users know when the preview Gatsby site set in the preview webhook setting is pointing at a Gatsby site which isn't sourcing data from the current WP site. Preview requires a 1:1 connection between WP and Gatsby where settings point at a Gatsby site that sources data from the WP instance previews are originating from.
+
+## 1.0.10
+
+- Fixed preview loader logic for subdirectory WP installs so that we request the GraphQL endpoint from the right URL.
+
+## 1.0.9
+
+- Fixed a bug where draft posts weren't previewable.
+
+## 1.0.8
+
+- Our internal preview logic had a bug where a request was being made with double forward slashes in the url in some cases. This broke incremental builds previews but worked on regular `gatsby develop` previews. This is fixed in this release.
+
+## 1.0.7
+
+- Before using WPGraphQL::debug() we weren't making sure that the debug method exists on that class. This could throw errors for older versions of WPGraphQL - we now check that the method exists before using it.
+
+- Documents using multiple webhooks support in Build and Preview webhook input field labels.
+
+- Fixes trailing comma in MediaActionMonitor log array.
+
+## 1.0.6
+
+- Bump stable version tag
+
+## 1.0.5
+
+- Fixed our build/publish process which was failing due to using the develop branch of WPGraphQL in tests.
+
+## 1.0.4
+
+- In some cases the homepage was not previewable in Gatsby Preview - this is now fixed.
+
+## 1.0.3
+
+- Fixed `wp_save_image_file` and `wp_save_image_editor_file` callback argument count.
+
+## 1.0.2
+
+- An erroneous change in our composer autoload broke our first stable release 😅 bit of a rocky start but lets try this again 🤝 😁 You can bet we'll be adding a test for this 😂
+
+## 1.0.1
+
+- Fixed a broken link in the readme.
+
+## 1.0.0
+
+This plugin has come a long way over the past few months! This release introduces no changes outside of a few pages of docs. We're choosing this point to call this plugin stable as the plugin is well tested via our test suites and members of the community using it in the wild. Thanks everyone for your help and support in getting this plugin to this point!
+
+## 0.9.2
+
+### Bug Fixes
+
+- The preview template loader was fixed for cases where the global $post is not set, which previously lead to PHP errors.
+
+## 0.9.1
+
+- Removed a new internal taxonomy from the GraphQL schema which was unintentionally added in the last release.
+
+## 0.9.0
+
+### Breaking Changes
+
+- This release massively increases the performance of Gatsby Previews when more than one person is previewing or editing content at the same time. Previously when multiple users previewed simultaneously, only one of those users would see their preview or it would take a very long time for the others to see their previews. Now many users can preview concurrently. This was tested with a headless chrome puppeteer script. We found that 10 users making 100 previews over the course of a few minutes now have a 100% success rate. Previously 3 users making 30 previews would have a less than 30% success rate. This is a breaking change because `gatsby-source-wordpress-experimental` has some changes which are required to make this work.
+- Previously, saving a Media item would call the build and preview webhooks. This wasn't desireable because if you upload an image to your post, that will start a build to just source that media item, then when you press publish or preview you'd have to wait for the image build to complete before being able to see your build. Now a webhook is not sent out when images are uploaded/edited and other content updates which do send a webhook will catch these image changes and apply them alongside the other changes.
+
+## 0.8.0
+
+### Breaking Changes
+
+This is a breaking change release as a lot of internals for the Action Monitor class have been modified and moved around. For most users nothing will change but for those who are using our internal plugin functions/classes in their own custom code, things might break.
+
+- Refactors Action Monitor to have separate classes for tracking activity for Acf, Media, Menus, Posts, Post Types, Settings, Taxonomies, Terms, and Users.
+
+### Fixes and improvements
+
+- TESTS! Lots of tests for the Action Monitors.
+- JWT Secret is now set once when WPGatsby is first loaded, instead of every time the settings page is visited.
+
+### Issues closed by this release
+
+- [#70](https://github.com/gatsbyjs/wp-gatsby/issues/70): When field groups are saved using ACF Field Group GUI, a "Diff Schema" action is triggered
+- [#58](https://github.com/gatsbyjs/wp-gatsby/issues/58): A "Refetch All" action is available and is used when Permalinks are changed
+- [#57](https://github.com/gatsbyjs/wp-gatsby/issues/57): Term meta is now properly tracked when changed
+- [#56](https://github.com/gatsbyjs/wp-gatsby/issues/56): Custom post types (all post types that are public and show_in_graphql) are now tracked when they are moved from publish to trash and vis-versa
+- [#41](https://github.com/gatsbyjs/wp-gatsby/issues/41): Codeception tests are now in place
+- [#38](https://github.com/gatsbyjs/wp-gatsby/issues/38): Many core WordPress options have been added to an allow-list and trigger a general NON_NODE_ROOT_FIELDS action. A few specific actions trigger specific actions for specific nodes. For example, changing the home_page triggers an update for the new page and the old page being changed as the URI is now different.
+- [#26](https://github.com/gatsbyjs/wp-gatsby/issues/26): Posts that transition from future->publish now trigger an action (ensuring WordPress cron is triggered for WordPress sites using Gatsby front-ends might need more thought still though. . .)
+- [#17](https://github.com/gatsbyjs/wp-gatsby/issues/17): Meta is now tracked for Posts, Terms and Users (comments are not currently tracked at the moment)
+- [#15](https://github.com/gatsbyjs/wp-gatsby/issues/15): Saving permalinks triggers a REFETCH_ALL Action
+- [#7](https://github.com/gatsbyjs/wp-gatsby/issues/7): Gatsby JWT Secret is now generated once and saved immediately and not generated again
+- [#6](https://github.com/gatsbyjs/wp-gatsby/issues/6): Gatsby now tracks only post_types (and taxonomies) that are set to be both public and show_in_graphql and there are filters to override as needed.
+
+## 0.7.3
+
+- Small internal changes to Previews to facilitate e2e tests.
+
+## 0.7.2
+
+- Version 0.7.0 introduced a change which resulted in Previews for some WP instances being overwritten by published posts on each preview.
+
+## 0.7.1
+
+- The last version added some internal taxonomies to the GraphQL schema unintentionally. This release removes them.
+
+## 0.7.0
+
+### Breaking Changes
+
+- Previously we were storing a brand new post internally for every content-related action that happened in your site. As of this release we only make a single action post for each post you take actions against and update it each time instead of creating a new one.
+
+## 0.6.8
+
+- The `NO_PAGE_CREATED_FOR_PREVIEWED_NODE` preview status was no longer making it through to the preview template because we were checking if the preview had deployed before checking if a page had been created in Gatsby for the preview. this release fixes that.
+- The preview-template.php check for wether or not the preview frontend is online could occasionally come back with a false negative. It is now more resilient and will recheck for 10 seconds before showing an error.
+- The above check used to throw harmless CORS errors in the console, this check is now done server-side so that CORS isn't an issue.
+
+## 0.6.7
+
+- Gatsby Preview process errors were not coming through for new post drafts. They do now :)
+- I was checking if the Gatsby webhook hit by WPGatsby returned any errors and displaying an error in the preview client if it did. It turns out this is problematic because the webhook can return errors in WPGatsby and yet Gatsby can still have successfully received it. So the logic is now more optimistic and tries to load the preview regardless of wether or not we received an error when posting to the webhook.
+
+## 0.6.6
+
+- Fixed a timing issue between Previews and WPGatsby. WPGatsby now reads the page-data.json of the page being previewed in order to determine wether or not it's been deployed.
+- Added publish webhooks for Preview so that polling is not needed in Gatsby Preview on the source plugin side.
+
+## 0.6.5
+
+- Improved garbage collection of old action monitor posts. Garbage collection previously took over 20 seconds to clean up 6,204 action_monitor actions, after this change it takes approximately 1/10 of a second.
+
+## 0.6.4
+
+- Extended WPGatsby JWT expiry to 1 hour. It was previously 30 seconds which can be problematic for slower servers and Gatsby setups.
+
+## 0.6.3
+
+- graphql_single_name's that start with a capital letter were causing issues because WPGatsby was not making the first character lowercase but WPGraphQL does do this when adding the field to schema.
+
+## 0.6.2
+
+- More PHP 7.1 syntax fixes. We will soon have CI tests which will prevent these issues.
+
+## 0.6.1
+
+- Fixed an unexpected token syntax error.
+
+## 0.6.0
+
+- This release adds a major re-work to the Gatsby Preview experience! It adds remote Gatsby state management and error handling in WordPress so that WP and Gatsby don't get out of sync during the Preview process.
+
+## 0.5.4
+
+- Force enable WPGraphQL Introspection when WPGatsby is enabled. [WPGraphQL v0.14.0](https://github.com/wp-graphql/wp-graphql/releases/tag/v0.14.0) has Introspection disabled by default with an option to enable it, and Gatsby requires it to be enabled, so WPGatsby force-enables it.
+
+## 0.5.3
+
+- Meta delta syncing was using the same code for posts and users. In many cases this was causing errors when updating usermeta. This code is now scoped to posts only and we will add usermeta delta syncing separately.
+- Our composer setup was previously double autoloading
+
+## 0.5.2
+
+- Added a backwards compatibility fix for a regression introduced in v0.4.18 where WPGraphQL::debug() was called. This method is only available in later versions of WPGraphQL, but this plugin currently supports earlier versions
+
+## 0.5.1
+
+- Fixed a typo in the new footer locations 🤦‍♂️ gatbsy should be gatsby
+
+## 0.5.0
+
+### Bug Fixes
+
+- Added support for delta syncing menu locations. This appeared as a bug where updating your menu locations didn't update in Gatsby, but this was actually a missing feature.
+
+## 0.4.18
+
+### Bug Fixes
+
+- The action_monitor post type was registered incorrectly so that it was showing in the rest api, in search, and other places it didn't need to be. This release fixes that. Thanks @jasonbahl!
+
+## 0.4.17
+
+### New Features
+
+- Added `WPGatsby.arePrettyPermalinksEnabled` to the schema in order to add more helpful error messages to the Gatsby build process.
+- Added a filter `gatsby_trigger_dispatch_args` to filter the arguments passed to `wp_safe_remote_post` when triggering webhooks.
+
+## 0.4.16
+
+### Bug Fixes
+
+It turns out the new feature in the last release could potentially cause many more issues than it presently solves, so it has been disabled as a bug fix. This will be re-enabled within the next couple weeks as we do more testing and thinking on how best to approach sending WP options events to Gatsby.
+
+## 0.4.15
+
+### New Features
+
+- Non-node root fields (options and settings) are now recorded as an action so Gatsby can inc build when the site title changes for example.
+
+## 0.4.14
+
+### Bug Fixes
+
+- Making a post into a draft was not previously saving an action monitor post which means posts that became drafts would never be deleted.
+
 ## 0.4.13
 
 ### Bug Fixes

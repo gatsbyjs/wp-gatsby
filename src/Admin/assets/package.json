@@ -1,0 +1,42 @@
+{
+	"name": "wp-gatsby-preview-client",
+	"version": "1.0.0",
+	"description": "A small preview client script for Gatsby Preview with WordPress",
+	"main": "index.js",
+	"author": "Tyler Barnes <tylerdbarnes@gmail.com>",
+	"license": "MIT",
+	"devDependencies": {
+		"@babel/cli": "^7.6.4",
+		"@babel/core": "^7.6.4",
+		"@babel/plugin-proposal-optional-chaining": "^7.12.1",
+		"@babel/plugin-transform-regenerator": "^7.12.1",
+		"@babel/plugin-transform-runtime": "^7.12.1",
+		"@babel/plugin-transform-typescript": "^7.12.1",
+		"@babel/preset-env": "^7.12.1",
+		"@babel/runtime-corejs3": "^7.12.5",
+		"@rollup/plugin-babel": "^5.2.1",
+		"@rollup/plugin-commonjs": "^16.0.0",
+		"@rollup/plugin-node-resolve": "^10.0.0",
+		"babel-preset-minify": "^0.5.1",
+		"core-js": "3",
+		"cssnano": "^4.1.10",
+		"node-sass": "^5.0.0",
+		"npm-run-all": "^4.1.5",
+		"postcss": "^8.1.4",
+		"postcss-cli": "^8.1.0",
+		"postcss-preset-env": "^6.7.0",
+		"rollup": "^2.33.1",
+		"rollup-plugin-cleanup": "^3.2.1"
+	},
+	"scripts": {
+		"build": "npm-run-all --parallel build:*",
+		"watch": "npm-run-all --parallel watch:*",
+		"build:js": "rollup --config",
+		"watch:js": "rollup --watch --config -m inline",
+		"build:css": "postcss src/styles.scss --output dist/styles.css --verbose",
+		"watch:css": "postcss src/styles.scss --output dist/styles.css --verbose --watch"
+	},
+	"dependencies": {
+		"whatwg-fetch": "^3.5.0"
+	}
+}
