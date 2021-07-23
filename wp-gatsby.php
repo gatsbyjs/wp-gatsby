@@ -13,10 +13,10 @@
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  */
 
-// Exit if accessed directly.
-if (! defined('ABSPATH') ) {
-    exit;
-}
+// // Exit if accessed directly.
+// if (! defined('ABSPATH') ) {
+//     exit;
+// }
 
 /**
  * If the codeception remote coverage file exists, require it.
