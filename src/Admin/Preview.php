@@ -24,7 +24,7 @@ class Preview {
 
 			$use_cloud_loader = self::get_setting( 'use_preview_loader' );
 			
-			if ( $use_cloud_loader ) {
+			if ( $use_cloud_loader === 'on' ) {
 				add_filter( 'preview_post_link', function( $link, $post ) {
 					return self::get_preview_loader_url_for_post( $post );
 				}, 10, 2 );
@@ -32,14 +32,20 @@ class Preview {
 		}
 	}
 
+	public static function get_manifest_id_for_post( $post ) {
+		$revision = self::getPreviewablePostObjectByPostId( $post->ID );
+		$revision_modified = $revision->post_modified ?? null;
+		$manifest_id = $post->ID . $revision_modified;
+
+		return $manifest_id;
+	}
+
 	public static function get_preview_loader_url_for_post( $post ) {
 		// get the Gatsby Cloud loader url w/ site id
 		$preview_loader_url = self::get_setting( 'preview_loader_url' );
 					
 		// create the dynamic path the loader will need
-		$revision = self::getPreviewablePostObjectByPostId( $post->ID );
-		$revision_modified = $revision->post_modified ?? null;
-		$manifest_id = $post->ID . $revision_modified;
+		$manifest_id = self::get_manifest_id_for_post( $post );
 		$path = "/gatsby-source-wordpress/$manifest_id";
 
 		$url = preg_replace(

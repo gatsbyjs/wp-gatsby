@@ -481,6 +481,10 @@ class ActionMonitor {
 						'type' => 'Int',
 						'description' => __( 'The WordPress database ID of the preview. If this is a draft it will potentially return 0, if it\'s a revision of a post, it will return the ID of the original post that this is a revision of.', 'WPGatsby' ),
 					],
+					'manifestIds' => [
+						'type' => [ 'list_of' => 'String' ],
+						'description' => __( 'A list of manifest ID\'s a preview action has seen during it\'s lifetime.', 'WPGatsby' ),
+					]
 				]
 			]
 		);
