@@ -301,8 +301,6 @@ abstract class Monitor {
 					true
 				);
 
-				error_log($existing_preview_data);
-
 				$manifest_id = Preview::get_manifest_id_for_post(
 					get_post( $action_monitor_post_id )
 				);
