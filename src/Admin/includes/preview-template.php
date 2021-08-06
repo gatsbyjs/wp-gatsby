@@ -3,6 +3,7 @@
 use WPGatsby\Admin\Preview;
 
 $preview_url = Preview::get_gatsby_preview_instance_url();
+$use_preview_loader = self::get_setting( 'use_preview_loader' );
 ?>
 
 <html lang="en">
@@ -18,6 +19,20 @@ $preview_url = Preview::get_gatsby_preview_instance_url();
 	</style>
 
 	<script>
+		<?php
+			if ( $use_preview_loader ) {
+				// Gutenberg seems to be using the preview_post_link filter so we may never reach this code path now. In the past Gutenberg did not respect this filter so there was no way to change the preview link.
+				// Leaving this here incase a user somehow makes it to the preview template when they should be at the loader.
+				// Redirecting via JS because the page headers have already been set by the time we get into this template so PHP wont redirect.
+				global $post;
+
+				$preview_loader_url = Preview::get_preview_loader_url_for_post(
+					$post
+				);
+
+				echo 'window.location.replace("'. $preview_loader_url .'")';
+			}
+		?>
 		<?php Preview::print_initial_preview_template_state_js(); ?>        
 		<?php Preview::printFileContents( 'assets/dist/preview-client.js' ); ?>
 	</script>

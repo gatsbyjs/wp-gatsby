@@ -21,7 +21,34 @@ class Preview {
 					$this->registerPreviewStatusFieldsAndMutations();
 				}
 			);
+
+			$use_cloud_loader = self::get_setting( 'use_preview_loader' );
+			
+			if ( $use_cloud_loader ) {
+				add_filter( 'preview_post_link', function( $link, $post ) {
+					return self::get_preview_loader_url_for_post( $post );
+				}, 10, 2 );
+			}
 		}
+	}
+
+	public static function get_preview_loader_url_for_post( $post ) {
+		// get the Gatsby Cloud loader url w/ site id
+		$preview_loader_url = self::get_setting( 'preview_loader_url' );
+					
+		// create the dynamic path the loader will need
+		$revision = self::getPreviewablePostObjectByPostId( $post->ID );
+		$revision_modified = $revision->post_modified ?? null;
+		$manifest_id = $post->ID . $revision_modified;
+		$path = "/gatsby-source-wordpress/$manifest_id";
+
+		$url = preg_replace(
+			// remove any double forward slashes from the path
+			'/([^:])(\/{2,})/', '$1/',
+			"$preview_loader_url$path"
+		);
+
+		return $url;
 	}
 
 	public static function print_initial_preview_template_state_js() {
@@ -551,6 +578,7 @@ class Preview {
 
 		// Ensure the post_type is set to show_in_graphql
 		$post_type_object = $post_type ? get_post_type_object( $post->post_type ) : null;
+
 		if ( $post_type && ! $post_type_object->show_in_graphql ?? true ) {
 			return plugin_dir_path( __FILE__ ) . 'includes/post-type-not-shown-in-graphql.php';
 		}

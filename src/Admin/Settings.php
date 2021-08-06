@@ -213,8 +213,8 @@ class Settings {
 			'wpgatsby_settings' => [
 				[
 					'name'              => 'builds_api_webhook',
-					'label'             => __( 'Builds Webhook', 'wpgatsby_settings' ),
-					'desc'              => __( 'Enter your Gatsby Builds Webhook URL. Must begin with http:// or https://. Use a comma-separated list to configure multiple webhooks.', 'wpgatsby_settings' ),
+					'label'             => __( 'Builds Webhook URL', 'wpgatsby_settings' ),
+					'desc'              => __( 'Use a comma-separated list to configure multiple webhooks.', 'wpgatsby_settings' ),
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
 					'sanitize_callback' => function ( $input ) {
@@ -224,13 +224,27 @@ class Settings {
 				[
 					'name'  => 'enable_gatsby_preview',
 					'label' => __( 'Enable Gatsby Preview?', 'wpgatsby_settings' ),
-					'desc'  => __( 'Yes', 'wpgatsby_settings' ),
+					'desc'  => __( 'Yes, allow Gatsby to take over WordPress previews.', 'wpgatsby_settings' ),
 					'type'  => 'checkbox',
 				],
 				[
+					'name'  => 'use_preview_loader',
+					'label' => __( 'Use Gatsby Preview Loader?', 'wpgatsby_settings' ),
+					'desc'  => __( 'Yes, I want to use Gatsby Cloud to redirect admins to the right preview page. (recommended)', 'wpgatsby_settings' ),
+					'type'  => 'checkbox',
+				],
+				[
+					'name'              => 'preview_loader_url',
+					'label'             => __( 'Preview Loader URL', 'wpgatsby_settings' ),
+					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
+					'type'              => 'text',
+					'sanitize_callback' => function ( $input ) {
+						return $this->sanitize_url_field( $input );
+					},
+				],
+				[
 					'name'              => 'preview_instance_url',
-					'label'             => __( 'Preview Instance', 'wpgatsby_settings' ),
-					'desc'              => __( 'Enter your Gatsby Preview instance URL. Must begin with http:// or https://.', 'wpgatsby_settings' ),
+					'label'             => __( 'Preview Frontend URL', 'wpgatsby_settings' ),
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
 					'sanitize_callback' => function ( $input ) {
@@ -239,8 +253,8 @@ class Settings {
 				],
 				[
 					'name'              => 'preview_api_webhook',
-					'label'             => __( 'Preview Webhook', 'wpgatsby_settings' ),
-					'desc'              => __( 'Enter your Gatsby Preview Webhook URL. Must begin with http:// or https://. Use a comma-separated list to configure multiple webhooks.', 'wpgatsby_settings' ),
+					'label'             => __( 'Preview Webhook URL', 'wpgatsby_settings' ),
+					'desc'              => __( 'Use a comma-separated list to configure multiple webhooks.', 'wpgatsby_settings' ),
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
 					'sanitize_callback' => function ( $input ) {
