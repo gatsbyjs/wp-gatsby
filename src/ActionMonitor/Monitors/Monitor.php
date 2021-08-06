@@ -309,7 +309,7 @@ abstract class Monitor {
 
 				// if we have existing data, we want to merge our manifest id
 				// into any existing manifest ids
-				if ( $existing_preview_data ) {
+				if ( $existing_preview_data && $existing_preview_data !== "" ) {
 					$existing_preview_data = json_decode( $existing_preview_data );
 
 					if ( $existing_preview_data->manifestIds ?? false ) {
