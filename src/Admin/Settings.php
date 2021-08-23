@@ -228,22 +228,6 @@ class Settings {
 					'type'  => 'checkbox',
 				],
 				[
-					'name'  => 'use_gatsby_content_sync',
-					'label' => __( 'Use Gatsby Content Sync (Preview loader)?', 'wpgatsby_settings' ),
-					'desc'  => __( 'Yes, I want to use Gatsby Cloud to redirect admins to the right preview page. (recommended)', 'wpgatsby_settings' ),
-					'type'  => 'checkbox',
-				],
-				[
-					'name'              => 'gatsby_content_sync_url',
-					'label'             => __( 'Gatsby Content Sync URL', 'wpgatsby_settings' ),
-					'desc'              => __( 'Find this URL in your Gatsbyjs.com dashboard settings.', 'wpgatsby_settings' ), 
-					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
-					'type'              => 'text',
-					'sanitize_callback' => function ( $input ) {
-						return $this->sanitize_url_field( $input );
-					},
-				],
-				[
 					'name'              => 'preview_instance_url',
 					'label'             => __( 'Preview Frontend URL', 'wpgatsby_settings' ),
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
@@ -256,6 +240,22 @@ class Settings {
 					'name'              => 'preview_api_webhook',
 					'label'             => __( 'Preview Webhook URL', 'wpgatsby_settings' ),
 					'desc'              => __( 'Use a comma-separated list to configure multiple webhooks.', 'wpgatsby_settings' ),
+					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
+					'type'              => 'text',
+					'sanitize_callback' => function ( $input ) {
+						return $this->sanitize_url_field( $input );
+					},
+				],
+				[
+					'name'  => 'use_gatsby_content_sync',
+					'label' => __( 'Use Gatsby Content Sync? (BETA feature)', 'wpgatsby_settings' ),
+					'desc'  => __( 'Yes, I want to use Gatsby Cloud to redirect admins to the right preview page. (BETA but recommended)', 'wpgatsby_settings' ),
+					'type'  => 'checkbox',
+				],
+				[
+					'name'              => 'gatsby_content_sync_url',
+					'label'             => __( 'Gatsby Content Sync URL', 'wpgatsby_settings' ),
+					'desc'              => __( 'Find this URL in your Gatsbyjs.com dashboard settings.', 'wpgatsby_settings' ), 
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
 					'sanitize_callback' => function ( $input ) {
