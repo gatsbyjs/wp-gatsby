@@ -689,11 +689,15 @@ class ActionMonitor {
 				// in case someone pressed preview right after
 				// we got to this point from someone else pressing
 				// publish/update.
+				$graphql_endpoint = apply_filters( 'graphql_endpoint', 'graphql' );
+				$graphql_url = get_site_url() . '/' . ltrim( $graphql_endpoint, '/' );
+				
 				$post_body = apply_filters(
 					'gatsby_trigger_preview_build_dispatch_post_body',
 					[
 						'token' => $token,
-						'userDatabaseId' => get_current_user_id()
+						'userDatabaseId' => get_current_user_id(),
+						'remoteUrl' => $graphql_url
 					]
 				);
 
