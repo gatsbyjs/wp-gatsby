@@ -22,11 +22,11 @@ class Preview {
 				}
 			);
 
-			$use_cloud_loader = self::get_setting( 'use_preview_loader' );
+			$use_cloud_loader = self::get_setting( 'use_gatsby_content_sync' );
 			
 			if ( $use_cloud_loader === 'on' ) {
 				add_filter( 'preview_post_link', function( $link, $post ) {
-					return self::get_preview_loader_url_for_post( $post );
+					return self::get_gatsby_content_sync_url_for_post( $post );
 				}, 10, 2 );
 			}
 		}
@@ -40,9 +40,9 @@ class Preview {
 		return $manifest_id;
 	}
 
-	public static function get_preview_loader_url_for_post( $post ) {
+	public static function get_gatsby_content_sync_url_for_post( $post ) {
 		// get the Gatsby Cloud loader url w/ site id
-		$preview_loader_url = self::get_setting( 'preview_loader_url' );
+		$gatsby_content_sync_url = self::get_setting( 'gatsby_content_sync_url' );
 					
 		// create the dynamic path the loader will need
 		$manifest_id = self::get_manifest_id_for_post( $post );
@@ -51,7 +51,7 @@ class Preview {
 		$url = preg_replace(
 			// remove any double forward slashes from the path
 			'/([^:])(\/{2,})/', '$1/',
-			"$preview_loader_url$path"
+			"$gatsby_content_sync_url$path"
 		);
 
 		return $url;

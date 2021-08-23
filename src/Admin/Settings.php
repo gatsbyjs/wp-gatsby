@@ -228,14 +228,15 @@ class Settings {
 					'type'  => 'checkbox',
 				],
 				[
-					'name'  => 'use_preview_loader',
-					'label' => __( 'Use Gatsby Preview Loader?', 'wpgatsby_settings' ),
+					'name'  => 'use_gatsby_content_sync',
+					'label' => __( 'Use Gatsby Content Sync (Preview loader)?', 'wpgatsby_settings' ),
 					'desc'  => __( 'Yes, I want to use Gatsby Cloud to redirect admins to the right preview page. (recommended)', 'wpgatsby_settings' ),
 					'type'  => 'checkbox',
 				],
 				[
-					'name'              => 'preview_loader_url',
-					'label'             => __( 'Preview Loader URL', 'wpgatsby_settings' ),
+					'name'              => 'gatsby_content_sync_url',
+					'label'             => __( 'Gatsby Content Sync URL', 'wpgatsby_settings' ),
+					'desc'              => __( 'Find this URL in your Gatsbyjs.com dashboard settings.', 'wpgatsby_settings' ), 
 					'placeholder'       => __( 'https://', 'wpgatsby_settings' ),
 					'type'              => 'text',
 					'sanitize_callback' => function ( $input ) {
