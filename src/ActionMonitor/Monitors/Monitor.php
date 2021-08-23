@@ -313,9 +313,11 @@ abstract class Monitor {
 					$existing_preview_data = json_decode( $existing_preview_data );
 
 					if ( $existing_preview_data->manifestIds ?? false ) {
-						$manifest_ids = array_merge(
-							$existing_preview_data->manifestIds,
-							$manifest_ids
+						$manifest_ids = array_unique(
+							array_merge(
+								$existing_preview_data->manifestIds,
+								$manifest_ids
+							)
 						);
 					}
 				}
