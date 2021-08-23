@@ -34,8 +34,15 @@ class Preview {
 
 	public static function get_preview_manifest_id_for_post( $post ) {
 		$graphql_single_name = 
-			get_post_type_object( $old_page->post_type )
+			get_post_type_object( $post->post_type )
 				->graphql_single_name;
+
+		if ( !$graphql_single_name || $graphql_single_name === "" ) {
+			// if we don't have a graphql single name
+			// Gatsby can't use this post anyway.
+			// No need to return a manifest
+			return null;
+		}
 
 		$action_monitor_posts = new \WP_Query( [
 			'post_type'      => 'action_monitor',
@@ -85,16 +92,21 @@ class Preview {
 
 			if (
 				$preview_data
-				&& $preview_data['manifestIds']
-				&& count( $preview_data['manifestIds'] ) > 0
+				&& property_exists( $preview_data, 'manifestIds' )
+				&& count( $preview_data->manifestIds ) > 0
 			) {
-				return $preview_data['manifestIds'][0];
+				return $preview_data->manifestIds[0];
 			}
 		} 
 
 		// if the above doesn't return a value we generate a new manifest ID from the post_modified date and post db id
 		$revision = self::getPreviewablePostObjectByPostId( $post->ID );
 		$revision_modified = $revision->post_modified ?? null;
+
+		if ( !$revision_modified || $revision_modified === "" ) {
+			return null;
+		}
+
 		$manifest_id = $post->ID . $revision_modified;
 
 		return $manifest_id;
