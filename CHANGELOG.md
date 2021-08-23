@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.12
+
+Preview webhooks added the remote url as a property on the webhook body. When publishing updates we also send a preview webhook to update the preview Gatsby site. These two webhook bodies previously differed in that the latter didn't include a remoteUrl property. As of gatsby-source-wordpress@5.10.0 this causes problems because the source plugin assumes this property always exists. Related to https://github.com/gatsbyjs/gatsby/issues/32732. Fixed in https://github.com/gatsbyjs/wp-gatsby/pull/184
+
 ## 1.0.11
 
 - Fixed a warning state for Preview to let users know when the preview Gatsby site set in the preview webhook setting is pointing at a Gatsby site which isn't sourcing data from the current WP site. Preview requires a 1:1 connection between WP and Gatsby where settings point at a Gatsby site that sources data from the WP instance previews are originating from.
