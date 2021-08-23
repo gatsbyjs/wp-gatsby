@@ -301,7 +301,7 @@ abstract class Monitor {
 					true
 				);
 
-				$manifest_id = Preview::get_manifest_id_for_post(
+				$manifest_id = Preview::get_preview_manifest_id_for_post(
 					get_post( $args['node_id'] )
 				);
 
