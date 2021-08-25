@@ -1,5 +1,9 @@
 # Change Log
 
+## Upcoming
+
+- Added support for the new Gatsby Cloud Content Sync API. This new API moves the WPGatsby Preview loader logic to the Gatsby Cloud side as Cloud has more context on the Gatsby process making it more reliable than the existing WPGatsby preview loader with fewer restrictions and caveats.
+
 ## 1.0.12
 
 Preview webhooks added the remote url as a property on the webhook body. When publishing updates we also send a preview webhook to update the preview Gatsby site. These two webhook bodies previously differed in that the latter didn't include a remoteUrl property. As of gatsby-source-wordpress@5.10.0 this causes problems because the source plugin assumes this property always exists. Related to https://github.com/gatsbyjs/gatsby/issues/32732. Fixed in https://github.com/gatsbyjs/wp-gatsby/pull/184
