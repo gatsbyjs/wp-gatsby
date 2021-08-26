@@ -23,8 +23,14 @@ class Preview {
 			);
 
 			$use_cloud_loader = self::get_setting( 'use_gatsby_content_sync' );
-			
-			if ( $use_cloud_loader === 'on' ) {
+
+			if (
+				$use_cloud_loader === 'on' && 
+				// don't do this during graphql requests
+				// because that could override the post URI
+				// in Gatsby! meaning the content sync url could be added to the page path in Gatsby if pages are created from the uri.
+				! ( defined( 'GRAPHQL_REQUEST' ) && true === GRAPHQL_REQUEST )
+			) {
 				add_filter( 'preview_post_link', function( $link, $post ) {
 					return self::get_gatsby_content_sync_url_for_post( $post );
 				}, 10, 2 );
