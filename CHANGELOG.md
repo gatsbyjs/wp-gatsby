@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.1.2
+
+- Fixed redirection to Gatsby Cloud Content Sync preview loader in Gutenberg
+
 ## 1.1.0
 
 - Added support for the new Gatsby Cloud Content Sync API. This new API moves the WPGatsby Preview loader logic to the Gatsby Cloud side as Cloud has more context on the Gatsby process making it more reliable than the existing WPGatsby preview loader with fewer restrictions and caveats.
