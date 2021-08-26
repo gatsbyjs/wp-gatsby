@@ -30,7 +30,7 @@ $use_gatsby_content_sync = Preview::get_setting( 'use_gatsby_content_sync' );
 					$post
 				);
 
-				echo 'window.location.replace("'. $gatsby_content_sync_url .'")';
+				echo 'window.location.replace("'. $gatsby_content_sync_url .'");';
 			}
 		?>
 		<?php Preview::print_initial_preview_template_state_js(); ?>        

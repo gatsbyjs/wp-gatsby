@@ -664,8 +664,14 @@ class Preview {
 		// Determine if it's a preview
 		$is_preview  = is_preview() || isset( $_GET['preview_nonce'] );
 		$preview_url = self::get_gatsby_preview_instance_url();
+		$enable_gatsby_preview = self::get_setting( 'enable_gatsby_preview' );
 
-		if ( $is_preview && $preview_url ) {
+		if ( 
+			$is_preview && ( 
+				$preview_url || 
+					( ! $preview_url && $enable_gatsby_preview === 'on' ) 
+				)
+			) {
 			return trailingslashit( dirname( __FILE__ ) ) . 'includes/preview-template.php';
 		} elseif ( $is_preview && ! $preview_url ) {
 			return trailingslashit( dirname( __FILE__ ) ) . 'includes/no-preview-url-set.php';
@@ -764,6 +770,10 @@ class Preview {
 				$status_code === 204 ||
 				$response_message_was_ok
 			);
+
+		if ( ! $success ) {
+			error_log($status_code);
+		}
 
 		return $success;
 	}
