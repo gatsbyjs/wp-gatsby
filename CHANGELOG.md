@@ -1,6 +1,6 @@
 # Change Log
 
-## Upcoming fixes
+## 1.1.3
 
 - The uri field was being overwritten during GraphQL requests, resulting in post uri's that included the content sync URL.
 - Some logic attempting to choose the correct manifest ID instead of regenerating it was causing manifest id's to be outdated during previews.
