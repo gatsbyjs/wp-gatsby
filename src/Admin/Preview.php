@@ -23,8 +23,14 @@ class Preview {
 			);
 
 			$use_cloud_loader = self::get_setting( 'use_gatsby_content_sync' );
-			
-			if ( $use_cloud_loader === 'on' ) {
+
+			if (
+				$use_cloud_loader === 'on' && 
+				// don't do this during graphql requests
+				// because that could override the post URI
+				// in Gatsby! meaning the content sync url could be added to the page path in Gatsby if pages are created from the uri.
+				! ( defined( 'GRAPHQL_REQUEST' ) && true === GRAPHQL_REQUEST )
+			) {
 				add_filter( 'preview_post_link', function( $link, $post ) {
 					return self::get_gatsby_content_sync_url_for_post( $post );
 				}, 10, 2 );
@@ -33,73 +39,6 @@ class Preview {
 	}
 
 	public static function get_preview_manifest_id_for_post( $post ) {
-		$graphql_single_name = 
-			get_post_type_object( $post->post_type )
-				->graphql_single_name;
-
-		if ( !$graphql_single_name || $graphql_single_name === "" ) {
-			// if we don't have a graphql single name
-			// Gatsby can't use this post anyway.
-			// No need to return a manifest
-			return null;
-		}
-
-		$action_monitor_posts = new \WP_Query( [
-			'post_type'      => 'action_monitor',
-			'post_status'    => 'any',
-			'posts_per_page' => 1,
-			'no_found_rows'  => true,
-			'fields'         => 'ids',
-			'tax_query'      => [
-				'relation' => 'AND',
-				[
-					'taxonomy' => 'gatsby_action_ref_node_dbid',
-					'field'    => 'name',
-					'terms'    => sanitize_text_field( $post->ID ),
-				],
-				[
-					'taxonomy' => 'gatsby_action_ref_node_type',
-					'field'    => 'name',
-					'terms'    => sanitize_text_field( $graphql_single_name ),
-				],
-				[
-					'taxonomy' => 'gatsby_action_stream_type',
-					'field'    => 'name',
-					'terms'    => 'PREVIEW',
-				]
-			],
-		] );
-
-		if (
-			isset( $action_monitor_posts->posts )
-			&& ! empty( $action_monitor_posts->posts )
-		) {
-			$action_monitor_post_id = $action_monitor_posts->posts[0];
-			$referenced_node_preview_data = get_post_meta(
-				$action_monitor_post_id,
-				'_gatsby_preview_data',
-				true
-			);
-
-			$preview_data = false;
-
-			if (
-				$referenced_node_preview_data
-				&& $referenced_node_preview_data !== ""
-			) {
-				$preview_data = json_decode( $referenced_node_preview_data );
-			}
-
-			if (
-				$preview_data
-				&& property_exists( $preview_data, 'manifestIds' )
-				&& count( $preview_data->manifestIds ) > 0
-			) {
-				return $preview_data->manifestIds[0];
-			}
-		} 
-
-		// if the above doesn't return a value we generate a new manifest ID from the post_modified date and post db id
 		$revision = self::getPreviewablePostObjectByPostId( $post->ID );
 		$revision_modified = $revision->post_modified ?? null;
 

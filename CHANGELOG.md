@@ -1,5 +1,10 @@
 # Change Log
 
+## Upcoming fixes
+
+- The uri field was being overwritten during GraphQL requests, resulting in post uri's that included the content sync URL.
+- Some logic attempting to choose the correct manifest ID instead of regenerating it was causing manifest id's to be outdated during previews.
+
 ## 1.1.2
 
 - Fixed redirection to Gatsby Cloud Content Sync preview loader in Gutenberg
