@@ -674,7 +674,7 @@ class ActionMonitor {
 			foreach ( $unique_webhooks as $webhook ) {
 				$args = apply_filters( 'gatsby_trigger_dispatch_args', [], $webhook );
 
-				wp_safe_remote_post( $webhook, $args );
+				wp_remote_post( $webhook, $args );
 			}
 		}
 
@@ -718,7 +718,7 @@ class ActionMonitor {
 					$webhook 
 				);
 
-				wp_safe_remote_post( $webhook, $args );
+				wp_remote_post( $webhook, $args );
 			}
 		}
 	}
