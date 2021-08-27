@@ -4,7 +4,6 @@ namespace WPGatsby\Admin;
 
 use GraphQL\Error\UserError;
 use WPGraphQL\Router;
-use GraphQLRelay\Relay;
 
 class Preview {
 
