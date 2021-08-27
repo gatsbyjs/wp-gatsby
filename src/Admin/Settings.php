@@ -4,7 +4,6 @@ namespace WPGatsby\Admin;
 
 class Settings {
 
-
 	private $settings_api;
 
 	function __construct() {
@@ -26,7 +25,7 @@ class Settings {
 	public function set_default_jwt_key() {
 
 		// Get the JWT Secret
-		$default_secret = Preview::get_setting( 'preview_jwt_secret' );
+		$default_secret = self::get_setting( 'preview_jwt_secret' );
 
 		if ( empty( $default_secret ) ) {
 
@@ -169,7 +168,7 @@ class Settings {
 	}
 
 	private static function get_default_secret() {
-		$default_secret = \WPGatsby\Admin\Preview::get_setting( 'preview_jwt_secret' );
+		$default_secret = self::get_setting( 'preview_jwt_secret' );
 
 		if ( ! $default_secret ) {
 			$default_secret = self::generate_secret();
