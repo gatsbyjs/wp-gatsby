@@ -46,14 +46,20 @@ class Preview {
 
 
 	public static function get_preview_manifest_id_for_post( $post ) {
+
 		$revision = self::getPreviewablePostObjectByPostId( $post->ID );
 		$revision_modified = $revision->post_modified ?? null;
 
-		if ( !$revision_modified || $revision_modified === "" ) {
+		$modified = 
+			$post->post_status === "draft"
+				? $post->post_modified
+				: $revision_modified;
+
+		if ( !$modified || $modified === "" ) {
 			return null;
 		}
 
-		$manifest_id = $post->ID . $revision_modified;
+		$manifest_id = $post->ID . $modified;
 
 		return $manifest_id;
 	}
