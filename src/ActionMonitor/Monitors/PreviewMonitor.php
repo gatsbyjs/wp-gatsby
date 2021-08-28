@@ -21,16 +21,26 @@ class PreviewMonitor extends Monitor {
 				}
 			);
 
-			
-			add_filter( 'preview_post_link', function( $link, $post ) {
-				$use_cloud_loader = self::get_setting( 'use_gatsby_content_sync' );
+
+			$use_cloud_loader = self::get_setting( 'use_gatsby_content_sync' );
+
+			if ( $use_cloud_loader !== "on" ) {
+				add_action(
+					'save_post',
+					[ $this, 'post_to_preview_instance' ],
+					10,
+					2
+				);
+			}
+
+			add_filter( 'preview_post_link', function( $link, $post ) use ( $use_cloud_loader ) {
 				$doing_graphql_request
 					= defined( 'GRAPHQL_REQUEST' ) && true === GRAPHQL_REQUEST;
 
 				// Use the normal $link during graphql requests
 				// because otherwise we could override the post URI
 				// in Gatsby! meaning the content sync or preview url could be added to the page path in Gatsby if pages are created from the uri.
-				if ( $doing_graphql_request ) {
+				if ( $doing_graphql_request || $use_cloud_loader !== "on") {
 					return $link;
 				}
 
@@ -426,9 +436,17 @@ class PreviewMonitor extends Monitor {
 							$page_data->result->pageContext->__wpGatsbyNodeModified
 							?? null;
 
+						error_log(print_r('$modified_response', true)); 
+						error_log(print_r($modified_response, true)); 
+						error_log(print_r('$modified', true)); 
+						error_log(print_r($modified, true)); 
+
 						$preview_was_deployed =
 							$modified_response &&
 							strtotime( $modified_response ) >= strtotime( $modified );
+
+						error_log(print_r('$preview_was_deployed', true)); 
+						error_log(print_r($preview_was_deployed, true)); 
 
 						if ( ! $preview_was_deployed ) {
 							// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED.
@@ -568,15 +586,16 @@ class PreviewMonitor extends Monitor {
 		// Determine if it's a preview
 		$is_gatsby_preview = self::is_gatsby_preview();
 		$is_wp_preview = is_preview();
+		$use_cloud_loader = self::get_setting( 'use_gatsby_content_sync' );
 
-		if ( $is_gatsby_preview && ! $is_wp_preview ) {
+		if ( $is_gatsby_preview && ! $is_wp_preview && $use_cloud_loader === "on" ) {
 			// WP doesn't call post_save for every second preview with no content changes. Since we're using post_save to trigger the webhook to Gatsby, we need to get WP to call post_save for this post.
 			$update = true;
 			$post_ID = $post->ID;
 			do_action( 'save_post', $post_ID, $post, $update );
 		}
 
-		if ( $is_gatsby_preview ) {
+		if ( $is_gatsby_preview && $use_cloud_loader === "on" ) {
 			$post_ID = $post->ID;
 			$this->post_to_preview_instance( $post_ID, $post );
 		}
@@ -660,10 +679,12 @@ class PreviewMonitor extends Monitor {
 
 		$original_post = get_post( $post->post_parent );
 
+		$use_cloud_loader = self::get_setting( 'use_gatsby_content_sync' );
+
 		$this_is_a_publish_not_a_preview = 
 			$original_post
 			&& $original_post->post_modified === $post->post_modified
-			&& ! $is_gatsby_preview;
+			&& ( $use_cloud_loader !== "on" || ! $is_gatsby_preview );
 
 			
 		if ( $this_is_a_publish_not_a_preview ) {
@@ -683,6 +704,7 @@ class PreviewMonitor extends Monitor {
 			// we don't want to send a preview webhook for this post type.
 			return;
 		}
+		
 
 
 		// otherwise store this modified time so we can compare it next time.
