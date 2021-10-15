@@ -58,7 +58,7 @@ class PostMonitor extends Monitor {
 			return;
 		}
 
-        if(defined("REST_REQUEST") && REST_REQUEST) {
+        if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
             return;
         }
 
