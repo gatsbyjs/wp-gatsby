@@ -2,8 +2,11 @@
 
 use WPGatsby\Admin\Preview;
 
-$preview_url = Preview::get_gatsby_preview_instance_url();
-$use_gatsby_content_sync = Preview::get_setting( 'use_gatsby_content_sync' );
+global $post;
+
+$gatsby_content_sync_url = Preview::get_gatsby_content_sync_url_for_post(
+	$post
+);
 ?>
 
 <html lang="en">
@@ -12,66 +15,30 @@ $use_gatsby_content_sync = Preview::get_setting( 'use_gatsby_content_sync' );
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	<title>Preview</title>
+	<title>Gatsby Preview</title>
 
 	<style>
-		<?php Preview::printFileContents( 'assets/dist/styles.css' ); ?>
+		<?php Preview::print_file_contents( 'includes/style.css' ); ?>
 	</style>
 
 	<script>
 		<?php
-			if ( $use_gatsby_content_sync === 'on' ) {
-				// Gutenberg seems to be using the preview_post_link filter so we may never reach this code path now. In the past Gutenberg did not respect this filter so there was no way to change the preview link.
-				// Leaving this here incase a user somehow makes it to the preview template when they should be at the loader.
+			if ( $gatsby_content_sync_url ) {
 				// Redirecting via JS because the page headers have already been set by the time we get into this template so PHP wont redirect.
-				global $post;
-
-				$gatsby_content_sync_url = Preview::get_gatsby_content_sync_url_for_post(
-					$post
-				);
-
 				echo 'window.location.replace("'. $gatsby_content_sync_url .'");';
 			}
 		?>
-		<?php Preview::print_initial_preview_template_state_js(); ?>        
-		<?php Preview::printFileContents( 'assets/dist/preview-client.js' ); ?>
 	</script>
 </head>
 
 <body>
-
-<div id="loader">
-	<div id="gatsby-loading-logo">
-		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" focusable="false" class="logo">
-		<title>Gatsby Logo</title>
-		<circle cx="14" cy="14" r="14" fill="#639" data-darkreader-inline-fill="" style="--darkreader-inline-fill:#52297a;"></circle>
-		<path fill="#fff" d="M6.2 21.8C4.1 19.7 3 16.9 3 14.2L13.9 25c-2.8-.1-5.6-1.1-7.7-3.2zm10.2 2.9L3.3 11.6C4.4 6.7 8.8 3 14 3c3.7 0 6.9 1.8 8.9 4.5l-1.5 1.3C19.7 6.5 17 5 14 5c-3.9 0-7.2 2.5-8.5 6L17 22.5c2.9-1 5.1-3.5 5.8-6.5H18v-2h7c0 5.2-3.7 9.6-8.6 10.7z" data-darkreader-inline-fill="" style="--darkreader-inline-fill:#181a1b;"></path>
-		</svg>
-	</div>
-	<h1>Loading Preview</h1>
-	<p id="preview-loader-warning" style="display: none;"></p>
-</div>
-
-<iframe id='preview' name="preview" frameborder="0"></iframe>
-
-<div class="content error" style="display: none;">
+<div class="content error" style="<?php echo $gatsby_content_sync_url ? 'display: none;' : ''; ?>">
 	<h1>The Preview couldn't be loaded</h1>
 	<p>
-		The Preview frontend url set on the
-		 <a
+		Please add your Gatsby Cloud Content Sync URL to the WPGatsby plugin <a
 				href="<?php echo get_bloginfo( 'url' ); ?>/wp-admin/options-general.php?page=gatsbyjs"
 				target="_blank" rel="noopener, nofollow. noreferrer, noopener, external"
-		>settings
-			page</a> isn't working properly.
-		<br>
-		<br>
-		<b>Preview URL: </b>
-		<a 
-			href="<?php echo $preview_url; ?>"
-			target="_blank" rel="noopener, nofollow. noreferrer, noopener, external"
-		>
-			<?php echo $preview_url; ?>
-		</a>
+		>settings page</a>.
 	</p>
 	<br>
 	<pre id="error-message-element"></pre>

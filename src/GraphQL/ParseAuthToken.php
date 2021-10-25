@@ -3,7 +3,7 @@
 namespace WPGatsby\GraphQL;
 
 use \Firebase\JWT\JWT;
-use \WPGatsby\Admin\Preview;
+use \WPGatsby\Admin\Settings;
 
 class ParseAuthToken {
 	function __construct() {
@@ -14,7 +14,7 @@ class ParseAuthToken {
 		$jwt = $_SERVER['HTTP_WPGATSBYPREVIEW'] ?? null;
 		
 		if ( $jwt ) {
-			$secret  = Preview::get_setting( 'preview_jwt_secret' );
+			$secret  = Settings::get_setting( 'preview_jwt_secret' );
 			$decoded = JWT::decode( $jwt, $secret, [ 'HS256' ] );
 			$decoded_user_id = $decoded->data->user_id ?? null;
 

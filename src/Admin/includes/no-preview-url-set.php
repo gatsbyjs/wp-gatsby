@@ -7,7 +7,7 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Preview</title>
 	<style>
-		<?php Preview::printFileContents( 'assets/dist/styles.css' ); ?>
+		<?php Preview::print_file_contents( 'includes/style.css' ); ?>
 	</style>
 </head>
 
