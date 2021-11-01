@@ -2,7 +2,7 @@
 
 ## 2.0.0
 
-We finalized support for Gatsby Cloud Content Sync Previews in this release. Content Sync is a Gatsby Cloud preview loader. Previously preview loading was handled within this plugin but we removed support for the legacy preview loader as the support burden for keeping the old and new preview methods around would be too much. Gatsby Cloud Content Sync is far more reliable than WPGatsby's preview loader as it has more context on the Gatsby build process.
+We finalized support for Gatsby Cloud Content Sync Previews in this release. Content Sync is a Gatsby Cloud preview loader. Previously preview loading was handled within this plugin but we removed support for that legacy preview loader as the support burden for keeping the old and new preview logic around would be too much. Gatsby Cloud Content Sync is far more reliable than WPGatsby's preview loader as it has more context on the Gatsby build process.
 
 For Content Sync to work you will need to upgrade to the latest version of `gatsby-source-wordpress` and either the latest `3.0.0` or `4.0.0` version of Gatsby core.
 
