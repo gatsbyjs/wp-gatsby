@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.1.3
+
+- Rolling out a release to overwrite v2.0.0
+
 ## 1.1.2
 
 - Fixed redirection to Gatsby Cloud Content Sync preview loader in Gutenberg
