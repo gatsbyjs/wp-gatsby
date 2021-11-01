@@ -1,5 +1,16 @@
 # Change Log
 
+## 2.0.0
+
+We finalized support for Gatsby Cloud Content Sync Previews in this release. Content Sync is a Gatsby Cloud preview loader. Previously preview loading was handled within this plugin but we removed support for the legacy preview loader as the support burden for keeping the old and new preview methods around would be too much. Gatsby Cloud Content Sync is far more reliable than WPGatsby's preview loader as it has more context on the Gatsby build process.
+
+For Content Sync to work you will need to upgrade to the latest version of `gatsby-source-wordpress` and either the latest `3.0.0` or `4.0.0` version of Gatsby core.
+
+In addition this release comes with some bug fixes:
+
+- Fixed double instantiation of ActionMonitor classes which caused double webhooks and potentially double saving of data in some cases.
+- Makes preview routing more reliable by simplifying our logic and adding a `gatsby_preview=true` param to all preview links. For some users every second preview would fail to correctly route to the preview template. This is now fixed.
+
 ## 1.1.3
 
 - The uri field was being overwritten during GraphQL requests, resulting in post uri's that included the content sync URL.
