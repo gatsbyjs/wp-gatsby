@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.1.3
+## 1.1.4
 
 - Rolling out a release to overwrite v2.0.0
 
