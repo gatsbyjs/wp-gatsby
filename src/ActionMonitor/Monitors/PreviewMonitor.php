@@ -4,36 +4,88 @@ namespace WPGatsby\ActionMonitor\Monitors;
 
 use GraphQLRelay\Relay;
 use WPGatsby\Admin\Preview;
+use WPGatsby\Admin\Settings;
 
 class PreviewMonitor extends Monitor {
-	public static $last_sent_modified_time_key = '_wpgatsby_last_preview_modified_time';
-
 	function init() {
-		$enable_gatsby_preview = Preview::get_setting('enable_gatsby_preview');
+		$enable_gatsby_preview = Settings::get_setting( 'enable_gatsby_preview' ) === 'on';
 
-		if ($enable_gatsby_preview === 'on') {
-			add_action( 'save_post', [ $this, 'post_to_preview_instance' ], 10, 2 );
+		if ( $enable_gatsby_preview ) {
+			add_filter( 'template_include', [ $this, 'setup_preview_template' ], 1, 99 );
+
+			add_filter( 'preview_post_link', function( $link, $post ) {
+				$doing_graphql_request
+					= defined( 'GRAPHQL_REQUEST' ) && true === GRAPHQL_REQUEST;
+
+				// Use the normal $link during graphql requests
+				// because otherwise we could override the post URI
+				// in Gatsby! meaning the content sync or preview url could be added to the page path in Gatsby if pages are created from the uri.
+				if ( $doing_graphql_request ) {
+					return $link;
+				}
+
+				return \add_query_arg( 'gatsby_preview', 'true', $link );
+			}, 10, 2 );
 		}
 	}
 
 	/**
-	 * Get the Gatsby Preview instance refresh webhook
+	 * Determines wether or not the current global 
+	 * PHP context is related to Gatsby Content Sync Previews
 	 */
-	static function get_gatsby_preview_webhook() {
-		$preview_webhook = Preview::get_setting( 'preview_api_webhook' );
+	public static function is_gatsby_content_sync_preview() {
+		$doing_graphql_request
+					= defined( 'GRAPHQL_REQUEST' ) && null !== GRAPHQL_REQUEST;
 
-		if (
-			! $preview_webhook ||
-			! filter_var( $preview_webhook, FILTER_VALIDATE_URL )
-		) {
+		if ( $doing_graphql_request ) {
 			return false;
 		}
 
-		if ( substr( $preview_webhook, -1 ) !== '/' ) {
-			$preview_webhook .= '/';
+		$enable_gatsby_preview = Settings::get_setting( 'enable_gatsby_preview' ) === 'on';
+
+		$is_gatsby_content_sync_preview 
+			= \is_preview()
+			|| isset( $_GET['preview_nonce'] )
+			|| isset( $_GET['gatsby_preview'] );
+
+		return $is_gatsby_content_sync_preview && $enable_gatsby_preview;
+	}
+
+	/**
+	 * If specific conditions are met, this loads the Gatsby Preview template
+	 * instead of the core WordPress preview template
+	 *
+	 * @param string $template The template to load
+	 *
+	 * @return string
+	 */
+	public function setup_preview_template( $template ) {
+		global $post;
+
+		// If the global post isn't set, but the preview_id is passed, use that to determine
+		// the preview post
+		if ( empty( $post ) && isset( $_GET['preview_id'] ) ) {
+			$post = get_post( $_GET['preview_id'] );
 		}
 
-		return $preview_webhook;
+		if ( self::is_gatsby_content_sync_preview() && $post ) {
+			// Ensure the post_type is set to show_in_graphql
+			$post_type_object = $post->post_type ? get_post_type_object( $post->post_type ) : null;
+
+			if ( $post_type_object && ! $post_type_object->show_in_graphql ?? true ) {
+				return plugin_dir_path( __FILE__ ) . '../../Admin/includes/post-type-not-shown-in-graphql.php';
+			}
+
+			// WP doesn't call post_save for every second preview with no content changes.
+			// Since we're using post_save to trigger the webhook to Gatsby, we need to get WP to call post_save for this post.
+			do_action( 'save_post', $post->ID, $post, true );
+
+			$this->post_to_preview_instance( $post->ID, $post );
+		
+			return trailingslashit( dirname( __FILE__ ) ) . '../../Admin/includes/preview-template.php';
+		}
+
+		return $template;
 	}
 
 	/**
@@ -41,13 +93,13 @@ class PreviewMonitor extends Monitor {
 	 */
 	public function post_to_preview_instance( $post_ID, $post ) {
 		$revisions_are_disabled = 
-			!wp_revisions_enabled( $post );
+			! wp_revisions_enabled( $post );
 
 		if (
 			defined( 'DOING_AUTOSAVE' )
 			&& DOING_AUTOSAVE
 			// if revisions are disabled, our autosave is our preview
-			&& !$revisions_are_disabled
+			&& ! $revisions_are_disabled
 		) {
 			return;
 		}
@@ -72,7 +124,15 @@ class PreviewMonitor extends Monitor {
 		$is_revision = $post->post_type === 'revision';
 		$is_draft = $post->post_status === 'draft';
 
-		if ( !$is_draft && !$is_revision && !$is_new_post_draft ) {
+		$is_gatsby_content_sync_preview = self::is_gatsby_content_sync_preview();
+
+
+		if (
+			! $is_draft
+			&& ! $is_revision
+			&& ! $is_new_post_draft
+			&& ! $is_gatsby_content_sync_preview
+		) {
 			return;
 		}
 
@@ -90,14 +150,15 @@ class PreviewMonitor extends Monitor {
 		$original_post = get_post( $post->post_parent );
 
 		$this_is_a_publish_not_a_preview = 
-			$original_post && $original_post->post_modified === $post->post_modified;
+			$original_post
+			&& $original_post->post_modified === $post->post_modified
+			&& ! $is_gatsby_content_sync_preview;
 
+			
 		if ( $this_is_a_publish_not_a_preview ) {
 			// we will handle this in ActionMonitor.php, not here.
 			return;
 		}
-
-		$parent_post_id = $original_post->ID ?? $post_ID;
 
 		$post_type_object = $original_post
 			? \get_post_type_object( $original_post->post_type )
@@ -108,37 +169,8 @@ class PreviewMonitor extends Monitor {
 			// we don't want to send a preview webhook for this post type.
 			return;
 		}
-
-		$last_sent_modified_time = Preview::get_last_sent_modified_time_by_post_id(
-			$parent_post_id
-		);
-
-		$last_sent_modified_time_unix = strtotime( $last_sent_modified_time );
-		$this_sent_modified_time_unix = strtotime( $post->post_modified );
-
-		$difference_between_last_modified_and_this_modified = 
-			$this_sent_modified_time_unix - $last_sent_modified_time_unix;
-
-		if (
-			$last_sent_modified_time &&
-			(
-				// if the last time was the same as this.
-				$last_sent_modified_time === $post->post_modified ||
-				// or the last time was within the last 5 seconds.
-				$difference_between_last_modified_and_this_modified < 5
-			)
-		) {
-			// we've already sent a webhook for this revision.
-			// return early to prevent extra builds.
-			return;
-		}
-
-		// otherwise store this modified time so we can compare it next time.
-		update_post_meta(
-			$parent_post_id,
-			self::$last_sent_modified_time_key,
-			$post->post_modified
-		);
+		
+		$parent_post_id = $original_post->ID ?? $post_ID;
 
 		$global_relay_id = Relay::toGlobalId(
 			'post',
@@ -210,21 +242,25 @@ class PreviewMonitor extends Monitor {
 			]
 		);
 
-		// this is used to optimistically load the preview iframe
-		// we also check if the frontend is responding to requests from the
-		// preview template JS.
-		$webhook_success = Preview::was_request_successful( $response );
-
-		update_option(
-			'_wp_gatsby_preview_webhook_is_online',
-			$webhook_success, // boolean.
-			true
-		);
-
-		if ( ! $webhook_success ) {
-			error_log(
-				'WPGatsby couldn\'t reach the Preview webhook set in plugin options.'
-			);
+		if ( \is_wp_error( $response ) ) {
+			error_log( "WPGatsby couldn\'t POST to the Preview webhook set in plugin options.\nWebhook returned error: {$response->get_error_message()}" );
 		}
+	}
+
+	/**
+	 * Get the Gatsby Preview instance refresh webhook
+	 */
+	static function get_gatsby_preview_webhook() {
+		$preview_webhook = Settings::get_setting( 'preview_api_webhook' );
+
+		if ( ! $preview_webhook || ! filter_var( $preview_webhook, FILTER_VALIDATE_URL ) ) {
+			return false;
+		}
+
+		if ( substr( $preview_webhook, -1 ) !== '/' ) {
+			$preview_webhook .= '/';
+		}
+
+		return $preview_webhook;
 	}
 }
