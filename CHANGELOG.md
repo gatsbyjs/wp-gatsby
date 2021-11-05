@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.0.2
+
+WPGraphQL made a breaking change in a minor release v1.6.7 which caused delta updates to stop working. Fixed via https://github.com/gatsbyjs/wp-gatsby/pull/201. Breaking change notice here https://github.com/wp-graphql/wp-graphql/blob/develop/readme.txt#L80-L109
+
 ## 2.0.1
 
 - gatsby-source-wordpress v5.14.2 and v6.1.0 both support WPGatsby v2.0.0+. This release re-published v2 as the latest WPGatsby version.
