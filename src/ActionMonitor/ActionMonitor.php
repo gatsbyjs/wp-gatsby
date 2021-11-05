@@ -147,7 +147,7 @@ class ActionMonitor {
 				'labels'                => $post_type_labels,
 				'description'           => 'Used to keep a log of actions in WordPress for cache invalidation in gatsby-source-wordpress.',
 				'public'                => false,
-				'publicly_queryable'    => false,
+				'publicly_queryable'    => true,
 				'show_ui'               => $this->wpgraphql_debug_mode,
 				'delete_with_user'      => false,
 				'show_in_rest'          => false,
