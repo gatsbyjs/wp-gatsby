@@ -364,8 +364,9 @@ class ActionMonitor {
 		 * be necessary. Override with caution.
 		 *
 		 * @param array $action_monitors
+		 * @param \WPGatsby\ActionMonitor\ActionMonitor $monitor The class instance, used to initialize the monitor.
 		 */
-		$this->action_monitors = apply_filters( 'gatsby_action_monitors', $action_monitors );
+		$this->action_monitors = apply_filters( 'gatsby_action_monitors', $action_monitors, $this );
 
 		do_action( 'gatsby_init_action_monitors', $this->action_monitors );
 
