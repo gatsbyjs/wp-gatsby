@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.1.0
+
+Updated how the `gatsby_action_monitors` filter works. Previously this filter didn't properly expose the ActionMonitor class making it impossible or very difficult to add your own action monitors. Thanks @justlevine! via PR #203.
+
 ## 2.0.2
 
 WPGraphQL made a breaking change in a minor release v1.6.7 which caused delta updates to stop working. Fixed via https://github.com/gatsbyjs/wp-gatsby/pull/201. Breaking change notice here https://github.com/wp-graphql/wp-graphql/blob/develop/readme.txt#L80-L109
