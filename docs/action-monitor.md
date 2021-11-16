@@ -191,82 +191,50 @@ add_filter( 'gatsby_pre_log_action_monitor_action', function( $null, $log_data )
 If you have a plugin that stores data in non-traditional ways, such as in a Custom Database Table,
 you may need to track custom actions to tell Gatsby that something has changed.
 
-You can do this by using an instance of the `Monitor` class, and the `log_action` method.
+You can do this by extending the `Monitor` class, and registering it with the `gatsby_action_monitors` filter. 
 
-Below are two example plugins showing this in action, where an action would be logged after.
-
-All of the fields passed to the `log_action` below are required:
-
-#### Functional
-
-```php
-add_action( 'your_custom_action', 'your_custom_action_callback' );
-
-function your_custom_action_callback( $your_custom_object ) {
-
-    $monitor = new \WPGatsby\ActionMonitor\Monitors\ActionMonitor();
-    $monitor->log_action([
-       'action_type' => 'CREATE',
-       'title' => $your_custom_object->title,
-       'graphql_single_name' => 'YourCustomType',
-       'graphql_plural_name' => 'YourCustomTypes',
-       'status' => 'publish',
-       'relay_id' => base64_encode( 'YourCustomType:' . $your_custom_object->ID ),
-       'node_id' => $your_custom_object->ID,
-    ]);
-
-}
-```
-
-#### OOP
+**Note**: All of the fields passed to the `log_action` method below are required.
 
 ```php
 /**
- * Plugin Name: Your Custom Plugin
+ * Class - MyCustomActionMonitor
  */
+class MyCustomActionMonitor extends \WPGatsby\ActionMonitor\Monitors\Monitor {
 
-class YourCustomPlugin {
+	/**
+	 * Initialize the custom tracker.
+	 */
+	public function init() {
+		// Hook into the custom action you want to log.
+		add_action( 'my_custom_action', [ $this, 'custom_action_callback' ] );
+	}
 
-    /**
-     * @param \WPGatsby\ActionMonitor\Monitors\Monitor
-     */
-    protected $monitor;
+	/**
+	 * Callback for custom action.
+	 */
+	public function custom_action_callback( $your_custom_object ) {
 
-    /**
-     * Initialize the custom tracker
-     */
-    public function init() {
-
-        // Create a new instance of the monitor
-        $this->monitor = new \WPGatsby\ActionMonitor\Monitors\ActionMonitor();
-
-        // Hook into a custom action
-        add_action( 'your_custom_action', [ $this, 'custom_action_callback' ] );
-    }
-
-
-    // Callback for the custom action
-    public function custom_action_callback( $your_custom_object ) {
-
-        // Log an action to Action Monitor.
-        // This will create an entry in the
-        // action_monitor post_type and will notify Gatsby Source WordPress
-        // about the activity
-        $this->monitor->log_action([
-           'action_type' => 'CREATE',
-           'title' => $your_custom_object->title,
-           'graphql_single_name' => 'YourCustomType',
-           'graphql_plural_name' => 'YourCustomTypes',
-           'status' => 'publish',
-           'relay_id' => base64_encode( 'YourCustomType:' . $your_custom_object->ID ),
-           'node_id' => $your_custom_object->ID,
-        ]);
-    }
-
+		/**
+		 * Log an action to Action Monitor. 
+		 * 
+		 * This will create an entry in the `action_monitor` post type
+		 * and will notify Gatsby Source WordPress about the activity.
+		 */
+		$this->monitor->log_action( [
+			'action_type' => 'CREATE',
+			'title' => $your_custom_object->title,
+			'graphql_single_name' => 'MyCustomType',
+			'graphql_plural_name' => 'MyCustomTypes',
+			'status' => 'publish',
+			'relay_id' => base64_encode( 'MyCustomType:' . $your_custom_object->ID ),
+			'node_id' => $your_custom_object->ID,
+		] );
+	}
 }
 
-add_action( 'plugins_loaded', function() {
-  $custom_plugin = new YourCustomPlugin();
-  $custom_plugin->init();
-});
+add_filter( 'gatsby_action_monitors', function( array $monitors, \WPGatsby\ActionMonitor\ActionMonitor $action_monitor) {
+	$monitors['MyCustomActionMonitor'] = new MyCustomActionMonitor( $action_monitor );
+
+	return $monitors;
+}, 10, 2 );
 ```
