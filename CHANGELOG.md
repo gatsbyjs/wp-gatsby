@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.1.1
+
+Changing away from the default UTC+0 timezone in WP could cause problems with local development and syncing changed data from WP. This releas fixes that via PR #204.
+
 ## 2.1.0
 
 Updated how the `gatsby_action_monitors` filter works. Previously this filter didn't properly expose the ActionMonitor class making it impossible or very difficult to add your own action monitors. Thanks @justlevine! via PR #203.
