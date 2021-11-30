@@ -37,7 +37,13 @@ class AcfMonitor extends Monitor {
      * Handles content updates of ACF option pages.
      */
     public function after_acf_save_post() {
-        $option_pages_slugs = array_keys( acf_get_options_pages() );
+        $option_pages = acf_get_options_pages();
+
+        if ( ! is_array( $option_pages ) ) {
+            return;
+        }
+
+        $option_pages_slugs = array_keys( $option_pages );
 
         /**
          * Filters the $option_pages_slugs array.
