@@ -53,7 +53,11 @@ class AcfMonitor extends Monitor {
 
         $screen = get_current_screen();
 
-        if( ! empty( $option_pages_slugs ) && is_array( $option_pages_slugs ) && Utils::str_in_substr_array( $screen->id, $option_pages_slugs ) ) {
+        if(
+			! empty( $option_pages_slugs ) 
+			&& is_array( $option_pages_slugs )
+			&& Utils::str_in_substr_array( $screen->id, $option_pages_slugs )
+		) {
             $this->trigger_non_node_root_field_update();
         }
     }
