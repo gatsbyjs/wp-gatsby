@@ -37,7 +37,7 @@ class AcfMonitor extends Monitor {
      * Handles content updates of ACF option pages.
      */
     public function after_acf_save_post() {
-        $option_pages_slugs = array_keys(acf_get_options_pages());
+        $option_pages_slugs = array_keys( acf_get_options_pages() );
 
         /**
          * Filters the $option_pages_slugs array.
@@ -46,11 +46,14 @@ class AcfMonitor extends Monitor {
          *
          * @param	array $option_pages_slugs Array with slugs of all registered ACF option pages.
          */
-        $option_pages_slugs = apply_filters('gatsby_action_monitor_tracked_acf_options_pages', $option_pages_slugs);
+        $option_pages_slugs = apply_filters(
+			'gatsby_action_monitor_tracked_acf_options_pages',
+			$option_pages_slugs
+		);
 
         $screen = get_current_screen();
 
-        if(!empty($option_pages_slugs) && is_array($option_pages_slugs) && Utils::str_in_substr_array($screen->id, $option_pages_slugs)) {
+        if( ! empty( $option_pages_slugs ) && is_array( $option_pages_slugs ) && Utils::str_in_substr_array( $screen->id, $option_pages_slugs ) ) {
             $this->trigger_non_node_root_field_update();
         }
     }
