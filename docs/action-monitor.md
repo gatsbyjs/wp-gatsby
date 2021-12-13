@@ -220,7 +220,7 @@ class MyCustomActionMonitor extends \WPGatsby\ActionMonitor\Monitors\Monitor {
 		 * This will create an entry in the `action_monitor` post type
 		 * and will notify Gatsby Source WordPress about the activity.
 		 */
-		$this->monitor->log_action( [
+		$this->log_action( [
 			'action_type' => 'CREATE',
 			'title' => $your_custom_object->title,
 			'graphql_single_name' => 'MyCustomType',
