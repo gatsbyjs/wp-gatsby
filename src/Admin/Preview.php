@@ -20,9 +20,10 @@ class Preview {
 		// get the Gatsby Cloud loader url w/ site id
 		$gatsby_content_sync_url = Settings::get_setting( 'gatsby_content_sync_url' );
 					
-		// create the dynamic path the loader will need
+		// Create the dynamic path Content Sync will need
 		$manifest_id = self::get_preview_manifest_id_for_post( $post );
-		$path = "/gatsby-source-wordpress/$manifest_id";
+		$content_id = $post->ID;
+		$path = "/gatsby-source-wordpress/$manifest_id/$content_id";
 
 		$url = preg_replace(
 			// remove any double forward slashes from the path
