@@ -1,8 +1,12 @@
 # Change Log
 
+## Upcoming
+
+Added support for Gatsby Cloud Preview's new feature "eager redirects" which reduces the amount of time spent watching the preview loading screen by redirecting to the preview frontend as soon as possible and then letting the user wait for the preview to finish building there.
+
 ## 2.1.1
 
-Changing away from the default UTC+0 timezone in WP could cause problems with local development and syncing changed data from WP. This releas fixes that via PR #204.
+Changing away from the default UTC+0 timezone in WP could cause problems with local development and syncing changed data from WP. This release fixes that via PR #204.
 
 ## 2.1.0
 
