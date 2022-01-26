@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Gatsby
  * Description: Optimize your WordPress site to be a source for Gatsby sites.
- * Version: 2.1.1
+ * Version: 2.2.0
  * Author: GatsbyJS, Jason Bahl, Tyler Barnes
  * Author URI: https://gatsbyjs.org
  * Text Domain: wp-gatsby
@@ -103,7 +103,7 @@ final class WPGatsby
     {
         // Plugin version.
         if (! defined('WPGATSBY_VERSION') ) {
-            define('WPGATSBY_VERSION', '2.1.1');
+            define('WPGATSBY_VERSION', '2.2.0');
         }
 
         // Plugin Folder Path.

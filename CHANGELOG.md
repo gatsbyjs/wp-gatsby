@@ -1,6 +1,6 @@
 # Change Log
 
-## Upcoming
+## 2.2.0
 
 Added support for Gatsby Cloud Preview's new feature "eager redirects" which reduces the amount of time spent watching the preview loading screen by redirecting to the preview frontend as soon as possible and then letting the user wait for the preview to finish building there.
 
