@@ -2,7 +2,7 @@
 Contributors: gatsbyinc, jasonbahl, tylerbarnes1
 Tags: Gatsby, GatsbyJS, JavaScript, JAMStack, Static Site generator, GraphQL, Headless WordPress, Decoupled WordPress
 Requires at least: 5.4.2
-Tested up to: 5.6
+Tested up to: 5.9
 Requires PHP: 7.3
 Stable tag: 2.2.0
 License: GPLv3
