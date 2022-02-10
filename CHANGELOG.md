@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.3.0
+
+Added action monitor tracking for ACF options pages via PR #206. Thanks @henrikwirth!
+
 ## 2.2.1
 
 Bumped the "tested to" version to latest WP version.
