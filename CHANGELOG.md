@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.3.1
+
+Fixes bug in last version where not having the right ACF version installed would throw an error about `Call to undefined function "acf_get_options_pages"`
+
 ## 2.3.0
 
 Added action monitor tracking for ACF options pages via PR #206. Thanks @henrikwirth!
