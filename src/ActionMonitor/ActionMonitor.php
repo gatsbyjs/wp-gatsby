@@ -79,6 +79,43 @@ class ActionMonitor {
 		// Trigger webhook dispatch
 		add_action( 'shutdown', [ $this, 'trigger_dispatch' ] );
 
+		// allow any role to use Gatsby Preview
+		add_action( 'admin_init', [ $this, 'action_monitor_add_role_caps' ], 999 );
+	}
+
+	/**
+	 * For Action Monitor, all of these roles need to be able to view and edit private action monitor posts so that Preview works for all roles.
+	 */
+	public function action_monitor_add_role_caps() {
+		$doing_graphql_request
+					= defined( 'GRAPHQL_REQUEST' ) && true === GRAPHQL_REQUEST;
+
+		if ( $doing_graphql_request ) {
+			// we only need to add roles one time. checking capabilities repeatedly isn't needed, just when the user is in the admin area is fine.
+			return;
+		}
+
+		$roles = apply_filters(
+			'gatsby_private_action_monitor_roles',
+			[
+				'editor',
+				'administrator',
+				'contributor',
+				'author'
+			]
+		);
+
+		foreach( $roles as $the_role ) {
+			$role = get_role($the_role);
+
+			if ( ! $role->has_cap( 'read_private_action_monitor_posts' ) ) {
+				$role->add_cap( 'read_private_action_monitor_posts' );
+			}
+			
+			if ( ! $role->has_cap( 'edit_others_action_monitor_posts' ) ) {
+				$role->add_cap( 'edit_others_action_monitor_posts' );
+			}
+		}
 	}
 
 	/**
@@ -157,8 +194,20 @@ class ActionMonitor {
 				'show_in_menu'          => $this->wpgraphql_debug_mode,
 				'show_in_nav_menus'     => false,
 				'exclude_from_search'   => true,
-				'capability_type'       => 'post',
-				'map_meta_cap'          => true,
+				'capabilities'          => [
+					// these custom capabilities allow any role to use Preview
+					'read_private_posts' => 'read_private_action_monitor_posts',
+					'edit_others_posts'  => 'edit_others_action_monitor_posts', 
+					// these are regular role capabilities for a CPT
+					'create_post'        => 'create_post', 
+					'edit_post'          => 'edit_post', 
+					'read_post'          => 'read_post', 
+					'delete_post'        => 'delete_post', 
+					'edit_posts'         => 'edit_posts', 
+					'publish_posts'      => 'publish_posts',       
+					'create_posts'       => 'create_posts'
+				],
+				'map_meta_cap'          => false,
 				'hierarchical'          => false,
 				'rewrite'               => [
 					'slug'       => 'action_monitor',

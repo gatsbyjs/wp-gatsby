@@ -1,5 +1,9 @@
 # Change Log
 
+## Upcoming
+
+Previously Author and Contributor roles couldn't properly use Gatsby Cloud Preview. This release introduces new custom role capabilities which allow all authenticated users that can use WP preview to use Gatsby Preview.
+
 ## 2.3.1
 
 Fixes bug in last version where not having the right ACF version installed would throw an error about `Call to undefined function "acf_get_options_pages"`
