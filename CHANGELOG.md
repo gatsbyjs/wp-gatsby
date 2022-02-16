@@ -1,6 +1,6 @@
 # Change Log
 
-## Upcoming
+## 2.3.2
 
 Previously Author and Contributor roles couldn't properly use Gatsby Cloud Preview. This release introduces new custom role capabilities which allow all authenticated users that can use WP preview to use Gatsby Preview.
 
