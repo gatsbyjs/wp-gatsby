@@ -80,7 +80,7 @@ class ActionMonitor {
 		add_action( 'shutdown', [ $this, 'trigger_dispatch' ] );
 
 		// allow any role to use Gatsby Preview
-		add_action( 'admin_init', [$this, 'action_monitor_add_role_caps'], 999 );
+		add_action( 'admin_init', [ $this, 'action_monitor_add_role_caps' ], 999 );
 	}
 
 	/**
