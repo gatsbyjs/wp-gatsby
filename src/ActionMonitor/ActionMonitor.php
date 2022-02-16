@@ -95,10 +95,19 @@ class ActionMonitor {
 			return;
 		}
 
-		$roles = array( 'editor', 'administrator', 'contributor', 'author' );
+		$roles = apply_filters(
+			'gatsby_private_action_monitor_roles',
+			[
+				'editor',
+				'administrator',
+				'contributor',
+				'author'
+			]
+		);
 
 		foreach( $roles as $the_role ) {
 			$role = get_role($the_role);
+
 			if ( ! $role->has_cap( 'read_private_action_monitor_posts' ) ) {
 				$role->add_cap( 'read_private_action_monitor_posts' );
 			}
