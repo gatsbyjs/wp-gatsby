@@ -119,19 +119,38 @@ class ActionMonitor {
 	}
 
 	/**
-	 * Get the post types that are tracked by WPGatsby
+	 * Get the post types that are tracked by WPGatsby.
 	 *
 	 * @return array|mixed|void
 	 */
 	public function get_tracked_post_types() {
+		$public_post_types = get_post_types(
+			[
+				'show_in_graphql' => true,
+				'public'          => true,
+			]
+		);
+
+		$publicly_queryable_post_types = get_post_types(
+			[
+				'show_in_graphql'    => true,
+				'public'             => false,
+				'publicly_queryable' => true,
+			]
+		);
+
+		$excludes = [
+			'action_monitor' => 'action_monitor',
+		];
+
+		$tracked_post_types = array_diff(
+			array_merge( $public_post_types, $publicly_queryable_post_types ),
+			$excludes
+		);
+
 		$tracked_post_types = apply_filters(
 			'gatsby_action_monitor_tracked_post_types',
-			get_post_types(
-				[
-					'show_in_graphql' => true,
-					'public'          => true,
-				]
-			)
+			$tracked_post_types
 		);
 
 		return ! empty( $tracked_post_types ) && is_array( $tracked_post_types ) ? $tracked_post_types : [];
