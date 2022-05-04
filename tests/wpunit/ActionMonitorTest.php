@@ -844,7 +844,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 	}
 
 	// @todo: review the ones below this with Tyler
-	public function testCreatePostOfACustomPostTypeCreatesActionMonitorAction() {
+	public function testCreatePostOfAPublicCustomPostTypeCreatesActionMonitorAction() {
 
 		// register a post type
 		register_post_type( 'wp_gatsby_test', [
@@ -933,6 +933,74 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 		// Creating a post for a custom post type not shown in GraphQL should trigger 0 actions:
 		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+	}
+
+	public function testCreatePostOfAPubliclyQueryableCustomPostTypeCreatesActionMonitorAction() {
+
+		// Register a publicly queryable post type.
+		register_post_type( 'wp_gatsby_test', [
+			'public'              => false,
+			'publicly_queryable'  => true,
+			'show_in_graphql'     => true,
+			'graphql_single_name' => 'wpGatsbyPubliclyQ',
+			'graphql_plural_name' => 'wpGatsbyPubliclyQs',
+		] );
+
+		codecept_debug(
+			get_post_types(
+				[
+					'public'             => false,
+					'show_in_graphql'    => true,					
+					'publicly_queryable' => true,
+				]
+			)
+		);
+
+		$this->clear_action_monitor();
+
+		$query  = $this->actionMonitorQuery();
+		$actual = $this->graphql( compact( 'query' ) );
+		$this->assertSame( 0, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+
+		// Create a post
+		$post_id = $this->factory()->post->create( [
+			'post_type'   => 'wp_gatsby_test',
+			'post_status' => 'publish',
+			'post_title'  => 'Title',
+			'post_author' => $this->admin,
+			'tags_input'  => [ $this->tag ]
+		] );
+
+		codecept_debug( get_post( $post_id ) );
+
+		// Query for action monitor actions
+		$query = $this->actionMonitorQuery();
+
+		// Execute the query
+		$actual = $this->graphql( compact( 'query' ) );
+
+		$this->assertIsValidQueryResponse( $actual );
+
+		// Creating a post assigned to an author should trigger 2 actions:
+		// - 1 for the post
+		// - 1 for the author
+		$this->assertSame( 2, count( $actual['data']['actionMonitorActions']['nodes'] ) );
+
+		// Assert the action monitor has the actions for the post being created
+		$this->assertQuerySuccessful( $actual, [
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'CREATE',
+				'referencedNodeID'           => (string) $post_id,
+				'referencedNodeSingularName' => 'wpGatsbyPubliclyQ',
+			] ),
+			$this->expectedNode( 'actionMonitorActions.nodes', [
+				'actionType'                 => 'UPDATE',
+				'referencedNodeID'           => (string) $this->admin,
+				'referencedNodeSingularName' => 'user',
+			] ),
+		] );
 
 	}
 
