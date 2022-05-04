@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.3.3
+
+Fixes an issue where publicly_queryable post types that were not public weren't being tracked in action monitor even though those post types were available in Gatsby. Thanks @nickcernis! (via PR #217)
+
 ## 2.3.2
 
 Previously Author and Contributor roles couldn't properly use Gatsby Cloud Preview. This release introduces new custom role capabilities which allow all authenticated users that can use WP preview to use Gatsby Preview.
