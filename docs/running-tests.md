@@ -14,7 +14,7 @@ Below are instructions for running tests with your own local environment. Runnin
 
 If you follow the instructions below, you should be able to run tests locally with your own local environment. 
 
-### Prerequisties
+### Prerequisites
 You must have the following available locally: 
 - **PHP**
 - **MySQL** (or equivalent such as MariaDB)
@@ -57,7 +57,7 @@ cp codeception.dist.yml codeception.yml
 Now you are ready to run the tests.
 
 ### Running the tests
-Now your're ready to rum the tests. There is a small issue you may have with our testing environment. The WordPress installation we created doesn't support **end-to-end (*e2e*)** testing, however this won't be a problem. **WPGraphQL** is an API and most of the time you can get away with just ensuring that your query works, and **WPGraphQL** provides a few functions that will allow us to do just that.
+Now you're ready to run the tests. There is a small issue you may have with our testing environment. The WordPress installation we created doesn't support **end-to-end (*e2e*)** testing, however, this won't be a problem. **WPGraphQL** is an API and most of the time you can get away with just ensuring that your query works, and **WPGraphQL** provides a few functions that will allow us to do just that.
 
 Let's get started by running all the unit tests. Back in your terminal run the following:
 ```
@@ -83,7 +83,7 @@ vendor/bin/codecept run tests/wpunit/ActionMonitorTest.php:testActionMonitorQuer
 
 The automated tests that run in the Github workflows use Docker. This ensures the environment is always what we expect. No risk of inconsistencies with PHP versions, MySQL versions, etc. 
 
-The trade off (at least as of right now) is that you must run the entire test suite instead of having the ability to run individual tests. And you must wait for the Docker environment to boot up. Overall, this is slower and less flexible than running tests with your own local environment, but it's more consistent. 
+The trade off (at least as of right now) is that you must run the entire test suite instead of having the ability to run individual tests. And you must wait for the Docker environment to boot up. Overall, this is slower and less flexible than running tests in your own local environment, but it's more consistent. 
 
 To run tests with Docker, run the following commands:
 
