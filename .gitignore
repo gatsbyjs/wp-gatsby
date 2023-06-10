@@ -24,7 +24,6 @@ coverage/
 schema.graphql
 phpunit.xml
 docker-output
-composer.lock
 c3.php
 .log/
 php-coveralls.phar
