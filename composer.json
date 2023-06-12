@@ -30,7 +30,8 @@
     },
     "allow-plugins": {
       "composer/installers": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "phpstan/extension-installer": true
     },
     "optimize-autoloader": true,
     "process-timeout": 0
@@ -51,6 +52,9 @@
     "codeception/module-cli": "^1.0",
     "codeception/util-universalframework": "^1.0",
     "codeception/module-rest": "^1.2",
+		"phpstan/phpstan": "^1.2",
+		"phpstan/extension-installer": "^1.1",
+		"szepeviktor/phpstan-wordpress": "^1.0",
     "axepress/wp-graphql-stubs": "^1.12",
     "axepress/wp-graphql-cs": "^1.0.0-beta",
     "wp-graphql/wp-graphql-testcase": "^2.3.0",
@@ -78,7 +82,10 @@
     ],
     "fix-cs": [
       "php ./vendor/bin/phpcbf src"
-    ]
+    ],
+		"phpstan": [
+			"vendor/bin/phpstan analyze --ansi --memory-limit=1G"
+		]
   },
   "support": {
     "issues": "https://github.com/gatsbyjs/wp-gatsby/issues",

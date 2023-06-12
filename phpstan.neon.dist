@@ -1,0 +1,20 @@
+parameters:
+		level: 0
+		inferPrivatePropertyTypeFromConstructor: true
+		checkMissingIterableValueType: false
+		featureToggles:
+			disableRuntimeReflectionProvider: true
+		stubFiles:
+			# Simulate added properties
+		bootstrapFiles:
+			# - phpstan/constants.php
+		paths:
+			- wp-gatsby.php
+			- access-functions.php
+			- src/
+		excludePaths:
+			analyse:
+				- vendor-prefixed
+				- lib
+		scanFiles:
+			- vendor/axepress/wp-graphql-stubs/wp-graphql-stubs.php
