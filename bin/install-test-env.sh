@@ -147,10 +147,10 @@ configure_wordpress() {
 }
 
 setup_wpgraphql() {
-	if [ ! -d $WP_CORE_DIR/wp-content/plugins/wp-graphql ]; then
-		echo "Cloning WPGraphQL"
-		wp plugin install https://github.com/wp-graphql/wp-graphql/releases/download/${WPGRAPHQL_VERSION}/wp-graphql.zip
-	fi
+	cd $WP_CORE_DIR
+
+	# Install WPGraphQL and Activate
+	wp plugin install wp-graphql
 	echo "Activating WPGraphQL"
 	wp plugin activate wp-graphql
 
