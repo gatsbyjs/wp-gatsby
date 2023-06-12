@@ -36,7 +36,7 @@
     "process-timeout": 0
   },
   "require": {
-    "php": "^7.3||^8.0",
+    "php": ">=7.3",
     "firebase/php-jwt": "^5.2",
     "ircmaxell/random-lib": "^1.2",
     "composer/semver": "^1.5"
