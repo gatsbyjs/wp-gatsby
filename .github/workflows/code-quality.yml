@@ -45,7 +45,7 @@ jobs:
       - name: Setup WordPress
         run: |
           cp .env.dist .env
-          composer run install-stan-env
+          composer run install-test-env
           cp -R . /tmp/wordpress/wp-content/plugins/wp-gatsby
 
       - name: Run PHPStan
