@@ -23,10 +23,10 @@ $gatsby_content_sync_url = Preview::get_gatsby_content_sync_url_for_post(
 
 	<script>
 		<?php
-			if ( $gatsby_content_sync_url ) {
-				// Redirecting via JS because the page headers have already been set by the time we get into this template so PHP wont redirect.
-				echo 'window.location.replace("'. $gatsby_content_sync_url .'");';
-			}
+		if ( $gatsby_content_sync_url ) {
+			// Redirecting via JS because the page headers have already been set by the time we get into this template so PHP wont redirect.
+			echo 'window.location.replace("' . $gatsby_content_sync_url . '");';
+		}
 		?>
 	</script>
 </head>

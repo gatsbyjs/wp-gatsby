@@ -8,7 +8,7 @@ use WPGatsby\Admin\Preview;
 abstract class Monitor {
 
 	/**
-	 * @var ActionMonitor
+	 * @var \WPGatsby\ActionMonitor\ActionMonitor
 	 */
 	protected $action_monitor;
 
@@ -25,7 +25,7 @@ abstract class Monitor {
 	/**
 	 * Monitor constructor.
 	 *
-	 * @param ActionMonitor $action_monitor
+	 * @param \WPGatsby\ActionMonitor\ActionMonitor $action_monitor
 	 */
 	public function __construct( ActionMonitor $action_monitor ) {
 		$this->action_monitor = $action_monitor;
@@ -175,7 +175,6 @@ abstract class Monitor {
 	 * $graphql_plural_name]
 	 *
 	 * @param array $args Array of arguments to configure the action to be inserted
-	 *
 	 */
 	public function log_action( array $args ) {
 
@@ -197,7 +196,7 @@ abstract class Monitor {
 		 *
 		 * @param null|bool $enable    Whether the action should be logged
 		 * @param array     $arguments The args to log
-		 * @param Monitor   $monitor   Instance of the Monitor
+		 * @param \WPGatsby\ActionMonitor\Monitors\Monitor $monitor Instance of the Monitor
 		 */
 		$pre_log_action = apply_filters( 'gatsby_pre_log_action_monitor_action', null, $args, $this );
 
@@ -256,7 +255,7 @@ abstract class Monitor {
 					'taxonomy' => 'gatsby_action_stream_type',
 					'field'    => 'name',
 					'terms'    => $stream_type,
-				]
+				],
 			],
 		] );
 
@@ -305,11 +304,11 @@ abstract class Monitor {
 					get_post( $args['node_id'] )
 				);
 
-				$manifest_ids = [$manifest_id];
+				$manifest_ids = [ $manifest_id ];
 
 				// if we have existing data, we want to merge our manifest id
 				// into any existing manifest ids
-				if ( $existing_preview_data && $existing_preview_data !== "" ) {
+				if ( $existing_preview_data && $existing_preview_data !== '' ) {
 					$existing_preview_data = json_decode( $existing_preview_data );
 
 					if ( $existing_preview_data->manifestIds ?? false ) {
@@ -323,9 +322,9 @@ abstract class Monitor {
 				}
 
 				// add manifest ids
-				$preview_data = json_decode( $args['preview_data'] );
+				$preview_data              = json_decode( $args['preview_data'] );
 				$preview_data->manifestIds = $manifest_ids;
-				$preview_data = json_encode( $preview_data );
+				$preview_data              = json_encode( $preview_data );
 				
 				\update_post_meta(
 					$action_monitor_post_id,
@@ -351,13 +350,12 @@ abstract class Monitor {
 			);
 
 			// preview actions should remain private
-			if ( !$is_preview_stream ) {
+			if ( ! $is_preview_stream ) {
 				\wp_update_post( [
 					'ID'          => $action_monitor_post_id,
-					'post_status' => 'publish'
+					'post_status' => 'publish',
 				] );
-			}
-
+			}       
 		}
 
 		// If $should_dispatch is not set to false, schedule a dispatch. Actions being logged that

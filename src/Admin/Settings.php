@@ -8,7 +8,7 @@ class Settings {
 
 	function __construct() {
 
-		$this->settings_api = new \WPGraphQL_Settings_API;
+		$this->settings_api = new \WPGraphQL_Settings_API();
 
 		add_action( 'init', [ $this, 'set_default_jwt_key' ] );
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
@@ -22,7 +22,7 @@ class Settings {
 	/**
 	 * If the settings haven't been saved yet, save the JWT once to prevent it from re-generating.
 	 */
-	public function set_default_jwt_key() {	
+	public function set_default_jwt_key() { 
 		// Get the JWT Secret
 		$default_secret = self::get_setting( 'preview_jwt_secret' );
 
@@ -148,7 +148,7 @@ class Settings {
 		echo '</div>';
 	}
 
-	static public function prefix_get_option( $option, $section, $default = '' ) {
+	public static function prefix_get_option( $option, $section, $default = '' ) {
 		$options = get_option( $section );
 
 		if ( isset( $options[ $option ] ) ) {
@@ -159,7 +159,7 @@ class Settings {
 	}
 
 	private static function generate_secret() {
-		$factory   = new \RandomLib\Factory;
+		$factory   = new \RandomLib\Factory();
 		$generator = $factory->getMediumStrengthGenerator();
 		$secret    = $generator->generateString( 50 );
 

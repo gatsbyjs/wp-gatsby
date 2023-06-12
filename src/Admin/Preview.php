@@ -10,7 +10,7 @@ class Preview {
 	function __construct() {
 		add_action(
 			'graphql_register_types',
-			function() {
+			function () {
 				$this->register_preview_status_fields_and_mutations();
 			}
 		);
@@ -22,8 +22,8 @@ class Preview {
 					
 		// Create the dynamic path Content Sync will need
 		$manifest_id = self::get_preview_manifest_id_for_post( $post );
-		$content_id = $post->ID;
-		$path = "/gatsby-source-wordpress/$manifest_id/$content_id";
+		$content_id  = $post->ID;
+		$path        = "/gatsby-source-wordpress/$manifest_id/$content_id";
 
 		$url = preg_replace(
 			// remove any double forward slashes from the path
@@ -36,8 +36,8 @@ class Preview {
 
 	public static function get_previewable_post_object_by_post_id( $post_id ) {
 		$revision = array_values(
-						wp_get_post_revisions( $post_id )
-					)[0]
+			wp_get_post_revisions( $post_id )
+		)[0]
 					// or if revisions are disabled, get the autosave
 					?? wp_get_post_autosave( $post_id, get_current_user_id() )
 						// otherwise we can't preview anything
@@ -52,15 +52,15 @@ class Preview {
 
 
 	public static function get_preview_manifest_id_for_post( $post ) {
-		$revision = self::get_previewable_post_object_by_post_id( $post->ID );
+		$revision          = self::get_previewable_post_object_by_post_id( $post->ID );
 		$revision_modified = $revision->post_modified ?? null;
 
 		$modified = 
-			$post->post_status === "draft"
+			$post->post_status === 'draft'
 				? $post->post_modified
 				: $revision_modified;
 
-		if ( ! $modified || $modified === "" ) {
+		if ( ! $modified || $modified === '' ) {
 			return null;
 		}
 
@@ -132,7 +132,7 @@ class Preview {
 					'success' => [
 						'type'        => 'Boolean',
 						'description' => __( 'Wether or not the revision mutation was successful', 'wp-gatsby' ),
-						'resolve'     => function( $payload, $args, $context, $info ) {
+						'resolve'     => function ( $payload, $args, $context, $info ) {
 							$success = $payload['success'] ?? null;
 
 							return [
@@ -141,7 +141,7 @@ class Preview {
 						},
 					],
 				],
-				'mutateAndGetPayload' => function( $input, $context, $info ) {
+				'mutateAndGetPayload' => function ( $input, $context, $info ) {
 					$parent_id = $input['parentDatabaseId'] ?? null;
 					
 					$post = get_post( $parent_id );
@@ -189,7 +189,7 @@ class Preview {
 								'taxonomy' => 'gatsby_action_stream_type',
 								'field'    => 'name',
 								'terms'    => 'PREVIEW',
-							]
+							],
 						],
 					] );
 
@@ -221,19 +221,19 @@ class Preview {
 			[
 				'description' => __( 'The different statuses a Gatsby Preview can be in for a single node.', 'wp-gatsby' ),
 				'values'      => [
-					'NO_NODE_FOUND'                             => [
+					'NO_NODE_FOUND'                        => [
 						'value' => 'NO_NODE_FOUND',
 					],
-					'PREVIEW_READY'                             => [
+					'PREVIEW_READY'                        => [
 						'value' => 'PREVIEW_READY',
 					],
-					'REMOTE_NODE_NOT_YET_UPDATED'               => [
+					'REMOTE_NODE_NOT_YET_UPDATED'          => [
 						'value' => 'REMOTE_NODE_NOT_YET_UPDATED',
 					],
-					'NO_PREVIEW_PATH_FOUND'                     => [
+					'NO_PREVIEW_PATH_FOUND'                => [
 						'value' => 'NO_PREVIEW_PATH_FOUND',
 					],
-					'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL'      => [
+					'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL' => [
 						'value' => 'RECEIVED_PREVIEW_DATA_FROM_WRONG_URL',
 					],
 					'PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED' => [
@@ -282,7 +282,7 @@ class Preview {
 						'description' => __( 'The post id for the previewed node.', 'wp-gatsby' ),
 					],
 				],
-				'resolve'     => function( $root, $args, $context, $info ) {
+				'resolve'     => function ( $root, $args, $context, $info ) {
 					$post_id = $args['nodeId'] ?? null;
 
 					// make sure post_id is a valid post
@@ -368,11 +368,11 @@ class Preview {
 								$server_side
 							);
 
-						$page_data_path = $found_preview_path_post_meta === "/" 
-							? "/index/"
+						$page_data_path = $found_preview_path_post_meta === '/' 
+							? '/index/'
 							: $found_preview_path_post_meta;
 		
-						$page_data_path_trimmed = trim( $page_data_path, "/" );
+						$page_data_path_trimmed = trim( $page_data_path, '/' );
 
 						$modified_deployed_url =
 							$gatbsy_preview_frontend_url .
@@ -388,17 +388,17 @@ class Preview {
 							$page_data->result->pageContext->__wpGatsbyNodeModified
 							?? null;
 
-						error_log(print_r('$modified_response', true)); 
-						error_log(print_r($modified_response, true)); 
-						error_log(print_r('$modified', true)); 
-						error_log(print_r($modified, true)); 
+						error_log( print_r( '$modified_response', true ) ); 
+						error_log( print_r( $modified_response, true ) ); 
+						error_log( print_r( '$modified', true ) ); 
+						error_log( print_r( $modified, true ) ); 
 
 						$preview_was_deployed =
 							$modified_response &&
 							strtotime( $modified_response ) >= strtotime( $modified );
 
-						error_log(print_r('$preview_was_deployed', true)); 
-						error_log(print_r($preview_was_deployed, true)); 
+						error_log( print_r( '$preview_was_deployed', true ) ); 
+						error_log( print_r( $preview_was_deployed, true ) ); 
 
 						if ( ! $preview_was_deployed ) {
 							// if preview was not yet deployed, send back PREVIEW_PAGE_UPDATED_BUT_NOT_YET_DEPLOYED.
@@ -477,7 +477,7 @@ class Preview {
 			[
 				'description' => __( 'Wether or not the Preview frontend URL is online.', 'wp-gatsby' ),
 				'type'        => 'Boolean',
-				'resolve'     => function( $root, $args, $context, $info ) {
+				'resolve'     => function ( $root, $args, $context, $info ) {
 					if ( ! is_user_logged_in() ) {
 						return false;
 					}

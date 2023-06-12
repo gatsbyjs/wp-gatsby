@@ -50,11 +50,9 @@
     "codeception/module-filesystem": "^1.0",
     "codeception/module-cli": "^1.0",
     "codeception/util-universalframework": "^1.0",
-    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1",
-    "wp-coding-standards/wpcs": "^2.3.0",
-    "phpcompatibility/phpcompatibility-wp": "^2.1.4",
-    "squizlabs/php_codesniffer": "^3.7.2",
     "codeception/module-rest": "^1.2",
+    "axepress/wp-graphql-stubs": "^1.12",
+    "axepress/wp-graphql-cs": "^1.0.0-beta",
     "wp-graphql/wp-graphql-testcase": "^2.3.0",
     "phpunit/phpunit": "^9.6.9"
   },

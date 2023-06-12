@@ -35,7 +35,7 @@ class ActionMonitor {
 	protected $wpgraphql_debug_mode = false;
 
 	/**
-	 * @var mixed|null|WP_Post The post object before update
+	 * @var mixed|null|\WP_Post The post object before update
 	 */
 	public $post_object_before_update = null;
 
@@ -101,12 +101,12 @@ class ActionMonitor {
 				'editor',
 				'administrator',
 				'contributor',
-				'author'
+				'author',
 			]
 		);
 
-		foreach( $roles as $the_role ) {
-			$role = get_role($the_role);
+		foreach ( $roles as $the_role ) {
+			$role = get_role( $the_role );
 
 			if ( ! $role->has_cap( 'read_private_action_monitor_posts' ) ) {
 				$role->add_cap( 'read_private_action_monitor_posts' );
@@ -223,8 +223,8 @@ class ActionMonitor {
 					'read_post'          => 'read_post', 
 					'delete_post'        => 'delete_post', 
 					'edit_posts'         => 'edit_posts', 
-					'publish_posts'      => 'publish_posts',       
-					'create_posts'       => 'create_posts'
+					'publish_posts'      => 'publish_posts',
+					'create_posts'       => 'create_posts',
 				],
 				'map_meta_cap'          => false,
 				'hierarchical'          => false,
@@ -299,26 +299,26 @@ class ActionMonitor {
 			'gatsby_action_type',
 			'action_monitor',
 			[
-				'label'               => __( 'Action Type', 'WPGatsby' ),
-				'public'              => false,
-				'show_ui'             => $this->wpgraphql_debug_mode,
-				'show_in_graphql'     => false,
-				'hierarchical'        => false,
-				'show_in_nav_menus'   => false,
-				'show_tagcloud'       => false,
-				'show_admin_column'   => true,
+				'label'             => __( 'Action Type', 'WPGatsby' ),
+				'public'            => false,
+				'show_ui'           => $this->wpgraphql_debug_mode,
+				'show_in_graphql'   => false,
+				'hierarchical'      => false,
+				'show_in_nav_menus' => false,
+				'show_tagcloud'     => false,
+				'show_admin_column' => true,
 			]
 		);
 
 		register_taxonomy( 'gatsby_action_stream_type', 'action_monitor', [
-			'label'               => __( 'Stream Type', 'WPGatsby' ),
-			'public'              => false,
-			'show_ui'             => $this->wpgraphql_debug_mode,
-			'show_in_graphql'     => false,
-			'hierarchical'        => false,
-			'show_in_nav_menus'   => false,
-			'show_tagcloud'       => false,
-			'show_admin_column'   => true,
+			'label'             => __( 'Stream Type', 'WPGatsby' ),
+			'public'            => false,
+			'show_ui'           => $this->wpgraphql_debug_mode,
+			'show_in_graphql'   => false,
+			'hierarchical'      => false,
+			'show_in_nav_menus' => false,
+			'show_tagcloud'     => false,
+			'show_admin_column' => true,
 		] );
 
 	}
@@ -419,7 +419,7 @@ class ActionMonitor {
 		foreach ( $class_names as $class_name ) {
 			$class = 'WPGatsby\ActionMonitor\Monitors\\' . $class_name;
 			if ( class_exists( $class ) ) {
-				$monitor = new $class( $this );
+				$monitor                        = new $class( $this );
 				$action_monitors[ $class_name ] = $monitor;
 			}
 		}
@@ -451,7 +451,7 @@ class ActionMonitor {
 					'The type of action (CREATE, UPDATE, DELETE)',
 					'WPGatsby'
 				),
-				'resolve'     => function( $post ) {
+				'resolve'     => function ( $post ) {
 
 					$terms = get_the_terms( $post->databaseId, 'gatsby_action_type' );
 
@@ -476,7 +476,7 @@ class ActionMonitor {
 					'The post status of the post that triggered this action',
 					'WPGatsby'
 				),
-				'resolve'     => function( $post ) {
+				'resolve'     => function ( $post ) {
 					$referenced_node_status = get_post_meta(
 						$post->ID,
 						'referenced_node_status',
@@ -497,7 +497,7 @@ class ActionMonitor {
 					'The preview data of the post that triggered this action.',
 					'WPGatsby'
 				),
-				'resolve'     => function( $post ) {
+				'resolve'     => function ( $post ) {
 					$referenced_node_preview_data = get_post_meta(
 						$post->ID,
 						'_gatsby_preview_data',
@@ -505,10 +505,10 @@ class ActionMonitor {
 					);
 
 					return $referenced_node_preview_data 
-							&& $referenced_node_preview_data !== "" 
+							&& $referenced_node_preview_data !== '' 
 								? json_decode( $referenced_node_preview_data )
 								: null;
-				}
+				},
 			]
 		);
 
@@ -517,43 +517,43 @@ class ActionMonitor {
 			[
 				'description' => __( 'Gatsby Preview webhook data.', 'WPGatsby' ),
 				'fields'      => [
-					'previewDatabaseId'  => [
-						'type' => 'Int',
+					'previewDatabaseId' => [
+						'type'        => 'Int',
 						'description' => __( 'The WordPress database ID of the preview. Could be a revision or draft ID.', 'WPGatsby' ),
 					],
-					'userDatabaseId'     => [
-						'type' => 'Int',
+					'userDatabaseId'    => [
+						'type'        => 'Int',
 						'description' => __( 'The database ID of the user who made the original preview.', 'WPGatsby' ),
 					],
-					'id'         => [
-						'type' => 'ID',
+					'id'                => [
+						'type'        => 'ID',
 						'description' => __( 'The Relay id of the previewed node.', 'WPGatsby' ),
 					],
-					'singleName' => [
-						'type' => 'String',
+					'singleName'        => [
+						'type'        => 'String',
 						'description' => __( 'The GraphQL single field name for the type of the preview.', 'WPGatsby' ),
 					],
-					'isDraft'    => [
-						'type' => 'Boolean',
+					'isDraft'           => [
+						'type'        => 'Boolean',
 						'description' => __( 'Wether or not the preview is a draft.', 'WPGatsby' ),
 					],
-					'remoteUrl'  => [
-						'type' => 'String',
+					'remoteUrl'         => [
+						'type'        => 'String',
 						'description' => __( 'The WP url at the time of the preview.', 'WPGatsby' ),
 					],
-					'modified'   => [
-						'type' => 'String',
+					'modified'          => [
+						'type'        => 'String',
 						'description' => __( 'The modified time of the previewed node.', 'WPGatsby' ),
 					],
-					'parentDatabaseId'   => [
-						'type' => 'Int',
+					'parentDatabaseId'  => [
+						'type'        => 'Int',
 						'description' => __( 'The WordPress database ID of the preview. If this is a draft it will potentially return 0, if it\'s a revision of a post, it will return the ID of the original post that this is a revision of.', 'WPGatsby' ),
 					],
-					'manifestIds' => [
-						'type' => [ 'list_of' => 'String' ],
+					'manifestIds'       => [
+						'type'        => [ 'list_of' => 'String' ],
 						'description' => __( 'A list of manifest ID\'s a preview action has seen during it\'s lifetime.', 'WPGatsby' ),
-					]
-				]
+					],
+				],
 			]
 		);
 
@@ -566,7 +566,7 @@ class ActionMonitor {
 					'The post ID of the post that triggered this action',
 					'WPGatsby'
 				),
-				'resolve'     => function( $post ) {
+				'resolve'     => function ( $post ) {
 
 					$terms = get_the_terms( $post->databaseId, 'gatsby_action_ref_node_dbid' );
 					if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
@@ -593,7 +593,7 @@ class ActionMonitor {
 					'The global relay ID of the post that triggered this action',
 					'WPGatsby'
 				),
-				'resolve'     => function( $post ) {
+				'resolve'     => function ( $post ) {
 
 					$terms = get_the_terms( $post->databaseId, 'gatsby_action_ref_node_id' );
 					if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
@@ -621,7 +621,7 @@ class ActionMonitor {
 					'The WPGraphQL single name of the referenced post',
 					'WPGatsby'
 				),
-				'resolve'     => function( $post ) {
+				'resolve'     => function ( $post ) {
 					$referenced_node_single_name = get_post_meta(
 						$post->ID,
 						'referenced_node_single_name',
@@ -642,7 +642,7 @@ class ActionMonitor {
 					'The WPGraphQL plural name of the referenced post',
 					'WPGatsby'
 				),
-				'resolve'     => function( $post ) {
+				'resolve'     => function ( $post ) {
 					$referenced_node_plural_name = get_post_meta(
 						$post->ID,
 						'referenced_node_plural_name',
@@ -675,13 +675,13 @@ class ActionMonitor {
 
 		add_filter(
 			'graphql_post_object_connection_query_args',
-			function( $args ) {
+			function ( $args ) {
 				$sinceTimestamp = $args['sinceTimestamp'] ?? null;
 
 				if ( $sinceTimestamp ) {
 					$args['date_query'] = [
 						[
-							'after'  =>  gmdate(
+							'after'  => gmdate(
 								'Y-m-d H:i:s',
 								$sinceTimestamp / 1000
 							),
@@ -696,15 +696,15 @@ class ActionMonitor {
 
 		add_filter(
 			'graphql_post_object_connection_query_args',
-			function( $args ) {
+			function ( $args ) {
 				$previewStream = $args['previewStream'] ?? false;
 
 				if ( $previewStream ) {
 					$args['tax_query'] = [
 						[
 							'taxonomy' => 'gatsby_action_stream_type',
-							'field' => 'slug',
-							'terms' => 'preview',
+							'field'    => 'slug',
+							'terms'    => 'preview',
 						],
 					];
 				}
@@ -765,14 +765,14 @@ class ActionMonitor {
 				// we got to this point from someone else pressing
 				// publish/update.
 				$graphql_endpoint = apply_filters( 'graphql_endpoint', 'graphql' );
-				$graphql_url = get_site_url() . '/' . ltrim( $graphql_endpoint, '/' );
+				$graphql_url      = get_site_url() . '/' . ltrim( $graphql_endpoint, '/' );
 				
 				$post_body = apply_filters(
 					'gatsby_trigger_preview_build_dispatch_post_body',
 					[
-						'token' => $token,
+						'token'          => $token,
 						'userDatabaseId' => get_current_user_id(),
-						'remoteUrl' => $graphql_url
+						'remoteUrl'      => $graphql_url,
 					]
 				);
 

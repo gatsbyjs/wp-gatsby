@@ -1467,7 +1467,7 @@ class ActionMonitorTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 		$user_id = $this->factory()->user->create([
 			'role' => 'editor'
-		]   );
+		]);
 		$this->factory()->post->create( [
 			'post_type'   => 'post',
 			'post_status' => 'publish',

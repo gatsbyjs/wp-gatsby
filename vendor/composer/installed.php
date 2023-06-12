@@ -3,7 +3,7 @@
         'name' => 'gatsbyjs/wp-gatsby',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '1d21ceafd472eb5ab2db6b83aeee8e95b61bba4f',
+        'reference' => '4dd774a2c6991b5030ceb52cc1077e095b4e32a9',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -31,7 +31,7 @@
         'gatsbyjs/wp-gatsby' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '1d21ceafd472eb5ab2db6b83aeee8e95b61bba4f',
+            'reference' => '4dd774a2c6991b5030ceb52cc1077e095b4e32a9',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

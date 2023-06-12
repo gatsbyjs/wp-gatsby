@@ -14,8 +14,8 @@ class ParseAuthToken {
 		$jwt = $_SERVER['HTTP_WPGATSBYPREVIEW'] ?? null;
 		
 		if ( $jwt ) {
-			$secret  = Settings::get_setting( 'preview_jwt_secret' );
-			$decoded = JWT::decode( $jwt, $secret, [ 'HS256' ] );
+			$secret          = Settings::get_setting( 'preview_jwt_secret' );
+			$decoded         = JWT::decode( $jwt, $secret, [ 'HS256' ] );
 			$decoded_user_id = $decoded->data->user_id ?? null;
 
 			if ( ! $decoded || ! $decoded_user_id ) {

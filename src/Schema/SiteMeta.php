@@ -14,7 +14,7 @@ class SiteMeta {
 	function __construct() {
 		add_action(
 			'graphql_register_types',
-			function() {
+			function () {
 				$this->register();
 			}
 		);
@@ -81,7 +81,7 @@ class SiteMeta {
 						'description' => __( 'The semver version range of WPGatsby that the requester wants to check compatibility with', 'wp-gatsby' ),
 					],
 				],
-				'resolve'     => function( $root, $args, $context, $info ) {
+				'resolve'     => function ( $root, $args, $context, $info ) {
 
 					$wpgql_version_range    = $args['wpGQLVersionRange'] ?? null;
 					$wpgatsby_version_range = $args['wpGatsbyVersionRange'] ?? null;
@@ -159,7 +159,7 @@ class SiteMeta {
 			[
 				'type'        => 'Boolean',
 				'description' => __( 'Confirms this is a WP Gatsby site', 'wp-gatsby' ),
-				'resolve'     => function() {
+				'resolve'     => function () {
 					return true;
 				},
 			]
@@ -171,7 +171,7 @@ class SiteMeta {
 			[
 				'type'        => 'String',
 				'description' => __( 'Returns an MD5 hash of the schema, useful in determining if the schema has changed.', 'wp-gatsby' ),
-				'resolve'     => function() {
+				'resolve'     => function () {
 					$graphql     = \graphql(
 						[
 							'query' => '{
@@ -229,7 +229,7 @@ class SiteMeta {
 			[
 				'type'        => 'WPGatsby',
 				'description' => __( 'Information needed by gatsby-source-wordpress.', 'wp-gatsby' ),
-				'resolve'     => function( $root, $args, $context, $info ) {
+				'resolve'     => function ( $root, $args, $context, $info ) {
 					return [
 						'arePrettyPermalinksEnabled' =>
 							! ! get_option( 'permalink_structure' ),

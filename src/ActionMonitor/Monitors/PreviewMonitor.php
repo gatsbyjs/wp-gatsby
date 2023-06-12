@@ -13,7 +13,7 @@ class PreviewMonitor extends Monitor {
 		if ( $enable_gatsby_preview ) {
 			add_filter( 'template_include', [ $this, 'setup_preview_template' ], 1, 99 );
 
-			add_filter( 'preview_post_link', function( $link, $post ) {
+			add_filter( 'preview_post_link', function ( $link, $post ) {
 				$doing_graphql_request
 					= defined( 'GRAPHQL_REQUEST' ) && true === GRAPHQL_REQUEST;
 
@@ -108,7 +108,7 @@ class PreviewMonitor extends Monitor {
 			return;
 		}
 
-		if ( $post->post_status === 'auto-draft'  ) {
+		if ( $post->post_status === 'auto-draft' ) {
 			return;
 		}
 
@@ -122,7 +122,7 @@ class PreviewMonitor extends Monitor {
 			$post->post_date_gmt === '0000-00-00 00:00:00';
 
 		$is_revision = $post->post_type === 'revision';
-		$is_draft = $post->post_status === 'draft';
+		$is_draft    = $post->post_status === 'draft';
 
 		$is_gatsby_content_sync_preview = self::is_gatsby_content_sync_preview();
 
@@ -211,7 +211,7 @@ class PreviewMonitor extends Monitor {
 		$post_body = array_merge(
 			$preview_data,
 			[
-				'token' => $token
+				'token' => $token,
 			]
 		);
 

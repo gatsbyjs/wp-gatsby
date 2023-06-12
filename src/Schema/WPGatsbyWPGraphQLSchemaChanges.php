@@ -9,7 +9,7 @@ class WPGatsbyWPGraphQLSchemaChanges {
 	function __construct() {
 		add_action(
 			'graphql_register_types',
-			function() {
+			function () {
 				$this->register();
 			}
 		);
@@ -22,7 +22,7 @@ class WPGatsbyWPGraphQLSchemaChanges {
 			[
 				'type'        => 'String',
 				'description' => __( 'The url path of the first page of the archive page for this content type.', 'wp-gatsby' ),
-				'resolve'     => function( $source, $args, $context, $info ) {
+				'resolve'     => function ( $source, $args, $context, $info ) {
 					$archive_link = get_post_type_archive_link( $source->name );
 
 					if ( empty( $archive_link ) ) {
@@ -48,7 +48,7 @@ class WPGatsbyWPGraphQLSchemaChanges {
 			[
 				'type'        => 'String',
 				'description' => __( 'The url path of the first page of the archive page for this content type.', 'wp-gatsby' ),
-				'resolve'     => function( $source, $args, $context, $info ) {
+				'resolve'     => function ( $source, $args, $context, $info ) {
 					$tax = get_taxonomy( $source->name );
 
 					if ( ! $tax->rewrite['slug'] ?? false ) {

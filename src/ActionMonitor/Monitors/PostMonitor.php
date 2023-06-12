@@ -25,8 +25,8 @@ class PostMonitor extends Monitor {
 	 * Log change to authors
 	 *
 	 * @param int     $post_id      Post ID.
-	 * @param WP_Post $post_after   Post object following the update.
-	 * @param WP_Post $post_before  Post object before the update.
+	 * @param \WP_Post $post_after Post object following the update.
+	 * @param \WP_Post $post_before Post object before the update.
 	 */
 	public function callback_post_updated( int $post_id, WP_Post $post_after, WP_Post $post_before ) {
 
@@ -50,7 +50,7 @@ class PostMonitor extends Monitor {
 	 *
 	 * @param mixed    $new_status  New status.
 	 * @param mixed    $old_status  Old status.
-	 * @param WP_Post  $post Post object.
+	 * @param \WP_Post $post Post object.
 	 */
 	public function callback_transition_post_status( $new_status, $old_status, WP_Post $post ) {
 
@@ -282,7 +282,7 @@ class PostMonitor extends Monitor {
 	 * Log a user update when a post is created or deleted, telling Gatsby to
 	 * invalidate user caches
 	 *
-	 * @param WP_Post $post The post data of the Post being updated
+	 * @param \WP_Post $post The post data of the Post being updated
 	 *
 	 * @todo:
 	 *      This should be able to be removed at some point as Gatsby

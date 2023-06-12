@@ -10,7 +10,7 @@ class AcfMonitor extends Monitor {
 		// ACF Actions
 		add_action(
 			'acf/update_field_group',
-			function() {
+			function () {
 				$this->trigger_schema_diff(
 					[
 						'title' => __( 'Update ACF Field Group', 'WPGatsby' ),
@@ -21,7 +21,7 @@ class AcfMonitor extends Monitor {
 
 		add_action(
 			'acf/delete_field_group',
-			function() {
+			function () {
 				$this->trigger_schema_diff(
 					[
 						'title' => __( 'Delete ACF Field Group', 'WPGatsby' ),
@@ -30,45 +30,45 @@ class AcfMonitor extends Monitor {
 			}
 		);
 
-        add_action('acf/save_post', [$this, 'after_acf_save_post'], 20);
+		add_action( 'acf/save_post', [ $this, 'after_acf_save_post' ], 20 );
 	}
 
-    /**
-     * Handles content updates of ACF option pages.
-     */
-    public function after_acf_save_post() {
+	/**
+	 * Handles content updates of ACF option pages.
+	 */
+	public function after_acf_save_post() {
 		if ( ! function_exists( 'acf_get_options_pages' ) ) {
 			return;
 		}
 
-        $option_pages = acf_get_options_pages();
+		$option_pages = acf_get_options_pages();
 
-        if ( ! is_array( $option_pages ) ) {
+		if ( ! is_array( $option_pages ) ) {
 			return;
-        }
+		}
 
-        $option_pages_slugs = array_keys( $option_pages );
+		$option_pages_slugs = array_keys( $option_pages );
 
-        /**
-         * Filters the $option_pages_slugs array.
-         *
-         * @since 2.1.2
-         *
-         * @param	array $option_pages_slugs Array with slugs of all registered ACF option pages.
-         */
-        $option_pages_slugs = apply_filters(
+		/**
+		 * Filters the $option_pages_slugs array.
+		 *
+		 * @since 2.1.2
+		 *
+		 * @param   array $option_pages_slugs Array with slugs of all registered ACF option pages.
+		 */
+		$option_pages_slugs = apply_filters(
 			'gatsby_action_monitor_tracked_acf_options_pages',
 			$option_pages_slugs
 		);
 
-        $screen = get_current_screen();
+		$screen = get_current_screen();
 
-        if(
+		if (
 			! empty( $option_pages_slugs ) 
 			&& is_array( $option_pages_slugs )
 			&& Utils::str_in_substr_array( $screen->id, $option_pages_slugs )
 		) {
-            $this->trigger_non_node_root_field_update();
-        }
-    }
+			$this->trigger_non_node_root_field_update();
+		}
+	}
 }
