@@ -14,8 +14,8 @@
  */
 
 // Exit if accessed directly.
-if (! defined('ABSPATH') ) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 /**
@@ -23,230 +23,221 @@ if (! defined('ABSPATH') ) {
  *
  * This file should only exist locally or when CI bootstraps the environment for testing
  */
-if (file_exists(__DIR__ . '/c3.php') ) {
-    include_once __DIR__ . '/c3.php';
+if ( file_exists( __DIR__ . '/c3.php' ) ) {
+	include_once __DIR__ . '/c3.php';
 }
 
-require __DIR__ . "/lib/wp-settings-api.php";
+require __DIR__ . '/lib/wp-settings-api.php';
 
 /**
  * The one true WPGatsby class
  */
-final class WPGatsby
-{
+final class WPGatsby {
 
-    /**
-     * Instance of the main WPGatsby class
-     *
-     * @var WPGatsby $instance
-     */
-    private static $instance;
 
-    /**
-     * Returns instance of the main WPGatsby class
-     *
-     * @return WPGatsby
-     * @throws Exception
-     */
-    public static function instance()
-    {
-        if (! isset(self::$instance) && ! ( self::$instance instanceof WPGatsby ) ) {
-            self::$instance = new WPGatsby();
-            self::$instance->setup_constants();
-            self::$instance->includes();
-            self::$instance->init();
-        }
+	/**
+	 * Instance of the main WPGatsby class
+	 *
+	 * @var \WPGatsby $instance
+	 */
+	private static $instance;
 
-        return self::$instance;
-    }
+	/**
+	 * Returns instance of the main WPGatsby class
+	 *
+	 * @return \WPGatsby
+	 * @throws \Exception
+	 */
+	public static function instance() {
+		if ( ! isset( self::$instance ) && ! ( self::$instance instanceof WPGatsby ) ) {
+			self::$instance = new WPGatsby();
+			self::$instance->setup_constants();
+			self::$instance->includes();
+			self::$instance->init();
+		}
 
-    /**
-     * Throw error on object clone.
-     * The whole idea of the singleton design pattern is that there is a single object
-     * therefore, we don't want the object to be cloned.
-     *
-     * @since  0.0.1
-     * @access public
-     * @return void
-     */
-    public function __clone()
-    {
+		return self::$instance;
+	}
 
-        // Cloning instances of the class is forbidden.
-        _doing_it_wrong(__FUNCTION__, esc_html__('The WPGATSBY class should not be cloned.', 'wp-gatsby'), '0.0.1');
+	/**
+	 * Throw error on object clone.
+	 * The whole idea of the singleton design pattern is that there is a single object
+	 * therefore, we don't want the object to be cloned.
+	 *
+	 * @since  0.0.1
+	 * @access public
+	 * @return void
+	 */
+	public function __clone() {
 
-    }
+		// Cloning instances of the class is forbidden.
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'The WPGATSBY class should not be cloned.', 'wp-gatsby' ), '0.0.1' );
 
-    /**
-     * Disable unserializing of the class.
-     *
-     * @since  0.0.1
-     * @access protected
-     * @return void
-     */
-    public function __wakeup()
-    {
+	}
 
-        // De-serializing instances of the class is forbidden.
-        _doing_it_wrong(__FUNCTION__, esc_html__('De-serializing instances of the WPGATSBY class is not allowed', 'wp-gatsby'), '0.0.1');
+	/**
+	 * Disable unserializing of the class.
+	 *
+	 * @since  0.0.1
+	 * @access protected
+	 * @return void
+	 */
+	public function __wakeup() {
 
-    }
+		// De-serializing instances of the class is forbidden.
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'De-serializing instances of the WPGATSBY class is not allowed', 'wp-gatsby' ), '0.0.1' );
 
-    /**
-     * Setup plugin constants.
-     *
-     * @access private
-     * @since  0.0.1
-     * @return void
-     */
-    private function setup_constants()
-    {
-        // Plugin version.
-        if (! defined('WPGATSBY_VERSION') ) {
-            define('WPGATSBY_VERSION', '2.3.3');
-        }
+	}
 
-        // Plugin Folder Path.
-        if (! defined('WPGATSBY_PLUGIN_DIR') ) {
-            define('WPGATSBY_PLUGIN_DIR', plugin_dir_path(__FILE__));
-        }
+	/**
+	 * Setup plugin constants.
+	 *
+	 * @access private
+	 * @since  0.0.1
+	 * @return void
+	 */
+	private function setup_constants() {
+		// Plugin version.
+		if ( ! defined( 'WPGATSBY_VERSION' ) ) {
+			define( 'WPGATSBY_VERSION', '2.3.3' );
+		}
 
-        // Plugin Folder URL.
-        if (! defined('WPGATSBY_PLUGIN_URL') ) {
-            define('WPGATSBY_PLUGIN_URL', plugin_dir_url(__FILE__));
-        }
+		// Plugin Folder Path.
+		if ( ! defined( 'WPGATSBY_PLUGIN_DIR' ) ) {
+			define( 'WPGATSBY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+		}
 
-        // Plugin Root File.
-        if (! defined('WPGATSBY_PLUGIN_FILE') ) {
-            define('WPGATSBY_PLUGIN_FILE', __FILE__);
-        }
+		// Plugin Folder URL.
+		if ( ! defined( 'WPGATSBY_PLUGIN_URL' ) ) {
+			define( 'WPGATSBY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+		}
 
-        // Whether to autoload the files or not.
-        if (! defined('WPGATSBY_AUTOLOAD') ) {
-            define(
-                'WPGATSBY_AUTOLOAD',
-                // only autoload if WPGQL is active
-                defined('WPGRAPHQL_AUTOLOAD') ? true : false
-            );
-        }
+		// Plugin Root File.
+		if ( ! defined( 'WPGATSBY_PLUGIN_FILE' ) ) {
+			define( 'WPGATSBY_PLUGIN_FILE', __FILE__ );
+		}
 
-        // Whether to run the plugin in debug mode. Default is false.
-        if (! defined('WPGATSBY_DEBUG') ) {
-            define('WPGATSBY_DEBUG', false);
-        }
+		// Whether to autoload the files or not.
+		if ( ! defined( 'WPGATSBY_AUTOLOAD' ) ) {
+			define(
+				'WPGATSBY_AUTOLOAD',
+				// only autoload if WPGQL is active
+				defined( 'WPGRAPHQL_AUTOLOAD' ) ? true : false
+			);
+		}
 
-    }
+		// Whether to run the plugin in debug mode. Default is false.
+		if ( ! defined( 'WPGATSBY_DEBUG' ) ) {
+			define( 'WPGATSBY_DEBUG', false );
+		}
 
-    /**
-     * Include required files.
-     * Uses composer's autoload
-     *
-     * @access private
-     * @since  0.0.1
-     * @return void
-     */
-    private function includes()
-    {
+	}
 
-        /**
-         * WPGATSBY_AUTOLOAD can be set to "false" to prevent the autoloader from running.
-         * In most cases, this is not something that should be disabled, but some environments
-         * may bootstrap their dependencies in a global autoloader that will autoload files
-         * before we get to this point, and requiring the autoloader again can trigger fatal errors.
-         *
-         * The codeception tests are an example of an environment where adding the autoloader again causes issues
-         * so this is set to false for tests.
-         */
-        if (defined('WPGATSBY_AUTOLOAD') && true === WPGATSBY_AUTOLOAD ) {
-            // Autoload Required Classes.
-            include_once WPGATSBY_PLUGIN_DIR . 'vendor/autoload.php';
-        }
+	/**
+	 * Include required files.
+	 * Uses composer's autoload
+	 *
+	 * @access private
+	 * @since  0.0.1
+	 * @return void
+	 */
+	private function includes() {
 
-        // Required non-autoloaded classes.
-        include_once WPGATSBY_PLUGIN_DIR . 'access-functions.php';
+		/**
+		 * WPGATSBY_AUTOLOAD can be set to "false" to prevent the autoloader from running.
+		 * In most cases, this is not something that should be disabled, but some environments
+		 * may bootstrap their dependencies in a global autoloader that will autoload files
+		 * before we get to this point, and requiring the autoloader again can trigger fatal errors.
+		 *
+		 * The codeception tests are an example of an environment where adding the autoloader again causes issues
+		 * so this is set to false for tests.
+		 */
+		if ( defined( 'WPGATSBY_AUTOLOAD' ) && true === WPGATSBY_AUTOLOAD ) {
+			// Autoload Required Classes.
+			include_once WPGATSBY_PLUGIN_DIR . 'vendor/autoload.php';
+		}
 
-    }
+		// Required non-autoloaded classes.
+		include_once WPGATSBY_PLUGIN_DIR . 'access-functions.php';
 
-    /**
-     * Initialize plugin functionality
-     */
-    public static function init()
-    {
-        /**
-         * Initialize Admin Settings
-         */
-        new \WPGatsby\Admin\Settings();
+	}
 
-        /**
-         * Initialize Admin Previews
-         */
-        new \WPGatsby\Admin\Preview();
+	/**
+	 * Initialize plugin functionality
+	 */
+	public static function init() {
+		/**
+		 * Initialize Admin Settings
+		 */
+		new \WPGatsby\Admin\Settings();
 
-        /**
-         * Initialize Schema changes
-         */
-        new \WPGatsby\Schema\Schema();
+		/**
+		 * Initialize Admin Previews
+		 */
+		new \WPGatsby\Admin\Preview();
 
-        /**
-         * Register Theme supports
-         */
-        new \WPGatsby\ThemeSupport\ThemeSupport();
+		/**
+		 * Initialize Schema changes
+		 */
+		new \WPGatsby\Schema\Schema();
 
-        /**
-         * Initialize Action Monitor
-         */
-        new \WPGatsby\ActionMonitor\ActionMonitor();
+		/**
+		 * Register Theme supports
+		 */
+		new \WPGatsby\ThemeSupport\ThemeSupport();
 
-        /**
-         * Initialize Auth token parser
-         */
-        new \WPGatsby\GraphQL\ParseAuthToken();
-    }
+		/**
+		 * Initialize Action Monitor
+		 */
+		new \WPGatsby\ActionMonitor\ActionMonitor();
+
+		/**
+		 * Initialize Auth token parser
+		 */
+		new \WPGatsby\GraphQL\ParseAuthToken();
+	}
 }
 
 /**
  * Show admin notice to admins if this plugin is active but WPGraphQL
  * is not active
  */
-function wpgatsby_show_admin_notice()
-{
+function wpgatsby_show_admin_notice() { 
+	/**
+	 * For users with lower capabilities, don't show the notice
+	 */
+	if ( ! current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
 
-    /**
-     * For users with lower capabilities, don't show the notice
-     */
-    if (! current_user_can('activate_plugins') ) {
-        return;
-    }
-
-    add_action(
-        'admin_notices',
-        function () {
-            ?>
-            <div class="error notice">
-                    <p><?php esc_html_e('WPGraphQL must be active for WPGatsby to work.', 'wp-gatsby'); ?> <a target="_blank" href="<?php echo esc_url('https://github.com/wp-graphql/wp-graphql/releases'); ?>">Download the latest release here.</a></p>
-            </div>
-            <?php
-        }
-    );
+	add_action(
+		'admin_notices',
+		function () {
+			?>
+			<div class="error notice">
+					<p><?php esc_html_e( 'WPGraphQL must be active for WPGatsby to work.', 'wp-gatsby' ); ?> <a target="_blank" href="<?php echo esc_url( 'https://github.com/wp-graphql/wp-graphql/releases' ); ?>">Download the latest release here.</a></p>
+			</div>
+			<?php
+		}
+	);
 }
 
-if (! function_exists('gatsby_init') ) {
-    function gatsby_init()
-    {
-        if (! defined('WPGRAPHQL_AUTOLOAD') ) {
-            // Show the admin notice
-            add_action('admin_init', 'wpgatsby_show_admin_notice');
+if ( ! function_exists( 'gatsby_init' ) ) {
+	function gatsby_init() {
+		if ( ! defined( 'WPGRAPHQL_AUTOLOAD' ) ) {
+			// Show the admin notice
+			add_action( 'admin_init', 'wpgatsby_show_admin_notice' );
 
-            // Bail
-            return;
-        }
+			// Bail
+			return;
+		}
 
-        return WPGatsby::instance();
-    }
+		return WPGatsby::instance();
+	}
 }
 
 add_action(
-    'plugins_loaded', function () {
-        gatsby_init();
-    } 
+	'plugins_loaded', function () {
+		gatsby_init();
+	} 
 );
