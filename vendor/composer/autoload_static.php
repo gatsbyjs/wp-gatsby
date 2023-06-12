@@ -54,6 +54,7 @@ class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
     );
 
     public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Composer\\Semver\\Comparator' => __DIR__ . '/..' . '/composer/semver/src/Comparator.php',
         'Composer\\Semver\\Constraint\\AbstractConstraint' => __DIR__ . '/..' . '/composer/semver/src/Constraint/AbstractConstraint.php',
         'Composer\\Semver\\Constraint\\Constraint' => __DIR__ . '/..' . '/composer/semver/src/Constraint/Constraint.php',
@@ -66,6 +67,7 @@ class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
         'Firebase\\JWT\\ExpiredException' => __DIR__ . '/..' . '/firebase/php-jwt/src/ExpiredException.php',
         'Firebase\\JWT\\JWK' => __DIR__ . '/..' . '/firebase/php-jwt/src/JWK.php',
         'Firebase\\JWT\\JWT' => __DIR__ . '/..' . '/firebase/php-jwt/src/JWT.php',
+        'Firebase\\JWT\\Key' => __DIR__ . '/..' . '/firebase/php-jwt/src/Key.php',
         'Firebase\\JWT\\SignatureInvalidException' => __DIR__ . '/..' . '/firebase/php-jwt/src/SignatureInvalidException.php',
         'RandomLib\\AbstractMcryptMixer' => __DIR__ . '/..' . '/ircmaxell/random-lib/lib/RandomLib/AbstractMcryptMixer.php',
         'RandomLib\\AbstractMixer' => __DIR__ . '/..' . '/ircmaxell/random-lib/lib/RandomLib/AbstractMixer.php',
@@ -117,6 +119,7 @@ class ComposerStaticInitd5ba67e9c3910011804380f1fed1cebe
         'WPGatsby\\Schema\\SiteMeta' => __DIR__ . '/../..' . '/src/Schema/SiteMeta.php',
         'WPGatsby\\Schema\\WPGatsbyWPGraphQLSchemaChanges' => __DIR__ . '/../..' . '/src/Schema/WPGatsbyWPGraphQLSchemaChanges.php',
         'WPGatsby\\ThemeSupport\\ThemeSupport' => __DIR__ . '/../..' . '/src/ThemeSupport/ThemeSupport.php',
+        'WPGatsby\\Utils\\Utils' => __DIR__ . '/../..' . '/src/Utils/Utils.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
