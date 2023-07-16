@@ -2,7 +2,7 @@
 
 namespace WPGatsby\GraphQL;
 
-use \Firebase\JWT\JWT;
+use \WPGatsby\Vendor\Firebase\JWT\JWT;
 use \WPGatsby\Admin\Settings;
 
 class ParseAuthToken {

@@ -14,6 +14,23 @@
       "name": "Tyler Barnes"
     }
   ],
+  "extra" : {
+    "strauss" : {
+      "target_directory": "vendor-prefixed",
+      "namespace_prefix": "WPGatsby\\Vendor\\",
+      "classmap_prefix": "WP_Gatsby_Vendor",
+      "constant_prefix": "WPGATSBY_VENDOR",
+      "delete_vendor_files": false,
+      "include_modified_date": false,
+      "packages" : [
+        "firebase/php-jwt",
+        "ircmaxell/random-lib"
+      ],
+      "exclude_from_prefix": {
+        "file_patterns": []
+      }
+    }
+  },
   "autoload": {
     "psr-4": {
       "WPGatsby\\": "src/"
@@ -26,7 +43,11 @@
   },
   "config": {
     "optimize-autoloader": true,
-    "process-timeout": 0
+    "process-timeout": 0,
+    "allow-plugins": {
+      "composer/installers": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   },
   "require": {
     "php": "^7.3||^8.0",
@@ -49,7 +70,8 @@
     "squizlabs/php_codesniffer": "3.5.4",
     "codeception/module-rest": "^1.2",
     "wp-graphql/wp-graphql-testcase": "^1.0",
-    "phpunit/phpunit": "9.4.1"
+    "phpunit/phpunit": "9.4.1",
+    "brianhenryie/strauss": "^0.14.0"
   },
   "scripts": {
     "install-test-env": "bash bin/install-test-env.sh",
@@ -73,6 +95,10 @@
     ],
     "fix-cs": [
       "php ./vendor/bin/phpcbf src"
+    ],
+    "strauss": [
+      "./vendor/bin/strauss",
+      "composer dump-autoload --optimize"
     ]
   },
   "support": {

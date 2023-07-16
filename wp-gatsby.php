@@ -159,7 +159,7 @@ final class WPGatsby
          */
         if (defined('WPGATSBY_AUTOLOAD') && true === WPGATSBY_AUTOLOAD ) {
             // Autoload Required Classes.
-            include_once WPGATSBY_PLUGIN_DIR . 'vendor/autoload.php';
+            include_once WPGATSBY_PLUGIN_DIR . 'vendor-prefixed/autoload.php';
         }
 
         // Required non-autoloaded classes.

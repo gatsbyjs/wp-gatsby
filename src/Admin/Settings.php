@@ -159,7 +159,7 @@ class Settings {
 	}
 
 	private static function generate_secret() {
-		$factory   = new \RandomLib\Factory;
+		$factory   = new \WPGatsby\Vendor\RandomLib\Factory;
 		$generator = $factory->getMediumStrengthGenerator();
 		$secret    = $generator->generateString( 50 );
 
