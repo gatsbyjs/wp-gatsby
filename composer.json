@@ -30,7 +30,7 @@
   },
   "require": {
     "php": "^7.3||^8.0",
-    "firebase/php-jwt": "^5.2",
+    "firebase/php-jwt": "^6.0",
     "ircmaxell/random-lib": "^1.2",
     "composer/semver": "^1.5"
   },
