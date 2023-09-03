@@ -216,7 +216,7 @@ class SiteMeta {
 				'description' => __( 'Information needed by gatsby-source-wordpress.', 'wp-gatsby' ),
 				'fields'      => [
 					'arePrettyPermalinksEnabled' => [
-						'description' => 'Returns wether or not pretty permalinks are enabled.',
+						'description' => 'Returns whether or not pretty permalinks are enabled.',
 						'type'        => 'Boolean',
 					],
 				],
