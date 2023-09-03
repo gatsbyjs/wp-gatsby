@@ -28,12 +28,11 @@ class ParseAuthToken {
 			);
 
 			// we get the ID from a header so we can
-			// process multiple user previews in a 
 			// single Gatsby Preview process.
-			$user_id = $_SERVER['HTTP_WPGATSBYPREVIEWUSER']
-				// if it doesn't exist, try the user from the token
-				?? $decoded_user_id
-				?? null;
+// 			$user_id = $_SERVER['HTTP_WPGATSBYPREVIEWUSER']
+// 				// if it doesn't exist, try the user from the token
+// 				?? $decoded_user_id
+// 				?? null;
 
 			if ( $user_id && $decoded && $jwt_is_for_existing_author ) {
 				wp_set_current_user( $user_id );
