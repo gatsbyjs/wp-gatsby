@@ -58,6 +58,10 @@ class PostMonitor extends Monitor {
 			return;
 		}
 
+        if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+            return;
+        }
+
 		// If the object is not a valid post, ignore it
 		if ( ! is_a( $post, 'WP_Post' ) ) {
 			return;
