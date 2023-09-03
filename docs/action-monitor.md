@@ -53,7 +53,7 @@ an action monitor action to notify Gatsby of the change.
 
 ### Menus
 
-By default, Menus are considered private entities in WordPress. Once they are assinged to a Menu
+By default, Menus are considered private entities in WordPress. Once they are assigned to a Menu
 Location, they become public. WPGatsby tracks activity related to public Menus and Menu Items.
 
 Menus that are not assigned to Nav Menu Locations are not tracked, other than when they transition
@@ -74,7 +74,7 @@ important for Gatsby to know when they change.
 
 WPGatsby tracks when posts are published (made public), and when published posts are edited or
 deleted. Non-published posts are not tracked by WPGatsby. So changes can be made to draft posts, for
-example and WPGatsby won't track that activity.
+example, and WPGatsby won't track that activity.
 
 #### Activity Tracked for Posts
 
@@ -100,7 +100,7 @@ This allows Gatsby to update it's GraphQL Schema to reflect the changes in WPGra
 
 The way WordPress stores settings is a bit of a blackbox. Many different things are stored in the
 options table, so tracking changes to _all_ settings could be problematic. For example, tracking all
-changes to all settings would cause WPGatsby to track transients. A transient changing would cause
+changes to all settings would cause WPGatsby to track transients. A transient change would cause
 Gatsby to fetch data from WordPress again, which could trigger further transient changes, and thus
 could lead to an infinite loop.
 
